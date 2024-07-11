@@ -1,0 +1,30 @@
+[
+    {
+      "title": {
+        "fr": "Administrateur",
+        "en": "Administrator"
+      },
+      "code": "administrator"
+    },
+    {
+      "title": {
+        "fr": "Stockiste",
+        "en": "Stockist"
+      },
+      "code": "stockist"
+    },
+    {
+      "title": {
+        "fr": "Ambassadeur",
+        "en": "Ambassador"
+      },
+      "code": "ambassador"
+    },
+    {
+      "title": {
+        "fr": "Invité",
+        "en": "Guest"
+      },
+      "code": "guest"
+    }
+  ]

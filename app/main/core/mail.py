@@ -1,0 +1,203 @@
+import logging
+from pathlib import Path
+from typing import Any, Dict
+import emails
+from emails.template import JinjaTemplate
+from app.main.core.config import Config
+from app.main.worker import celery
+import requests
+import json
+import uuid
+import os
+from app.main.utils.uploads import upload_file
+from urllib.parse import urlparse
+from urllib.request import urlopen
+
+
+def create_pdf(data, endpoint):
+    headers = {"Content-Type": "application/json"}
+    res = requests.post(Config.GENERATOR_PDF_URL + endpoint, data=json.dumps(data), headers=headers, stream=True)
+    if res.status_code == 200:
+        filename = data["iban"] if "iban" in data else str(uuid.uuid4())
+        file_path = os.path.join(Config.UPLOADED_FILE_DEST, f"{filename}.pdf")
+        with open(file_path, 'wb') as f:
+            f.write(res.content)
+        minio_url, filename = upload_file(file_path, f"{filename}.pdf", "application/pdf")
+        print(minio_url)
+        return {"status": "success", "minio_url": minio_url, "url": file_path, "filename": filename}
+    else:
+        return {"status": "fail", "error": res}
+
+# def create_pdf(data):
+#     headers = {"Content-Type": "application/json"}
+#     res = requests.post(Config.GENERATOR_PDF_URL, data=json.dumps(
+#         data), headers=headers, stream=True)
+
+#     print(res.status_code)
+#     if res.status_code == 200:
+#         filename = str(uuid.uuid4())+"-" + data["reference"] + "-invoice" if "reference" in data else str(uuid.uuid4())+"-invoice"
+#         file_path = os.path.join(Config.UPLOADED_FILE_DEST, f"{filename}.pdf")
+#         with open(file_path, 'wb') as f:
+#             f.write(res.content)
+#         minio_url, filename = upload_file(
+#             file_path, f"{filename}.pdf", "application/pdf")
+#         print(minio_url)
+#         return {"status": "success", "minio_url": minio_url, "file_path": file_path}
+#     else:
+#         print(res.text)
+#         return {"status": "fail", "error": res}
+
+@celery.task(name="send_email")
+def send_email(
+        email_to: str,
+        subject_template: str = "",
+        html_template: str = "",
+        environment: Dict[str, Any] = {},
+        file: Any = []
+) -> None:
+    assert Config.EMAILS_ENABLED, "aucune configuration fournie pour les variables de messagerie"
+    message = emails.Message(
+        subject=JinjaTemplate(subject_template),
+        html=JinjaTemplate(html_template),
+        mail_from=(Config.EMAILS_FROM_NAME, Config.EMAILS_FROM_EMAIL)
+    )
+    for attachment in file:
+        message.attach(data=open(attachment, 'rb'), filename=attachment.split("/")[-1])
+
+    smtp_options = {"host": Config.SMTP_HOST, "port": Config.SMTP_PORT}
+    if Config.SMTP_TLS:
+        smtp_options["tls"] = Config.SMTP_TLS
+    if Config.SMTP_SSL:
+        smtp_options["ssl"] = Config.SMTP_SSL
+    if Config.SMTP_USER:
+        smtp_options["user"] = Config.SMTP_USER
+    if Config.SMTP_PASSWORD:
+        smtp_options["password"] = Config.SMTP_PASSWORD
+    response = message.send(to=email_to, render=environment, smtp=smtp_options)
+    logging.info(f"résultat de l'email envoyé: {response}")
+
+
+
+def send_test_email(email_to: str) -> None:
+    project_name = Config.PROJECT_NAME
+    subject = f"{project_name} - Test email"
+    with open(Path(Config.EMAIL_TEMPLATES_DIR) / "test_email.html") as f:
+        template_str = f.read()
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={"project_name": Config.PROJECT_NAME, "email": email_to},
+    )
+    logging.info(f"new send mail task with id {task.id}")
+    
+
+def send_reset_password_email(email_to: str, code: str, prefered_language: str, name: str) -> None:
+    if str(prefered_language) in ["en", "EN", "en-EN"]:
+        subject = f"SuitsMen Paris | Password reset"
+
+        with open(Path(Config.EMAIL_TEMPLATES_DIR) / "reset_password_en.html") as f:
+            template_str = f.read()
+    else:
+        subject = f"SuitsMen Paris | Réinitialisation de mot de passe"
+
+        with open(Path(Config.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:
+            template_str = f.read()
+
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "code": code,
+            "name": name,
+            "email": email_to
+        },
+    )
+    # logging.info(f"new send mail task with id {task.id}")
+
+@celery.task(name="status_change")
+def status_change(email_to: str, heading: str, name: str, prefered_language: str, message: str) -> None:
+
+    privacy_url = ""
+    term_of_use_url = ""
+
+    if prefered_language in ['en', 'EN', 'en-EN']:
+        subject = f"{heading}"
+        with open(Path(Config.EMAIL_TEMPLATES_DIR) / "status_change_en.html") as f:
+            template_str = f.read()
+
+    else:
+        subject = f"{heading}"
+        with open(Path(Config.EMAIL_TEMPLATES_DIR) / "status_change.html") as f:
+            template_str = f.read()
+
+    environment = {
+       "message" : message,
+       "email" : email_to,
+       "name": name,
+       "privacy_url": privacy_url,
+       "term_of_use_url": term_of_use_url
+    }
+
+    task = send_email(
+        email_to=[email_to],
+        subject_template=subject,
+        html_template=template_str,
+        environment=environment
+    )
+    # logging.info(f"new send mail task with id {task.id}")
+    
+@celery.task(name="make_booking_or_order")
+def make_booking_or_order(email_to: str, heading: str, name: str, prefered_language: str, message: str, invoice_file_path: str = None) -> None:
+
+    privacy_url = ""
+    term_of_use_url = ""
+
+    if prefered_language in ['en', 'EN', 'en-EN']:
+        subject = f"{heading}"
+        with open(Path(Config.EMAIL_TEMPLATES_DIR) / "make_booking_or_order_en.html") as f:
+            template_str = f.read()
+
+    else:
+        subject = f"{heading}"
+        with open(Path(Config.EMAIL_TEMPLATES_DIR) / "make_booking_or_order.html") as f:
+            template_str = f.read()
+
+    environment = {
+       "message" : message,
+       "email" : email_to,
+       "name": name,
+       "privacy_url": privacy_url,
+       "term_of_use_url": term_of_use_url
+    }
+
+    directory = None
+    if invoice_file_path:
+        a = urlparse(invoice_file_path)
+        directory = '{}/uploads/{}'.format(os.getcwd(), os.path.basename(a.path))
+
+        # Download from URL
+        with urlopen(invoice_file_path) as file:
+            content = file.read()
+
+        # Save to file
+        with open(directory, 'wb') as download:
+            download.write(content)
+
+    task = send_email(
+        email_to=[email_to],
+        subject_template=subject,
+        html_template=template_str,
+        environment=environment,
+        attachments=[directory] if directory else None,
+    )
+
+    if invoice_file_path:
+        try:
+            os.remove(directory)
+        except Exception as e:
+            print(str(e))
+            pass
+    # logging.info(f"new send mail task with id {task.id}")
+
