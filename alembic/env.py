@@ -41,7 +41,7 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:6020/bde_micro_creche_dev')
+    return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://postgres:root@localhost:5432/bde_micro_creche_dev')
 
 
 def run_migrations_offline():

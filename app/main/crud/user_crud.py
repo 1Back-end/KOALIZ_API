@@ -18,17 +18,14 @@ from fastapi import HTTPException
 class CRUDUser(CRUDBase[models.User, schemas.UserCreate, schemas.UserUpdate]):
 
     @classmethod
-    def authenticate(cls, db: Session, *, phone_number: str, password: str) -> Union[models.User, None]:
-        db_obj: models.User = db.query(models.User).filter(models.User.full_phone_number == phone_number).first()
+    def authenticate(cls, db: Session, email: str, password: str) -> Union[models.User, None]:
+        db_obj: models.User = db.query(models.User).filter(models.User.email == email).first()
         if not db_obj:
             return None
         if not verify_password(password, db_obj.password_hash):
             return None
         return db_obj
 
-    @classmethod
-    def get_by_phone_number(cls, db: Session, *, phone_number: str) -> Union[models.User, None]:
-        return db.query(models.User).filter(models.User.full_phone_number == phone_number).first()
 
     @classmethod
     def get_by_email(cls, db: Session, *, email: str) -> Union[models.User, None]:
@@ -56,8 +53,8 @@ class CRUDUser(CRUDBase[models.User, schemas.UserCreate, schemas.UserUpdate]):
                 phone_number=obj_in.phone_number,
                 email=obj_in.email,
                 password_hash=get_password_hash(obj_in.password),
-                first_name=obj_in.first_name,
-                last_name=obj_in.last_name,
+                firstname=obj_in.firstname,
+                lastname=obj_in.lastname,
                 status=models.UserStatusType.UNACTIVED,
                 birthday=obj_in.birthday if obj_in.birthday else None,
                 address=obj_in.address if obj_in.address else None,
@@ -78,8 +75,8 @@ class CRUDUser(CRUDBase[models.User, schemas.UserCreate, schemas.UserUpdate]):
         user = db.query(User).filter(User.uuid == obj_in.user_uuid).first()
         if user:
             print("===user====",user)
-            user.first_name = obj_in.first_name if obj_in.first_name else user.first_name
-            user.last_name = obj_in.last_name if obj_in.last_name else user.last_name
+            user.firstname = obj_in.firstname if obj_in.firstname else user.firstname
+            user.lastname = obj_in.lastname if obj_in.lastname else user.lastname
             user.email = obj_in.email if obj_in.email else user.email
 
             user.country = obj_in.country_code if obj_in.country_code else user.country_code

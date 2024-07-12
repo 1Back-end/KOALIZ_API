@@ -1,18 +1,19 @@
 from datetime import datetime, date
 from typing import List, Optional, Any
-from pydantic import BaseModel, ConfigDict, Json
+from pydantic import BaseModel, ConfigDict, EmailStr, Json
 
 from app.main.schemas import DataList
 
 
+class Login(BaseModel):
+    email: EmailStr
+    password: str
+
+
 class UserBase(BaseModel):
-    country_code: str
-    phone_number: str
-    first_name: str
-    last_name: str
-    email: str
-    address: str
-    birthday: Optional[date]
+    email: EmailStr
+    firstname: str
+    lastname: str
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -77,10 +78,9 @@ class UserAuthentication(BaseModel):
 class UserUpdate(BaseModel):
     user_uuid: str
     country_code: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
     email: Optional[str] = None
-    address: Optional[str] = None
     phone_number: Optional[str] = None
     birthday: Optional[date] = None
     storage_uuid: str = None

@@ -1,7 +1,7 @@
 translation = {
     "email-already-used": "Adresse e-mail déjà utilisée",
     "phone_number-already-used": "Numéro de téléphone déjà utilisé",
-    "auth-login-failed": "Numéro de téléphone ou mot de passe incorrect !",
+    "auth-login-failed": "Adresse e-mail ou mot de passe incorrect!",
     "password-invalid": "Le mot de passe doit comporter au moins 8 caractères et 1 caractère spécial [!@#$%^&*()_+={<}>;/?]",
     "user-created-successfully": "Votre compte a été créé avec succès !",
     "user-not-found": "Votre compte n'existe pas !",

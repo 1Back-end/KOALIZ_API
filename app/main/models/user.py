@@ -22,15 +22,13 @@ class User(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True)
 
-    country_code: str = Column(String(5), nullable=False, default="", index=True)
-    phone_number: str = Column(String(20), nullable=False, default="", index=True)
-    full_phone_number: str = Column(String(25), nullable=False, default="", index=True)
-    first_name: str = Column(String(100), nullable=False, default="")
-    last_name: str = Column(String(100), nullable=False, default="")
-    email: str = Column(String(100), nullable=False, default="", index=True)
-    address: str = Column(String(100), nullable=False, default="")
-    birthday: date = Column(DateTime, nullable=True, default=None)
+    email: str = Column(String, nullable=False, default="", index=True)
+    firstname: str = Column(String(100), nullable=False, default="")
+    lastname: str = Column(String(100), nullable=False, default="")
     storage_uuid: str = Column(String(100), nullable=True)
+
+    avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
+    avatar = relationship("Storage", foreign_keys=[avatar_uuid])
 
     otp: str = Column(String(5), nullable=True, default="")
     otp_expired_at: datetime = Column(DateTime, nullable=True, default=None)
@@ -45,7 +43,7 @@ class User(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     def __repr__(self):
-        return '<User: uuid: {} full_phone_number: {}>'.format(self.uuid, self.full_phone_number)
+        return '<User: uuid: {} email: {}>'.format(self.uuid, self.email)
 
 
 @event.listens_for(User, 'before_insert')

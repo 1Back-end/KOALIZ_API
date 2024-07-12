@@ -16,21 +16,16 @@ from app.main.schemas.user import UserProfileResponse
 router = APIRouter(prefix="/auths", tags=["auths"])
 
 
-@router.post("/login", summary="Sign in with phone number and password", response_model=schemas.UserAuthentication)
-async def login_with_phone_number_password(
-        phone_number: str = Body(...),
-        password: str = Body(...),
-        country_code: str = Body(...),
+@router.post("/login/administrator", summary="Sign in with email and password", response_model=schemas.UserAuthentication)
+async def login(
+        input: schemas.Login,
         db: Session = Depends(get_db),
-) -> Any:
+) -> schemas.UserAuthentication:
     """
-    Sign in with phone number and password
+    Sign in with email and password
     """
-    if len(country_code) > 5:
-        raise HTTPException(status_code=400, detail="Phone number cannot be longer than 5 characters")
-
     user = crud.user.authenticate(
-        db, phone_number=f"{country_code}{phone_number}", password=password
+        db, email=input.email, password=input.password
     )
     if not user:
         raise HTTPException(status_code=400, detail=__("auth-login-failed"))
@@ -54,54 +49,7 @@ async def login_with_phone_number_password(
     }
 
 
-@router.post("/register", summary="Create new user account", response_model=schemas.Msg)
-async def register(
-        user: schemas.UserCreate,
-        db: Session = Depends(get_db),
-) -> schemas.Msg:
-    """
-    Create new user account
-    """
-    exist_phone = crud.user.get_by_phone_number(db=db, phone_number=f"{user.country_code}{user.phone_number}")
-    if exist_phone:
-        raise HTTPException(status_code=409, detail=__("phone_number-already-used"))
-
-    exist_email = crud.user.get_by_email(db=db, email=user.email)
-    if exist_email:
-        raise HTTPException(status_code=409, detail=__("email-already-used"))
-
-    correct_password = True  # check_pass(password=user.password)
-    if not correct_password:
-        raise HTTPException(
-            status_code=400,
-            detail=__("password-invalid")
-        )
-
-    crud.user.create(
-        db, obj_in=user
-    )
-    return schemas.Msg(message=__("user-created-successfully"))
-
-
-@router.post("/resend-otp", summary="Resend OTP", response_model=schemas.Msg)
-async def resend_otp(
-        phone_number: str = Body(...),
-        country_code: str = Body(...),
-        db: Session = Depends(get_db),
-) -> schemas.Msg:
-    """
-    Resend OTP
-    """
-    user = crud.user.get_by_phone_number(db=db, phone_number=f"{country_code}{phone_number}")
-    print(f"...........phone number: {user}")
-    if not user:
-        raise HTTPException(status_code=404, detail=__("user-not-found"))
-
-    crud.user.resend_otp(db=db, db_obj=user)
-    return schemas.Msg(message=__("otp-send-success"))
-
-
-@router.post("/validate-account", summary="Verify OTP", response_model=schemas.UserAuthentication)
+@router.post("/validate-account", summary="Verify OTP", response_model=schemas.UserAuthentication, include_in_schema=False)
 async def verify_otp(
         phone_number: str = Body(...),
         otp: str = Body(...),
@@ -142,35 +90,7 @@ async def verify_otp(
     }
 
 
-@router.post("/logout")
-def logout_user(
-        *,
-        db: Session = Depends(get_db),
-        current_user: models.User = Depends(TokenRequired()),
-        request: Request
-) -> Any:
-    """
-        Logout a user
-    """
-
-    user_token = (request.headers["authorization"]).split("Bearer")[1].strip()
-    user_uuid = decode_access_token(user_token)['sub']
-    new_blacklist_token = models.BlacklistToken(
-        uuid=str(uuid.uuid4()),
-        token=str(user_token),
-    )
-    db.add(new_blacklist_token)
-
-
-    device = db.query(models.Device).filter(models.Device.user_uuid == user_uuid).first()
-    if device:
-        db.delete(device)
-    db.commit()
-    db.refresh(new_blacklist_token)
-    return {'message': 'You have logged out successfully!'}
-
-
-@router.post("/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg)
+@router.post("/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg, include_in_schema=False)
 def start_reset_password(
         phone_number: str = Body(...),
         country_code: str = Body(...),
@@ -192,7 +112,7 @@ def start_reset_password(
     return schemas.Msg(message=__("reset-password-started"))
 
 
-@router.post("/check-otp-password", summary="Check OTP password", response_model=schemas.Msg)
+@router.post("/check-otp-password", summary="Check OTP password", response_model=schemas.Msg, include_in_schema=False)
 def check_otp_password(
         phone_number: str = Body(...),
         otp: str = Body(...),
@@ -215,7 +135,7 @@ def check_otp_password(
     return schemas.Msg(message=__("otp-valid"))
 
 
-@router.post("/reset-password", summary="Reset password", response_model=schemas.Msg)
+@router.post("/reset-password", summary="Reset password", response_model=schemas.Msg, include_in_schema=False)
 def reset_password(
         phone_number: str = Body(...),
         otp: str = Body(...),
@@ -249,20 +169,15 @@ def reset_password(
 def get_current_user(
         current_user: models.User = Depends(TokenRequired()),
         db: Session = Depends(get_db),
-) -> models.User:
+) -> schemas.UserProfileResponse:
     """
     Get current user
     """
-    exist_storage = None
-    if current_user.storage_uuid is not None:
-        storage_uuids = [current_user.storage_uuid]
-        current_user = jsonable_encoder(current_user)
 
-        current_user["avatar"] = exist_storage
     return current_user
 
 
-@router.put("/users/profile", response_model=UserProfileResponse)
+@router.put("/users/profile", response_model=UserProfileResponse, include_in_schema=False)
 async def update_user_profile(
         obj_in: schemas.UserUpdate,
         db: Session = Depends(get_db)

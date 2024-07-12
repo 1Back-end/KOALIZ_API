@@ -29,14 +29,14 @@ class ConfigClass(BaseSettings):
 
    # Minio
     MINIO_API_URL: str = get_secret("MINIO_API_URL", "http://localhost:5300/api/v1/storages/file/get/")
-    MINIO_URL: str = get_secret("MINIO_URL", "files.chezbio.com")
-    MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "MlsCK$gSM@pr7gXyFEgQRPAz3QfRtF6jaxJ5HqYifD#tDRQ87E#MMSLTqTdc3hmxlfyBo=")
-    MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "MDe6SMqcANAkflmmfkbRebMyoAEhT9MNdPLhpjR7yX5H3ygyfACPxY5m9EqZfHoskT/4pOht+n1jjogmfDa0kpxfiw==")
+    MINIO_URL: str = get_secret("MINIO_URL", "")
+    MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "")
+    MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "")
     MINIO_BUCKET: str = get_secret("MINIO_BUCKET", "develop")
     MINIO_SECURE: bool = get_secret("MINIO_SECURE", True)
 
     # Sqlalchemy
-    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:6020/bde_micro_creche_dev')
+    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:root@localhost:5432/bde_micro_creche_dev')
     SQLALCHEMY_POOL_SIZE: int = 100
     SQLALCHEMY_MAX_OVERFLOW: int = 0
     SQLALCHEMY_POOL_TIMEOUT: int = 30
