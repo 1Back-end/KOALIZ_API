@@ -24,7 +24,7 @@ class Role(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     def __repr__(self):
-        return '<Role: uuid: {} title_fr: {} title_en: {}>'.format(self.uuid, self.title_fr, self.title_en)
+        return '<Role: uuid: {} title_fr: {} title_en: {} code: {}>'.format(self.uuid, self.title_fr, self.title_en,self.code)
     
 @event.listens_for(Role, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
