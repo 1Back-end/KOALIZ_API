@@ -1,37 +1,31 @@
-from dataclasses import dataclass
-from enum import Enum
+from dataclasses import dataclass   
+from .user import UserStatusType
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, Table, Boolean,types,event
 from datetime import datetime, date
 from sqlalchemy.orm import relationship
 from .db.base_class import Base
 
 
-class UserStatusType(str, Enum):
-    ACTIVED = "ACTIVED"
-    UNACTIVED = "UNACTIVED"
-    DELETED = "DELETED"
-    BLOCKED = "BLOCKED"
 
-
-@dataclass
-class User(Base):
+class Administrator(Base):
     """
-    User model for storing users related details
+     database model for storing Administrator related details
     """
-    __tablename__ = 'users'
+    __tablename__ = 'administrators'
 
-    uuid: str = Column(String, primary_key=True, unique=True)
+    uuid: str = Column(String, primary_key=True, unique=True,index = True)
 
     email: str = Column(String, nullable=False, default="", index=True)
     firstname: str = Column(String(100), nullable=False, default="")
     lastname: str = Column(String(100), nullable=False, default="")
     storage_uuid: str = Column(String(100), nullable=True)
 
+    role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
+    role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
+
+
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid])
-
-    role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False)
-    role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
 
     otp: str = Column(String(5), nullable=True, default="")
     otp_expired_at: datetime = Column(DateTime, nullable=True, default=None)
@@ -46,42 +40,18 @@ class User(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     def __repr__(self):
-        return '<User: uuid: {} email: {}>'.format(self.uuid, self.email)
+        return '<Administrator: uuid: {} email: {}>'.format(self.uuid, self.email)
 
 
-@event.listens_for(User, 'before_insert')
+@event.listens_for(Administrator, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
     target.date_modified = datetime.now()
 
 
-@event.listens_for(User, 'before_update')
+@event.listens_for(Administrator, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
 
-
-@dataclass
-class Device(Base):
-    __tablename__ = 'devices'
-
-    id = Column(Integer, primary_key=True)
-    player_id = Column(String, default="", nullable=True)
-    user_uuid = Column(String)
-
-    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
-    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
-
-
-@event.listens_for(Device, 'before_insert')
-def update_created_modified_on_create_listener(mapper, connection, target):
-    """ Event listener that runs before a record is added, and sets the create/modified field accordingly."""
-    target.date_added = datetime.now()
-    target.date_modified = datetime.now()
-
-
-@event.listens_for(Device, 'before_update')
-def update_modified_on_update_listener(mapper, connection, target):
-    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
-    target.date_modified = datetime.now()
