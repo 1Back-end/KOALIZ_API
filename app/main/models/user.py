@@ -25,7 +25,6 @@ class User(Base):
     email: str = Column(String, nullable=False, default="", index=True)
     firstname: str = Column(String(100), nullable=False, default="")
     lastname: str = Column(String(100), nullable=False, default="")
-    storage_uuid: str = Column(String(100), nullable=True)
 
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid])

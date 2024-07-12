@@ -18,7 +18,6 @@ class Administrator(Base):
     email: str = Column(String, nullable=False, default="", index=True)
     firstname: str = Column(String(100), nullable=False, default="")
     lastname: str = Column(String(100), nullable=False, default="")
-    storage_uuid: str = Column(String(100), nullable=True)
 
     role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
     role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
