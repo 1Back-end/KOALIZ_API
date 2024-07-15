@@ -1,4 +1,6 @@
 import os
+
+from pydantic import EmailStr
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -56,7 +58,24 @@ class ConfigClass(BaseSettings):
 
     LOCAL: bool = os.getenv("LOCAL", True)
 
+    SMTP_TLS: bool = get_secret("SMTP_TLS", False)
+    SMTP_SSL: bool = get_secret("SMTP_SSL", False)
+    SMTP_PORT: Optional[int] = int(get_secret("SMTP_PORT", 1025))
+    SMTP_HOST: Optional[str] = get_secret("SMTP_HOST", "localhost")
+    SMTP_USER: Optional[str] = get_secret("SMTP_USER", "")
+    SMTP_PASSWORD: Optional[str] = get_secret("SMTP_PASSWORD", "")
+    EMAILS_FROM_EMAIL: Optional[EmailStr] = get_secret("EMAILS_FROM_EMAIL", "liditieng@gmail.com")
+    EMAILS_FROM_NAME: Optional[str] = get_secret("EMAILS_FROM_NAME", "BDE-CRECHE")
+
+    EMAIL_TEMPLATES_DIR: str = "{}/app/main/templates/emails/render".format(os.getcwd())
+    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = int(get_secret("EMAIL_RESET_TOKEN_EXPIRE_HOURS", 48))
+    EMAILS_ENABLED: bool = get_secret("EMAILS_ENABLED", True) in ["True", True]
+
+    CELERY_BROKER_URL: str = get_secret("CELERY_BROKER_URL", "redis://localhost:6379/0")
+    CELERY_RESULT_BACKEND: str = get_secret("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+
     class Config:
         case_sensitive = True
+
 
 Config = ConfigClass()

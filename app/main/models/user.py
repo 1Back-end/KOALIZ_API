@@ -29,7 +29,7 @@ class User(Base):
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid])
 
-    role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False)
+    role_uuid: str = Column(String, ForeignKey('roles.uuid'), nullable=False)
     role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
 
     otp: str = Column(String(5), nullable=True, default="")
@@ -59,6 +59,25 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
+
+
+class UserActionValidation(Base):
+    __tablename__ = 'user_action_validations'
+
+    uuid: str = Column(String, primary_key=True)
+
+    user_uuid: str = Column(String, ForeignKey('users.uuid'), nullable=True)
+    code: str = Column(String, unique=False, nullable=True)
+    expired_date: any = Column(DateTime, default=datetime.now())
+    value: str = Column(String, default="", nullable=True)
+
+    date_added: any = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(UserActionValidation, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
 
 
 @dataclass

@@ -10,6 +10,16 @@ class Login(BaseModel):
     password: str
 
 
+class ResetPasswordStep1(BaseModel):
+    email: EmailStr
+    new_password: str
+
+
+class ResetPasswordStep2(BaseModel):
+    email: EmailStr
+    otp: str
+
+
 class UserBase(BaseModel):
     email: EmailStr
     firstname: str
@@ -61,18 +71,6 @@ class UserUpdate(UserBase):
 
 class UserList(DataList):
     data: List[User] = []
-
-
-class Token(BaseModel):
-    access_token: Optional[str] = None
-    token_type: Optional[str] = None
-    model_config = ConfigDict(from_attributes=True)
-
-
-class UserAuthentication(BaseModel):
-    user: User
-    token: Optional[Token] = None
-    model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdate(BaseModel):

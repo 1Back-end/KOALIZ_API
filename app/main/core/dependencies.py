@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Request, HTTPException, BackgroundTasks
 
-from app.main import schemas, models, crud
+from app.main import models, crud
 from app.main.core.i18n import __
 from app.main.core.security import decode_access_token
 
@@ -14,17 +14,40 @@ def get_db(request: Request) -> Generator:
     return request.state.db
 
 
+class AuthUtils():
+    @staticmethod
+    def verify_role(roles, user) -> bool:
+        has_a_required_role = False
+        if user.role_uuid:
+            if isinstance(roles, str):
+                if roles.lower() == user.role.code.lower():
+                    has_a_required_role = True
+            else:
+                for role in roles:
+                    if role.lower() == user.role.code.lower():
+                        has_a_required_role = True
+                        break
+        return has_a_required_role
+
+
 class TokenRequired(HTTPBearer):
 
     def __init__(self, token: Optional[str] = Query(None), roles=None, auto_error: bool = True):
         if roles is None:
             roles = []
+        elif isinstance(roles, str):
+            roles = [roles]
         self.roles = roles
         self.token = token
         super(TokenRequired, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request, db: Session = Depends(get_db)):
         required_roles = self.roles
+        code_groups = []
+        for required_role in required_roles:
+            code_group = crud.role.get_by_code(db=db, code=required_role)
+            if code_group:
+                code_groups.append(code_group.group)
         credentials: HTTPAuthorizationCredentials = await super(TokenRequired, self).__call__(request)
 
         if not credentials and self.token:
@@ -40,15 +63,25 @@ class TokenRequired(HTTPBearer):
             if models.BlacklistToken.check_blacklist(db, credentials.credentials):
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
-            current_user = crud.user.get_by_uuid(db=db, uuid=token_data["sub"])
+            current_user = None
+            if code_groups:
+                if "administrators" in code_groups:
+                    current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
+                else:
+                    current_user = crud.user.get_by_uuid(db=db, uuid=token_data["sub"])
+
+            else:
+                current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
+                if not current_user:
+                    current_user = crud.user.get_by_uuid(db=db, uuid=token_data["sub"])
+
             if not current_user:
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
-            """
             if required_roles:
-                if current_user.role_uuid not in required_roles:
-                    raise HTTPException(status_code=403, detail=__("dependencies-access-unauthorized"))
-            """
+                if not AuthUtils.verify_role(roles=required_roles, user=current_user):
+                    raise HTTPException(status_code=403,
+                                        detail=__("dependencies-access-unauthorized"))
 
             return current_user
         else:
