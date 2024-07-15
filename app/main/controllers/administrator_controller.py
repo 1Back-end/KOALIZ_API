@@ -13,7 +13,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorCreate,
-    current_user:models.User = Depends(TokenRequired(roles =["administrateur"] ))
+    current_user:models.User = Depends(TokenRequired(roles =["administrateur"]))
 ):
     """
     Create new administrator
@@ -83,7 +83,7 @@ def delete(
     if not admin:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
 
-    crud.administrator.delete(db, uuid)
+    crud.administrator.soft_delete(db, uuid)
     return {"message": __("user-deleted")}
 
 @router.get("/", response_model=None)
@@ -93,6 +93,8 @@ def get(
     page: int = 1,
     per_page: int = 30,
     order:str = Query(None, enum =["ASC","DESC"]),
+    user_uuid:Optional[str] = None,
+    status: str = Query(None, enum =["ACTIVED","UNACTIVED"])
     # order_filed: Optional[str] = None
     # current_user: models.User = Depends(TokenRequired(roles =["Administrator","Administrateur"] ))
 ):
@@ -104,7 +106,9 @@ def get(
         db, 
         page, 
         per_page, 
-        order, 
+        order,
+        status,
+        user_uuid,
         # order_filed
     )
     
