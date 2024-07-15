@@ -114,6 +114,7 @@ async def create_user_roles(
                         title_fr=data["title_fr"],
                         title_en=data["title_en"],
                         code=data["code"],
+                        group = data["group"],
                         description=data["description"],
                         uuid=data["uuid"]
                     )

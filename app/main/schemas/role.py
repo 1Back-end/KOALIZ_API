@@ -9,6 +9,7 @@ class RoleBase(BaseModel):
     title_en: str
     code:str
     description: Optional[str] = None
+    group:str
 
 
 class RoleCreate(RoleBase):
@@ -19,6 +20,7 @@ class RoleUpdate(RoleBase):
     title_fr: Optional[str] = None
     title_en: Optional[str] = None
     code :Optional[str] = None
+    group: Optional[str] = None
     description: Optional[str] = None
 
 class RoleInDB(RoleBase):

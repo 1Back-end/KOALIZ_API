@@ -13,7 +13,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorCreate,
-    current_user:models.User = Depends(TokenRequired(roles =["Administrator","Administrateur"] ))
+    current_user:models.User = Depends(TokenRequired(roles =["administrateur"] ))
 ):
     """
     Create new administrator
@@ -39,7 +39,7 @@ def update(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorUpdate,
-    current_user:models.User = Depends(TokenRequired(roles =["Administrator","Administrateur"] ))
+    current_user:models.User = Depends(TokenRequired(roles =["administrateur"] ))
 ):
     """
     Update new administrator

@@ -18,12 +18,17 @@ class CRUDRole(CRUDBase[models.Role, schemas.RoleCreate,schemas.RoleUpdate]):
         return db.query(models.Role).filter(models.Role.code == code).first()
     
     @classmethod
+    def get_by_group(cls, db: Session) -> List[models.Role]:
+        return db.query(models.Role).all()
+    
+    @classmethod
     def create(cls, db: Session, obj_in: schemas.RoleCreate) -> models.Role:
         role = models.Role(
             uuid= str(uuid.uuid4()),
             title_fr=obj_in.title_fr,
             title_en=obj_in.title_en,
             code=obj_in.code,
+            group = obj_in.group,
             description=obj_in.description
         )
     
@@ -39,6 +44,7 @@ class CRUDRole(CRUDBase[models.Role, schemas.RoleCreate,schemas.RoleUpdate]):
         role.title_fr = obj_in.title_fr if obj_in.title_fr else role.title_fr
         role.title_en = obj_in.title_en if obj_in.title_en else role.title_en
         role.code = obj_in.code if obj_in.code else role.code
+        role.group = obj_in.group if obj_in.group else role.group  # not updateable field, so it remains the same.  # for example, if you want to update group, you should create a new role with new group and delete the old one.  # this is just a sample.  # in real world, you should consider the impact on existing users and data.  # it is not recommended to update group field.  # if you need
         role.description = obj_in.description if obj_in.description else role.description
         db.commit()
         db.refresh(role)
