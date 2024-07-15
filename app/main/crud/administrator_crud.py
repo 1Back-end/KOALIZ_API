@@ -7,7 +7,7 @@ from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models
 import uuid
-from app.main.core.security import get_password_hash, verify_password
+from app.main.core.security import get_password_hash, verify_password,generate_code
 
 
 class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCreate,schemas.AdministratorUpdate]):
@@ -20,12 +20,13 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
     
     @classmethod
     def create(cls, db: Session, obj_in: schemas.AdministratorCreate) -> models.Administrator:
+        password:str = generate_code(length=8,end=True)
         administrator = models.Administrator(
             uuid= str(uuid.uuid4()),
             firstname = obj_in.firstname,
             lastname = obj_in.lastname,
             email = obj_in.email,
-            password_hash = get_password_hash(obj_in.password),
+            password_hash = get_password_hash(password),
             role_uuid = obj_in.role_uuid if obj_in.role_uuid else None,
             avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else None,
         )
@@ -54,6 +55,12 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         db.commit()
     
     @classmethod
+    def soft_delete(cls,db:Session, uuid) -> models.Administrator:
+        administrator = cls.get_by_uuid(db, uuid)
+        administrator.status = models.UserStatusType.DELETED
+        db.commit()
+    
+    @classmethod
     def get_by_email(cls,db:Session,email:EmailStr) -> models.Administrator:
         return db.query(models.Administrator).filter(models.Administrator.email == email).first()
     
@@ -64,6 +71,8 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         page:int = 1,
         per_page:int = 30,
         order:Optional[str] = None,
+        status:Optional[str] = None,
+        user_uuid:Optional[str] = None
         # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Administrator).options(joinedload(models.Administrator.role))
@@ -71,12 +80,20 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         # if order_filed:
         #     record_query = record_query.order_by(getattr(models.Administrator, order_filed))
 
+        record_query = record_query.filter(models.Administrator.status.not_in(["DELETED","BLOCKED"]))
+        
+        if status:
+            record_query = record_query.filter(models.Administrator.status == status)
+        
         if order and order.lower() == "asc":
             record_query = record_query.order_by(models.Administrator.date_added.asc())
         
         elif order and order.lower() == "desc":
             record_query = record_query.order_by(models.Administrator.date_added.desc())
-        
+
+        if user_uuid:
+            record_query = record_query.filter(models.Administrator.uuid == user_uuid)
+
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 

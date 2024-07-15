@@ -35,7 +35,7 @@ class AdministratorBase(BaseModel):
 
 class AdministratorCreate(AdministratorBase):
     avatar_uuid:Optional[str] = None
-    password:str
+    # password:str
 
 class AdministratorUpdate(AdministratorBase):
     uuid:str
@@ -51,6 +51,7 @@ class AdministratorDelete(BaseModel):
 
 class AdministratorResponse(AdministratorBase):
     uuid:str
+    status:str
     avatar : Optional[Avatar] = None
     role: Roleslim
     date_added: Any
