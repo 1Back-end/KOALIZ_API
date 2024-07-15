@@ -115,6 +115,7 @@ def send_reset_password_email(email_to: str, name: str, token: str, valid_minute
     with open(Path(template_path) / "reset_password.html") as f:
         template_str = f.read()
 
+    print("=====================================")
     task = send_email(
         email_to=email_to,
         subject_template=subject,
@@ -128,5 +129,6 @@ def send_reset_password_email(email_to: str, name: str, token: str, valid_minute
             "code": token,
         },
     )
+    print("----------------------------------------")
     logging.info(f"new send mail task with id {task}")
 

@@ -17,7 +17,7 @@
     },
     {
         "uuid": "9e950a59-9b9b-4051-8d7b-9c63750aaf19",
-        "email": "john@doe.com",
+        "email": "liditieng@gmail.com",
         "firstname": "john",
         "lastname": "doe",
         "role_uuid": "4f6771b1-87f9-4fb8-9bfd-8edc7d3672da",
@@ -26,7 +26,7 @@
         "otp_expired_at": null,
         "otp_password": null,
         "otp_password_expired_at": null,
-        "password_hash": "$2b$12$6/SGIsTJmWp67ZmsNE8GFenHaua.Dt3qrjjlarRgD5x7540/2JiXO",
+        "password_hash": "$2b$12$glvqwbXgdFSbU5BA.07b.u8TKLplbjuR2Yr5xIjEZmOUSN7wYlZxS",
         "status": "ACTIVED",
         "date_added": "2024-07-15 05:03:15.019776",
         "date_modified": "2024-07-15 05:20:52.376042"

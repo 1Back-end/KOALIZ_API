@@ -20,6 +20,15 @@ class CRUDRole(CRUDBase[models.Role, schemas.RoleCreate,schemas.RoleUpdate]):
     @classmethod
     def get_by_group(cls, db: Session,group:str) -> List[models.Role]:
         return db.query(models.Role).filter(models.Role.group == group).all()
+
+    @classmethod
+    def get_groups(cls, db: Session) -> List[str]:
+        datas = db.query(models.Role.group).all()
+        groups = []
+        for data in datas:
+            groups.append(data.group)
+            
+        return groups
     
     @classmethod
     def create(cls, db: Session, obj_in: schemas.RoleCreate) -> models.Role:

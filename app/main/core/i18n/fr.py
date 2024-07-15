@@ -19,6 +19,9 @@ translation = {
     "avatar-not-found": "Avatar non trouvé",
     "user-deleted": "Utilisateur supprimé avec succès",
     "user-not-active":"L'utilisateur n'est pas actif.",
+    "user-email-not-found": "Aucun utilisateur trouvé avec cet e-mail.",
+    "validation-code-not-found": "Code de validation expiré ou invalide",
+    "password-reset-successfully": "Mot de passe mis à jour avec succès",
 
     "mail-subject-reset-password": "Récupération de mot de passe pour l'utilisateur",
 }

@@ -1,6 +1,9 @@
 from typing import Optional,Any
 from pydantic import BaseModel,ConfigDict,EmailStr
-import datetime
+from datetime import datetime
+
+from app.main.schemas import UserAuthentication
+
 
 class Avatar(BaseModel):
     uuid:str
@@ -65,6 +68,18 @@ class AdministratorResponseList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class Administrator(BaseModel):
+    uuid: Optional[str] = None
+    email: EmailStr
+    firstname: str
+    lastname: str
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
+class AdministratorAuthentication(UserAuthentication):
+    user: Administrator
 
+    model_config = ConfigDict(from_attributes=True)

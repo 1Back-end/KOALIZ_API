@@ -54,3 +54,21 @@ def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
 
+
+class AdminActionValidation(Base):
+    __tablename__ = 'admin_action_validations'
+
+    uuid: str = Column(String, primary_key=True)
+
+    user_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
+    code: str = Column(String, unique=False, nullable=True)
+    expired_date: any = Column(DateTime, default=datetime.now())
+    value: str = Column(String, default="", nullable=True)
+
+    date_added: any = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(AdminActionValidation, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()

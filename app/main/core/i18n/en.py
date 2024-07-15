@@ -10,6 +10,10 @@ translation = {
     "user-deleted": "user have been deleted successfully.",
     "user-not-active":"Not active user.",
 
+    "user-email-not-found": "No users found with this e-mail.",
+    "validation-code-not-found": "Validation code expired or invalid",
+    "password-reset-successfully": "Password successfully updated",
+
     "mail-subject-reset-password": "Password recovery for the user",
 
 }

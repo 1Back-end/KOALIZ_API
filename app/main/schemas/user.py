@@ -13,7 +13,11 @@ class Login(BaseModel):
 class ResetPasswordStep1(BaseModel):
     email: EmailStr
     new_password: str
-    role_group: str
+
+
+class ResetPasswordStep2(BaseModel):
+    email: EmailStr
+    otp: str
 
 
 class UserBase(BaseModel):
@@ -67,18 +71,6 @@ class UserUpdate(UserBase):
 
 class UserList(DataList):
     data: List[User] = []
-
-
-class Token(BaseModel):
-    access_token: Optional[str] = None
-    token_type: Optional[str] = None
-    model_config = ConfigDict(from_attributes=True)
-
-
-class UserAuthentication(BaseModel):
-    user: User
-    token: Optional[Token] = None
-    model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdate(BaseModel):

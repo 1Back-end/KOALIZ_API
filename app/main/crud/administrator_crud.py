@@ -7,7 +7,7 @@ from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models
 import uuid
-from app.main.core.security import get_password_hash
+from app.main.core.security import get_password_hash, verify_password
 
 
 class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCreate,schemas.AdministratorUpdate]):
@@ -89,12 +89,11 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         )
 
 
-
     @classmethod
-    def authenticate(cls, db: Session, email: str, password: str, role_group: str) -> Optional[models.User]:
-        db_obj: models.User = db.query(models.Administrator).filter(
-            models.User.email == email,
-            models.User.role.has(models.Role.group == role_group)
+    def authenticate(cls, db: Session, email: str, password: str, role_group: str) -> Optional[models.Administrator]:
+        db_obj: models.Administrator = db.query(models.Administrator).filter(
+            models.Administrator.email == email,
+            models.Administrator.role.has(models.Role.group == role_group)
         ).first()
         if not db_obj:
             return None
@@ -102,6 +101,9 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
             return None
         return db_obj
 
+
+    def is_active(self, user: models.Administrator) -> bool:
+        return user.status == models.UserStatusType.ACTIVED
     
 administrator = CRUDAdministrator(models.Administrator)
 
