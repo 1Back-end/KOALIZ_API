@@ -1,30 +1,66 @@
 [
     {
-      "title": {
-        "fr": "Administrateur",
-        "en": "Administrator"
-      },
+      "uuid":"4f6771b1-87f9-4fb8-9bfd-8edc7d3672da",
+      "title_en": "Administrator",
+      "title_fr": "Administrateur",
+      "description": "",
       "code": "administrator"
     },
     {
-      "title": {
-        "fr": "Stockiste",
-        "en": "Stockist"
-      },
-      "code": "stockist"
+      "uuid":"5f6771b1-87f9-4fb8-9bfd-8edc7d3672db",
+      "title_en": "Propriétaire",
+      "title_fr": "Propriétaire",
+      "description": "",
+      "code": "proprietary"
+
     },
     {
-      "title": {
-        "fr": "Ambassadeur",
-        "en": "Ambassador"
-      },
-      "code": "ambassador"
+      "uuid":"6f6771b1-87f9-4fb8-9bfd-8edc7d3672dc",
+      "title_en": "Parent",
+      "title_fr": "Parent",
+      "description": "",
+      "code": "parent"
     },
     {
-      "title": {
-        "fr": "Invité",
-        "en": "Guest"
-      },
-      "code": "guest"
+      "uuid":"7f6771b1-87f9-4fb8-9bfd-8edc7d3672dd",
+      "title_fr": "Support",
+      "title_en": "Support",
+      "description": "",
+      "code": "support"
+    },
+    {
+      "uuid":"8f6771b1-87f9-4fb8-9bfd-8edc7d3673dd",
+      "title_fr": "Developpeur",
+      "title_en": "Developer",
+      "description": "",
+      "code": "developer"
+    },
+    {
+      "uuid":"9f6771b1-87f9-4fb8-9bfd-8edc7d3672de",
+      "title_en": "Manager",
+      "title_fr": "Gestionnaire",
+      "description": "",
+      "code": "manager"
+    },
+    {
+      "uuid":"0f6771b1-87f9-4fb8-9bfd-8edc7d3672df",
+      "title_fr": "Departement RH",
+      "title_en": "HR DEPARTMENT",
+      "description": "",
+      "code": "hr department"
+    },
+    {
+      "uuid":"f61771b1-87f9-4fb8-9bfd-8edc7d3672dg",
+      "title_fr": "Utilisateur restreint",
+      "title_en":"Restricted user",
+      "description": "",
+      "code": "restricted user"
+    },
+    {
+      "uuid":"f63771b1-87f9-4fb8-9bfd-8edc7d3672dh",
+      "title_fr": "Client",
+      "title_en": "Customer",
+      "description": "",
+      "code": "customer"
     }
   ]

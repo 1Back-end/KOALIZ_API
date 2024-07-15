@@ -16,7 +16,7 @@ class Role(Base):
     __tablename__ = 'roles'
 
     uuid: str = Column(String, primary_key=True, unique=True,index = True)
-    code: str = Column(String(10), unique=True,index = True)
+    code: str = Column(String(30), unique=True,index = True)
     title_fr: str = Column(String(100), unique=True, index=True)
     title_en: str = Column(String(100), unique=True, index=True)
     description: str = Column(Text)
