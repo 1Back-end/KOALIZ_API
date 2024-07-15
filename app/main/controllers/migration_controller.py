@@ -4,7 +4,7 @@ import shutil
 import platform
 from dataclasses import dataclass
 from typing import Any
-
+from app.main import crud
 from fastapi import APIRouter, Body, Depends, HTTPException
 from psycopg2 import IntegrityError
 from sqlalchemy.orm import Session
@@ -15,6 +15,7 @@ from app.main.core import dependencies
 from app.main.models.db.base_class import Base
 from app.main.utils import logger
 from app.main import models,crud
+from app.main.core.i18n import __
 
 router = APIRouter(prefix="/migrations", tags=["migrations"])
 
@@ -89,3 +90,103 @@ async def create_database_tables(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/create-user-roles", response_model=schemas.Msg, status_code=201)
+async def create_user_roles(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create user roles.
+    """
+    check_user_access_key(admin_key)
+    
+    try:
+        with open('{}/app/main/templates/default_data/roles.json'.format(os.getcwd()), encoding='utf-8') as f:        
+            datas = json.load(f)
+        
+            for data in datas:
+                user_role = crud.role.get_by_uuid(db=db, uuid=data["uuid"])
+                if user_role:
+                    crud.role.update(db,schemas.RoleUpdate(**data))
+                else:
+                    user_role = models.Role(
+                        title_fr=data["title_fr"],
+                        title_en=data["title_en"],
+                        code=data["code"],
+                        description=data["description"],
+                        uuid=data["uuid"]
+                    )
+                    db.add(user_role)
+                    db.commit()
+        return {"message": "Les rôles ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("user-role-conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/create-admin-users", response_model=schemas.Msg, status_code=201)
+async def create_admin_users(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create user roles.
+    """
+    check_user_access_key(admin_key)
+    
+    try:
+        with open('{}/app/main/templates/default_data/administrator.json'.format(os.getcwd()), encoding='utf-8') as f:        
+            datas = json.load(f)
+        
+            for data in datas:
+                db_obj = crud.administrator.get_by_uuid(db=db, uuid=data["uuid"])
+                if db_obj:
+                    crud.administrator.update(db,schemas.AdministratorUpdate(
+                        uuid = data['uuid'],
+                        firstname = data['firstname'],
+                        lastname = data['lastname'],
+                        email =data['email'],
+                        role_uuid = data['role_uuid'],
+                        avatar_uuid =data['avatar_uuid'],
+                        otp = data['otp'],
+                        otp_expired_at = data['otp_expired_at'],
+                        otp_password =data['otp_password'],
+                        otp_password_expired_at =data['otp_password_expired_at'],
+                        password_hash =data['password_hash'],
+                        status= data['status'],
+                        date_added = data['date_added'],
+                        date_modified = data['date_modified']
+                    )
+                    )
+                else:
+                    # crud.administrator.create(db,schemas.AdministratorCreate(**data))
+                    db_obj = models.Administrator(
+                        uuid = data["uuid"],
+                        firstname = data["firstname"],
+                        lastname = data["lastname"],
+                        email =data['email'],
+                        role_uuid = data["role_uuid"],
+                        avatar_uuid =data["avatar_uuid"],
+                        otp = data["otp"],
+                        otp_expired_at =data["otp_expired_at"],
+                        otp_password =data["otp_password"],
+                        otp_password_expired_at = data["otp_password_expired_at"],
+                        password_hash = data["password_hash"],
+                        status= data["status"],
+                        date_added = data["date_added"],
+                        date_modified = data["date_modified"]
+                    )
+                    db.add(db_obj)
+                    db.commit()
+        return {"message": "Les administrateurs ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("admin-role-conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
