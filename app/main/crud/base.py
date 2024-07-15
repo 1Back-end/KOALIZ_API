@@ -33,7 +33,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         total = db.query(self.model).count()
         result = db.query(self.model).offset((page - 1) * per_page).limit(per_page).all()
         return schemas.DataList(
-            total=total,
+            total=total,    
             pages=math.ceil(total / per_page),
             current_page=page,
             per_page=per_page,

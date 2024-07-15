@@ -14,5 +14,10 @@ translation = {
     "send-message-text": "Votre code de validation de votre compte Epura est le suivant :\n",
     "device-add-success": "Appareil ajouté avec succès !",
     "device-deleted-success": "Appareil supprimé avec succès",
+    "user-email-taken":"Cet email est déja utilisé par un autre utilsateur,veuillez changer d'addresse et réessayez à nouveau.",
+    "role-not-found": "Rôle non trouvé",
+    "avatar-not-found": "Avatar non trouvé",
+    "user-deleted": "Utilisateur supprimé avec succès",
+    "user-not-active":"L'utilisateur n'est pas actif."
 }
 
