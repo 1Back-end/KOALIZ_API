@@ -14,5 +14,7 @@ translation = {
     "send-message-text": "Votre code de validation de votre compte Epura est le suivant :\n",
     "device-add-success": "Appareil ajouté avec succès !",
     "device-deleted-success": "Appareil supprimé avec succès",
+
+    "mail-subject-reset-password": "Récupération de mot de passe pour l'utilisateur",
 }
 

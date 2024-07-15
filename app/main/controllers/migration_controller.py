@@ -41,7 +41,7 @@ async def create_database_tables(
             __tablename__ = "alembic_version"
             version_num: str = Column(String(32), primary_key=True, unique=True)
 
-        db.query(AlembicVersion).first().delete()
+        db.query(AlembicVersion).delete()
         db.commit()
     except Exception as e:
         pass

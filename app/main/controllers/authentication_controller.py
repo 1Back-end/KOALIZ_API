@@ -9,9 +9,11 @@ from starlette.requests import Request
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
+from app.main.core.mail import send_reset_password_email
 from app.main.core.security import create_access_token, get_password_hash, decode_access_token
 from app.main.core.config import Config
 from app.main.schemas.user import UserProfileResponse
+from app.main.utils.helper import check_pass, generate_randon_key
 
 router = APIRouter(prefix="/auths", tags=["auths"])
 
@@ -25,7 +27,7 @@ async def login(
     Sign in with email and password
     """
     user = crud.user.authenticate(
-        db, email=input.email, password=input.password
+        db, email=input.email, password=input.password, role_group="administrators"
     )
     if not user:
         raise HTTPException(status_code=400, detail=__("auth-login-failed"))
@@ -90,24 +92,45 @@ async def verify_otp(
     }
 
 
-@router.post("/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg, include_in_schema=False)
+@router.post("/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg)
 def start_reset_password(
-        phone_number: str = Body(...),
-        country_code: str = Body(...),
+        input: schemas.ResetPasswordStep1,
         db: Session = Depends(get_db),
 
 ) -> schemas.Msg:
     """
-    Start reset password with phone number
+    Start reset password
     """
-    user = crud.user.get_by_phone_number(db=db, phone_number=f"{country_code}{phone_number}")
+    user = crud.user.get_by_email(db=db, email=input.email)
     if not user:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
 
+    is_valid_password = check_pass(password=input.new_password)
+    if not is_valid_password:
+        raise HTTPException(
+            status_code=400,
+            detail=__("password-invalid")
+        )
+
+    code = generate_randon_key()
+
     user.otp_password = "00000"
     user.otp_password_expired_at = datetime.now() + timedelta(minutes=5)
+
+    user_code = models.UserActionValidation(
+        uuid=str(uuid.uuid4()),
+        code=str(code),
+        user_uuid=user.uuid,
+        value=get_password_hash(input.new_password),
+        expired_date=datetime.now(timedelta(minutes=5))
+    )
+    db.add(user_code)
     db.commit()
     db.refresh(user)
+
+    send_reset_password_email(
+        email_to=user.email, name=user.firstname, token=code, valid_minutes=5
+    )
 
     return schemas.Msg(message=__("reset-password-started"))
 

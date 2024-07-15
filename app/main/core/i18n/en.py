@@ -4,5 +4,7 @@ translation = {
     "send-message-text": "Your validation code for your Epura account is as follows :\n",
     "device-add-success": "Device added successfully !",
     "device-deleted-success": "Device successfully deleted",
+
+    "mail-subject-reset-password": "Password recovery for the user",
 }
 

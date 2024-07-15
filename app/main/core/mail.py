@@ -4,6 +4,7 @@ from typing import Any, Dict
 import emails
 from emails.template import JinjaTemplate
 from app.main.core.config import Config
+from app.main.core.i18n import get_language, __
 from app.main.worker import celery
 import requests
 import json
@@ -97,3 +98,35 @@ def send_reset_password_email(email_to: str, code: str, prefered_language: str, 
         },
     )
     # logging.info(f"new send mail task with id {task.id}")
+
+
+def get_template_path_based_on_lang():
+    lang = get_language()
+    if lang not in ["en", "fr"]:
+        lang = "fr"
+    return f"{Config.EMAIL_TEMPLATES_DIR}/{lang}"
+
+
+def send_reset_password_email(email_to: str, name: str, token: str, valid_minutes: int = None) -> None:
+    project_name = Config.PROJECT_NAME
+    subject = f'{project_name} - {__("mail-subject-reset-password")} {name}'
+
+    template_path = get_template_path_based_on_lang()
+    with open(Path(template_path) / "reset_password.html") as f:
+        template_str = f.read()
+
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": Config.PROJECT_NAME,
+            "name": name,
+            "email": email_to,
+            "valid_hours": Config.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
+            "valid_minutes": valid_minutes,
+            "code": token,
+        },
+    )
+    logging.info(f"new send mail task with id {task}")
+

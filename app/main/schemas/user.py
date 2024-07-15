@@ -10,6 +10,12 @@ class Login(BaseModel):
     password: str
 
 
+class ResetPasswordStep1(BaseModel):
+    email: EmailStr
+    new_password: str
+    role_group: str
+
+
 class UserBase(BaseModel):
     email: EmailStr
     firstname: str

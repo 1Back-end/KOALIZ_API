@@ -18,8 +18,11 @@ from fastapi import HTTPException
 class CRUDUser(CRUDBase[models.User, schemas.UserCreate, schemas.UserUpdate]):
 
     @classmethod
-    def authenticate(cls, db: Session, email: str, password: str) -> Union[models.User, None]:
-        db_obj: models.User = db.query(models.User).filter(models.User.email == email).first()
+    def authenticate(cls, db: Session, email: str, password: str, role_group: str) -> Optional[models.User]:
+        db_obj: models.User = db.query(models.User).filter(
+            models.User.email == email,
+            models.User.role.has(models.Role.group == role_group)
+        ).first()
         if not db_obj:
             return None
         if not verify_password(password, db_obj.password_hash):
@@ -28,8 +31,12 @@ class CRUDUser(CRUDBase[models.User, schemas.UserCreate, schemas.UserUpdate]):
 
 
     @classmethod
-    def get_by_email(cls, db: Session, *, email: str) -> Union[models.User, None]:
-        return db.query(models.User).filter(models.User.email == email).first()
+    def get_by_email(cls, db: Session, *, email: str, role_group: str = None) -> Union[models.User, None]:
+        result = db.query(models.User).filter(models.User.email == email)
+        if role_group:
+            result = result.filter(User.role.has(models.Role.group == role_group))
+        return result.first()
+
 
     @classmethod
     def resend_otp(cls, db: Session, *, db_obj: models.User) -> models.User:
