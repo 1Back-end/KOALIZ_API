@@ -50,9 +50,10 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
         return user
     
     @classmethod
-    def update(cls, db: Session, user: models.Owner, obj_in: schemas.OwnerUpdate) -> models.Administrator:
-        update_data = obj_in.model_dump(exclude_unset=True)
-        return super().update(models.Owner, db, db_obj=user, obj_in=update_data)
+    def update(cls, db: Session, user: models.Owner, obj_in: Union[schemas.OwnerUpdate, dict]) -> models.Administrator:
+        if type(obj_in) != dict:
+            obj_in = obj_in.model_dump(exclude_unset=True)
+        return super().update(models.Owner, db, db_obj=user, obj_in=obj_in)
 
     @classmethod
     def delete(cls, db: Session, uuids: list[str]) -> None:

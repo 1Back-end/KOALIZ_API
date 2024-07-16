@@ -50,6 +50,26 @@ def update(
     return crud.owner.update(db, user, obj_in)
 
 
+@router.put("/{uuid}/status", response_model=schemas.Owner, status_code=201)
+def update(
+        uuid: str,
+        status: str = Query(..., enum=[st.value for st in models.UserStatusType if st.value != models.UserStatusType.DELETED]),
+        db: Session = Depends(get_db),
+        current_user: models.User = Depends(TokenRequired(roles=["administrator"]))
+):
+    """
+    Update nursery owner status
+    """
+    user = crud.owner.get_by_uuid(db, uuid)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    if user.status == status:
+        return user
+
+    return crud.owner.update(db, user, {"status": status})
+
+
 @router.get("/{uuid}", response_model=schemas.Owner, status_code=201)
 def get_details(
         uuid: str,
