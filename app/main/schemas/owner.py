@@ -50,7 +50,7 @@ class OwnerList(DataList):
     model_config = ConfigDict(from_attributes=True)
 
 
-class AdministratorAuthentication(UserAuthentication):
+class OwnerAuthentication(UserAuthentication):
     user: Owner
 
     model_config = ConfigDict(from_attributes=True)

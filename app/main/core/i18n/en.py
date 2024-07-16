@@ -9,16 +9,17 @@ translation = {
     "avatar-not-found": "Avatar not found",
     "user-deleted": "user have been deleted successfully.",
     "user-not-active":"Not active user.",
-
     "user-email-not-found": "No users found with this e-mail.",
     "validation-code-not-found": "Validation code expired or invalid",
     "password-reset-successfully": "Password successfully updated",
-
     "user-not-found": "User does not exist",
     "file-not-found": "File not found",
     "logo-not-found": "Logo not found",
     "signature-not-found": "Signature not found",
     "stamp-not-found": "Stamp not found",
+    "address-creation-failed": "Unable to create address",
+    "nursery-deleted": "Nursery(ies) successfully deleted",
+    "nursery-not-found": "Nursery does not exist",
 
     "mail-subject-reset-password": "Password recovery for the user",
 

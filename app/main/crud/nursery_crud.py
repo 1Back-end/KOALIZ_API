@@ -4,6 +4,8 @@ from typing import Union, Optional, List
 
 from fastapi import HTTPException
 from pydantic import EmailStr
+from sqlalchemy import or_
+
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
@@ -17,34 +19,44 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Nursery]:
         return db.query(models.Nursery).filter(models.Nursery.uuid == uuid)\
-            .filter(models.Nursery.status.notin_([models.UserStatusType.DELETED])).first()
+            .filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED])).first()
 
     @classmethod
-    def get_by_email(cls, db: Session, email: EmailStr) -> models.Nursery:
-        return db.query(models.Nursery).filter(models.Nursery.email == email)\
-            .filter(models.Nursery.status.notin_([models.UserStatusType.DELETED])).first()
-    
-    @classmethod
-    def create(cls, db: Session, obj_in: schemas.NurseryCreate) -> models.Administrator:
-        # logo = crud.storage.get(db=db, uuid=obj_in.logo_uuid)
-        # if not logo:
-        #     raise HTTPException(status_code=404, detail=__("logo-not-found"))
-        # signature = crud.storage.get(db=db, uuid=obj_in.signature_uuid)
-        # if not signature:
-        #     raise HTTPException(status_code=404, detail=__("signature-not-found"))
-        # stamp = crud.storage.get(db=db, uuid=obj_in.signature_uuid)
-        # if not stamp:
-        #     raise HTTPException(status_code=404, detail=__("stamp-not-found"))
+    def create(cls, db: Session, obj_in: schemas.NurseryCreate, current_user_uuid: str) -> models.Administrator:
 
-        # address = crud.address.create(db=db, obj_in=obj_in.address)
+        if obj_in.logo_uuid:
+            logo = crud.storage.get(db=db, uuid=obj_in.logo_uuid)
+            if not logo:
+                raise HTTPException(status_code=404, detail=__("logo-not-found"))
+
+        if obj_in.signature_uuid:
+            signature = crud.storage.get(db=db, uuid=obj_in.signature_uuid)
+            if not signature:
+                raise HTTPException(status_code=404, detail=__("signature-not-found"))
+
+        if obj_in.stamp_uuid:
+            stamp = crud.storage.get(db=db, uuid=obj_in.stamp_uuid)
+            if not stamp:
+                raise HTTPException(status_code=404, detail=__("stamp-not-found"))
+
+        owner = crud.owner.get_by_uuid(db, obj_in.owner_uuid)
+        if not owner:
+            raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+        address = crud.address.create(db=db, obj_in=obj_in.address)
+        if not address:
+            raise HTTPException(status_code=400, detail=__("address-creation-failed"))
 
         nursery = models.Nursery(
             uuid=str(uuid.uuid4()),
             email=obj_in.email,
             name=obj_in.name,
-            logo_uuid=obj_in.logo_uuid,
-            signature_uuid=obj_in.signature_uuid,
-            stamp_uuid=obj_in.stamp_uuid,
+            logo_uuid=obj_in.logo_uuid if obj_in.logo_uuid else None,
+            signature_uuid=obj_in.signature_uuid if obj_in.signature_uuid else None,
+            stamp_uuid=obj_in.stamp_uuid if obj_in.stamp_uuid else None,
+            owner_uuid=obj_in.owner_uuid,
+            address_uuid=address.uuid,
+            added_by_uuid=current_user_uuid,
             total_places=obj_in.total_places,
             phone_number=obj_in.phone_number
         )
@@ -54,69 +66,118 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         return nursery
     
     @classmethod
-    def update(cls, db: Session, obj_in: schemas.AdministratorUpdate) -> models.Administrator:
-        administrator = cls.get_by_uuid(db, obj_in.uuid)
-        administrator.firstname = obj_in.firstname if obj_in.firstname else administrator.firstname
-        administrator.lastname = obj_in.lastname if obj_in.lastname else administrator.lastname
-        administrator.email = obj_in.email if obj_in.email else administrator.email
-        administrator.role_uuid = obj_in.role_uuid if obj_in.role_uuid else administrator.role_uuid
-        administrator.avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else administrator.avatar_uuid
+    def update(cls, db: Session, nursery: models.Nursery, obj_in: schemas.NurseryUpdateBase) -> models.Nursery:
+
+        if obj_in.logo_uuid:
+            logo = crud.storage.get(db=db, uuid=obj_in.logo_uuid)
+            if not logo:
+                raise HTTPException(status_code=404, detail=__("logo-not-found"))
+
+        if obj_in.signature_uuid:
+            signature = crud.storage.get(db=db, uuid=obj_in.signature_uuid)
+            if not signature:
+                raise HTTPException(status_code=404, detail=__("signature-not-found"))
+
+        if obj_in.stamp_uuid:
+            stamp = crud.storage.get(db=db, uuid=obj_in.stamp_uuid)
+            if not stamp:
+                raise HTTPException(status_code=404, detail=__("stamp-not-found"))
+
+        address = None
+        if not nursery.address and obj_in.address:
+            address = crud.address.create(
+                db=db,
+                obj_in=obj_in.address
+            )
+            if not address:
+                raise HTTPException(status_code=400, detail=__("address-creation-failed"))
+        if nursery.address and obj_in.address:
+            crud.address.update(
+                db=db,
+                db_obj=nursery.address,
+                obj_in=obj_in.address
+            )
+        nursery.email = obj_in.email if obj_in.email else nursery.email
+        nursery.name = obj_in.name if obj_in.name else nursery.name
+        nursery.logo_uuid = obj_in.logo_uuid if obj_in.logo_uuid else None
+        nursery.signature_uuid = obj_in.signature_uuid if obj_in.signature_uuid else None
+        nursery.stamp_uuid = obj_in.stamp_uuid if obj_in.stamp_uuid else None
+        nursery.address_uuid = address.uuid if address else nursery.address_uuid
+        nursery.total_places = obj_in.total_places
+        nursery.phone_number = obj_in.phone_number
 
         db.commit()
-        db.refresh(administrator)
-        return administrator
-    
+
+        return nursery
+
     @classmethod
-    def delete(cls, db: Session, uuid) -> None:
-        user = cls.get_by_uuid(db, uuid)
-        if user:
-            user.status = models.UserStatusType.DELETED
+    def update_status(cls, db: Session, nursery: models.Nursery, status: models.NurseryStatusType) -> models.Nursery:
+        nursery.status = status
+        "c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
+        db.commit()
+        return nursery
+
+    @classmethod
+    def delete(cls, db: Session, uuids: list[str]) -> None:
+        uuids = set(uuids)
+        nurseries = cls.get_by_uuids(db, uuids)
+        if len(uuids) != len(nurseries):
+            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+        for nursery in nurseries:
+            nursery.status = models.NurseryStatusType.DELETED
             db.commit()
 
-    
     @classmethod
     def get_multi(
-        cls,
-        db:Session,
-        page:int = 1,
-        per_page:int = 30,
-        order:Optional[str] = None,
-        # order_filed:Optional[str] = None   
+            cls,
+            db: Session,
+            page: int = 1,
+            per_page: int = 30,
+            order: Optional[str] = None,
+            order_filed: Optional[str] = None,
+            keyword: Optional[str] = None,
+            status: Optional[str] = None,
+            total_places: int = None
     ):
-        record_query = db.query(models.Administrator).options(joinedload(models.Administrator.role))
+        record_query = db.query(models.Nursery)
+        if status:
+            record_query = record_query.filter(models.Nursery.status == status)
+        else:
+            record_query = record_query.filter(models.Nursery.status != models.NurseryStatusType.DELETED)
 
-        # if order_filed:
-        #     record_query = record_query.order_by(getattr(models.Administrator, order_filed))
+        if total_places:
+            record_query = record_query.filter(models.Nursery.total_places==total_places)
 
-        if order and order.lower() == "asc":
-            record_query = record_query.order_by(models.Administrator.date_added.asc())
-        
-        elif order and order.lower() == "desc":
-            record_query = record_query.order_by(models.Administrator.date_added.desc())
-        
+        if keyword:
+            record_query = record_query.filter(
+                or_(
+                    models.Nursery.name.ilike('%' + str(keyword) + '%'),
+                    models.Nursery.email.ilike('%' + str(keyword) + '%'),
+                    models.Nursery.phone_number.ilike('%' + str(keyword) + '%'),
+                )
+            )
+
+        if order == "asc":
+            record_query = record_query.order_by(getattr(models.Nursery, order_filed).asc())
+        else:
+            record_query = record_query.order_by(getattr(models.Nursery, order_filed).desc())
+
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
-        return schemas.AdministratorResponseList(
-            total = total,
-            pages = math.ceil(total/per_page),
-            per_page = per_page,
-            current_page =page,
-            data =record_query
+        return schemas.NurseryList(
+            total=total,
+            pages=math.ceil(total / per_page),
+            per_page=per_page,
+            current_page=page,
+            data=record_query
         )
 
-
     @classmethod
-    def authenticate(cls, db: Session, email: str, password: str, role_group: str) -> Optional[models.Administrator]:
-        db_obj: models.Administrator = db.query(models.Administrator).filter(
-            models.Administrator.email == email,
-            models.Administrator.role.has(models.Role.group == role_group)
-        ).first()
-        if not db_obj:
-            return None
-        if not verify_password(password, db_obj.password_hash):
-            return None
-        return db_obj
+    def get_by_uuids(cls, db: Session, uuids: list[str]) -> list[Optional[models.Nursery]]:
+        return db.query(models.Nursery).filter(models.Nursery.uuid.in_(uuids))\
+            .filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED])).all()
 
 
     def is_active(self, user: models.Administrator) -> bool:

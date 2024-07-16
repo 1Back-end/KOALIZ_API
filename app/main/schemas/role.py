@@ -7,9 +7,9 @@ from pydantic import BaseModel, ConfigDict
 class RoleBase(BaseModel):
     title_fr: str
     title_en: str
-    code:str
+    code: str
     description: Optional[str] = None
-    group:str
+    group: str
 
 
 class RoleCreate(RoleBase):

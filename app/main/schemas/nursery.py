@@ -5,18 +5,21 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 
 from app.main.schemas import UserAuthentication, File, DataList, Address, AddressCreate, AddressUpdate
+from app.main.schemas.user import AddedBy
 
 
 class Nursery(BaseModel):
     uuid: str
     email: EmailStr
     name: str
+    total_places: int = 0
+    phone_number: str
+    status: str
     logo: Optional[File]
     signature: Optional[File]
     stamp: Optional[File]
-    total_places: int = 0
-    phone_number: str
     address: Address
+    owner: AddedBy
     date_added: datetime
     date_modified: datetime
 
@@ -31,7 +34,7 @@ class NurseryCreateBase(BaseModel):
     stamp_uuid: Optional[str] = None
     total_places: int = Body(0, ge=0)
     phone_number: str
-    owner_uuid: Optional[str]
+    owner_uuid: str
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -51,10 +54,10 @@ class NurseryCreateSchema(NurseryCreateBase):
 class NurseryUpdateBase(BaseModel):
     email: Optional[EmailStr] = None
     name: Optional[str] = None
-    logo_uuid: Optional[File] = None
-    signature_uuid: Optional[File] = None
-    stamp_uuid: Optional[File] = None
-    total_places: int = 0
+    logo_uuid: Optional[str] = None
+    signature_uuid: Optional[str] = None
+    stamp_uuid: Optional[str] = None
+    total_places: int = None
     phone_number: Optional[str] = None
     address: Optional[AddressUpdate]
 

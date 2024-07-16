@@ -40,6 +40,12 @@ class Nursery(Base):
 
     status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.ACTIVED)
 
+    owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
+    owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False)
+
+    added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
+    added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 

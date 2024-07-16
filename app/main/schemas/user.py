@@ -3,6 +3,7 @@ from typing import List, Optional, Any
 from pydantic import BaseModel, ConfigDict, EmailStr, Json
 
 from app.main.schemas import DataList
+from app.main.schemas.role import RoleBase
 
 
 class AddedBy(BaseModel):
@@ -58,6 +59,7 @@ class Storage(BaseModel):
 
 class UserProfileResponse(UserBase):
     uuid: Optional[str] = None
+    role: RoleBase
     date_added: datetime
     date_modified: datetime
     avatar: Optional[Storage] = None

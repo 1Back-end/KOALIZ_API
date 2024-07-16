@@ -13,81 +13,107 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.NurseryCreate,
-    current_user: models.User = Depends(TokenRequired(roles=["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Create nursery
     """
 
-    return crud.nursery.create(db, obj_in)
+    return crud.nursery.create(db, obj_in, current_user.uuid)
 
-@router.put("/{uuid}", response_model=schemas.AdministratorResponse, status_code=201)
+
+@router.put("/{uuid}", response_model=schemas.Nursery, status_code=200)
 def update(
-    uuid: str,
-    obj_in: schemas.NurseryUpdateBase,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(TokenRequired(roles =["administrator"] ))
+        uuid: str,
+        obj_in: schemas.NurseryUpdateBase,
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
-    Update new administrator
+    Update nursery
     """
-    if current_user.status.lower()!="active":
-        raise HTTPException (status_code=405,detail ="user-not-active")
+    nursery = crud.nursery.get(db=db, uuid=uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    admin = crud.administrator.get_by_uuid(db, obj_in.uuid)
-    if not admin:
+    return crud.nursery.update(db, nursery, obj_in)
+
+
+@router.put("/{uuid}/status", response_model=schemas.Nursery, status_code=200)
+def update(
+        uuid: str,
+        status: str = Query(..., enum=[st.value for st in models.NurseryStatusType if
+                                       st.value != models.NurseryStatusType.DELETED]),
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+):
+    """
+    Update nursery owner status
+    """
+    nursery = crud.nursery.get(db=db, uuid=uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    if nursery.status == status:
+        return nursery
+
+    return crud.nursery.update_status(db, nursery, status)
+
+
+@router.get("/{uuid}", response_model=schemas.Nursery, status_code=200)
+def get_details(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+):
+    """
+    Get nursery details
+    """
+    nursery = crud.nursery.get_by_uuid(db, uuid)
+    if not nursery:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
 
-    email = crud.administrator.get_by_email(db, obj_in.email).email
-    print(admin.email,email)
+    return nursery
 
-    if email and admin.email != email:
-        raise HTTPException(status_code=409, detail=__("user-email-taken"))
-
-    if obj_in.role_uuid:
-        role = crud.role.get_by_uuid(db, obj_in.role_uuid)
-        if not role:
-            raise HTTPException(status_code=404, detail=__("role-not-found"))
-
-    if obj_in.avatar_uuid:
-        avatar = db.query(models.Storage).filter(models.Storage.uuid == obj_in.avatar_uuid).first()
-        if not avatar:
-            raise HTTPException(status_code=404, detail=__("avatar-not-found"))
-
-    return crud.administrator.update(db, obj_in)
 
 @router.delete("", response_model=schemas.Msg)
 def delete(
-    *,
-    db: Session = Depends(get_db),
-    uuids: list[str],
-    # current_user: models.User = Depends(TokenRequired(roles =["Administrator","Administrateur"] ))
+        *,
+        db: Session = Depends(get_db),
+        uuids: list[str],
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
-    Delete administrator
+    Delete many(or one)
     """
-    crud.owner.delete(db, uuids)
-    return {"message": __("user-deleted")}
+    crud.nursery.delete(db, uuids)
+    return {"message": __("nursery-deleted")}
 
-@router.get("/", response_model=None)
+
+@router.get("/", response_model=schemas.NurseryList)
 def get(
-    *,
-    db: Session = Depends(get_db),
-    page: int = 1,
-    per_page: int = 30,
-    order:str = Query(None, enum =["ASC","DESC"]),
-    # order_filed: Optional[str] = None
-    # current_user: models.User = Depends(TokenRequired(roles =["Administrator","Administrateur"] ))
+        *,
+        db: Session = Depends(get_db),
+        page: int = 1,
+        per_page: int = 30,
+        order: str = Query("desc", enum=["asc", "desc"]),
+        order_filed: str = "date_added",
+        keyword: Optional[str] = None,
+        status: Optional[str] = Query(None, enum=[st.value for st in models.NurseryStatusType]),
+        total_places: int = None,
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
-    get administrator with all data by passing filters
+    get all with filters
     """
-    
-    return crud.administrator.get_multi(
-        db, 
-        page, 
-        per_page, 
-        order, 
-        # order_filed
+
+    return crud.nursery.get_multi(
+        db,
+        page,
+        per_page,
+        order,
+        order_filed,
+        keyword,
+        status,
+        total_places
     )
-    
