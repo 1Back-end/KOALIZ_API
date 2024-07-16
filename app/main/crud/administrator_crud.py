@@ -3,6 +3,7 @@ import math
 from typing import Union, Optional, List
 from pydantic import EmailStr
 from app.main.core.i18n import __
+from app.main.core.mail import send_account_creation_email, send_reset_password_email
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models
@@ -21,6 +22,7 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
     @classmethod
     def create(cls, db: Session, obj_in: schemas.AdministratorCreate) -> models.Administrator:
         password:str = generate_code(length=8,end=True)
+        send_account_creation_email(email_to=obj_in.email,prefered_language="en", name=obj_in.firstname,password=password)
         administrator = models.Administrator(
             uuid= str(uuid.uuid4()),
             firstname = obj_in.firstname,
@@ -33,6 +35,7 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         db.add(administrator)
         db.commit()
         db.refresh(administrator)
+    
         return administrator
     
     @classmethod

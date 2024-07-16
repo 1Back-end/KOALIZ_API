@@ -7,6 +7,7 @@ from .db.base_class import Base
 
 
 
+@dataclass
 class Administrator(Base):
     """
      database model for storing Administrator related details
