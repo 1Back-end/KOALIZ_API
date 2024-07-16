@@ -1,3 +1,4 @@
+
 translation = {
     "email-already-used": "Adresse e-mail déjà utilisée",
     "phone_number-already-used": "Numéro de téléphone déjà utilisé",
@@ -22,8 +23,8 @@ translation = {
     "user-email-not-found": "Aucun utilisateur trouvé avec cet e-mail.",
     "validation-code-not-found": "Code de validation expiré ou invalide",
     "password-reset-successfully": "Mot de passe mis à jour avec succès",
-    "user-not-found": "L'utilisateur n'existe pas",
 
+    "user-not-found": "L'utilisateur n'existe pas",
     "file-not-found": "Fichier non trouvé",
     "logo-not-found": "Logo non trouvé",
     "signature-not-found": "Signature non trouvée",
@@ -31,4 +32,3 @@ translation = {
 
     "mail-subject-reset-password": "Récupération de mot de passe pour l'utilisateur",
 }
-

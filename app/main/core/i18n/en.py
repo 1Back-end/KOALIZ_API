@@ -14,6 +14,12 @@ translation = {
     "validation-code-not-found": "Validation code expired or invalid",
     "password-reset-successfully": "Password successfully updated",
 
+    "user-not-found": "User does not exist",
+    "file-not-found": "File not found",
+    "logo-not-found": "Logo not found",
+    "signature-not-found": "Signature not found",
+    "stamp-not-found": "Stamp not found",
+
     "mail-subject-reset-password": "Password recovery for the user",
 
 }
