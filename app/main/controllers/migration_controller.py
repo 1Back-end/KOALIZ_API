@@ -4,6 +4,9 @@ import shutil
 import platform
 from dataclasses import dataclass
 from typing import Any
+
+from sqlalchemy.exc import ProgrammingError
+
 from app.main import crud
 from fastapi import APIRouter, Body, Depends, HTTPException
 from psycopg2 import IntegrityError
@@ -88,6 +91,8 @@ async def create_database_tables(
 
         return {"message": "Les tables de base de données ont été créées avec succès"}
 
+    except ProgrammingError as e:
+        raise ProgrammingError(status_code=512, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

@@ -10,7 +10,7 @@ minioClient = Minio(Config.MINIO_URL,
                     secure=Config.MINIO_SECURE)
 
 
-def upload_file(path, file_name, content_type):
+def upload_file(path, file_name, minio_file_name, content_type):
     try:
         minioClient.make_bucket(Config.MINIO_BUCKET)
     except S3Error as err:
@@ -19,9 +19,9 @@ def upload_file(path, file_name, content_type):
     finally:
         # Upload the image
         try:
-            minioClient.fput_object(Config.MINIO_BUCKET, file_name, path, content_type=content_type)
-            url = minioClient.presigned_get_object(Config.MINIO_BUCKET, file_name)
-            return Config.MINIO_API_URL + file_name, file_name
+            minioClient.fput_object(Config.MINIO_BUCKET, minio_file_name, path, content_type=content_type)
+            url = minioClient.presigned_get_object(Config.MINIO_BUCKET, minio_file_name)
+            return Config.MINIO_API_URL + minio_file_name, file_name, minio_file_name
         except S3Error as err:
             return err
 

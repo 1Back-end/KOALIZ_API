@@ -48,10 +48,16 @@ class FileUtils(object):
                 raise Exception("Invalid base 64")
             info = base64.split(",")[0].split(";")[0].split(":")[1]
             uuid_file_name = uuid.uuid1()
-            self.blob_name = "{}{}".format(uuid_file_name,
-                                           "-{}".format(name.replace(" ", "-")) if name else ".{}".format(
-                                               info.split("/")[1]))
-            self.path_file = os.path.join(Config.UPLOADED_FILE_DEST, self.blob_name)
+
+            # self.blob_name = "{}{}".format(uuid_file_name,
+            #                                "-{}".format(name.replace(" ", "-")) if name else ".{}".format(
+            #                                    info.split("/")[1]))
+
+            file_ext = name.rsplit('.', 1)[1] if name else info.split("/")[1]
+            self.blob_name = name
+            self.minio_file_name = f"{uuid_file_name}.{file_ext}"
+            # self.blob_name = "{}{}".format(uuid_file_name, "-{}".format(name.replace(" ", "-")))
+            self.path_file = os.path.join(Config.UPLOADED_FILE_DEST, self.minio_file_name)
             self.mimetype = info
             byte = b64decode(base64.split(",")[1], validate=True)
             print(f"...................print image:{self.path_file}")
@@ -67,7 +73,7 @@ class FileUtils(object):
                 file_ext = name.rsplit('.', 1)[1] if name else info.split("/")[1]
                 print(f"...............No mimetype :{file_ext}")
                 self.blob_name = f"{uuid_file_name}.{file_ext}"
-                self.path_file = os.path.join(Config.UPLOADED_FILE_DEST, self.blob_name)
+                self.path_file = os.path.join(Config.UPLOADED_FILE_DEST, self.minio_file_name)
                 f = open(self.path_file, 'wb')
                 f.write(byte)
                 f.close()
@@ -114,24 +120,25 @@ class FileUtils(object):
 
     def save(self, db: Session):
 
-        url, test = upload_file(self.path_file, self.blob_name, content_type=self.mimetype)
+        url, minio_file_name, test = upload_file(self.path_file, self.blob_name, self.minio_file_name, content_type=self.mimetype)
         os.remove(self.path_file)
 
         if "file_name" in self.thumbnail:
-            url_thumbnail, test = upload_file(rreplace(self.path_file, '.', '_thumbnail.', 1),
-                                              self.thumbnail["file_name"], content_type=self.mimetype)
+            url_thumbnail, minio_file_name, test = upload_file(rreplace(self.path_file, '.', '_thumbnail.', 1),
+                                              self.thumbnail["file_name"], self.minio_file_name, content_type=self.mimetype)
             self.thumbnail["url"] = url_thumbnail
             os.remove(rreplace(self.path_file, '.', '_thumbnail.', 1))
 
         if "file_name" in self.medium:
-            url_medium, test = upload_file(rreplace(self.path_file, '.', '_medium.', 1), self.medium["file_name"],
-                                           content_type=self.mimetype)
+            url_medium, minio_file_name, test = upload_file(rreplace(self.path_file, '.', '_medium.', 1), self.medium["file_name"],
+                                           self.minio_file_name, content_type=self.mimetype)
             self.medium["url"] = url_medium
-            os.remove(rreplace(self.path_file, '.', '_medium.', 1))
+            os.remove(rreplace(self.path_file, '.', '_medium.', self.minio_file_name, 1))
 
         db_obj = Storage(
             uuid=str(uuid.uuid4()),
             file_name=self.blob_name,
+            minio_file_name=self.minio_file_name,
             url=url,
             width=self.width,
             height=self.height,

@@ -5,6 +5,14 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Json
 from app.main.schemas import DataList
 
 
+class AddedBy(BaseModel):
+    uuid: str
+    email: EmailStr
+    firstname: Optional[str]
+    lastname: str
+
+    model_config = ConfigDict(from_attributes=True)
+
 class Login(BaseModel):
     email: EmailStr
     password: str

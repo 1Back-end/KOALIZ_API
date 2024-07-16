@@ -78,6 +78,9 @@ class TokenRequired(HTTPBearer):
             if not current_user:
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
+            if current_user.status != models.UserStatusType.ACTIVED:
+                raise HTTPException(status_code=405, detail="user-not-active")
+
             if required_roles:
                 if not AuthUtils.verify_role(roles=required_roles, user=current_user):
                     raise HTTPException(status_code=403,

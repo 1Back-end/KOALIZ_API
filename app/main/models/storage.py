@@ -16,9 +16,10 @@ class Storage(Base):
 
     __tablename__ = "storages"
 
-    uuid:str = Column(String, primary_key=True, unique=True)
+    uuid: str = Column(String, primary_key=True, unique=True)
 
     file_name: str = Column(Text, default="", nullable=True)
+    minio_file_name: str = Column(Text, default="", nullable=True)
     url: str = Column(Text, default="", nullable=True)
     mimetype: str = Column(Text, default="", nullable=True)
 

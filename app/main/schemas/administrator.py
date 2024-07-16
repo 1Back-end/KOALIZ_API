@@ -2,7 +2,8 @@ from typing import Optional,Any
 from pydantic import BaseModel,ConfigDict,EmailStr
 from datetime import datetime
 
-from app.main.schemas import UserAuthentication
+from app.main.schemas.base import UserAuthentication
+from app.main.schemas.file import File
 
 
 class Avatar(BaseModel):
@@ -74,6 +75,7 @@ class Administrator(BaseModel):
     email: EmailStr
     firstname: str
     lastname: str
+    avatar: Optional[File]
     date_added: datetime
     date_modified: datetime
 

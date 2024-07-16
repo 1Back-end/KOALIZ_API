@@ -23,7 +23,7 @@ def create_pdf(data, endpoint):
         file_path = os.path.join(Config.UPLOADED_FILE_DEST, f"{filename}.pdf")
         with open(file_path, 'wb') as f:
             f.write(res.content)
-        minio_url, filename = upload_file(file_path, f"{filename}.pdf", "application/pdf")
+        minio_url, minio_file_name, filename = upload_file(file_path, f"{filename}.pdf", "", "application/pdf")
         print(minio_url)
         return {"status": "success", "minio_url": minio_url, "url": file_path, "filename": filename}
     else:

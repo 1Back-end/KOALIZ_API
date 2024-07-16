@@ -10,9 +10,8 @@ from app.main import crud
 
 class CRUDFile(CRUDBase[File, User, FileAdd]):
 
-    def store_file(self, db: Session, *, base_64: Any, name: str=None) -> Storage:
+    def store_file(self, db: Session, *, base_64: Any, name: str = None) -> Storage:
         try:
-
             file_manager = FileUtils(base64=base_64, name=name)
             storage = file_manager.save(db=db)
             return storage
@@ -37,20 +36,15 @@ class CRUDFile(CRUDBase[File, User, FileAdd]):
             print(str(e))
             db.rollback()
 
-    def real_file_add(self, db: Session, *, file: Any) -> Storage:
-        try:
-
-            file_manager = FileUtils(myfile=file)
-            return file_manager.save(db=db)
-        except Exception as e:
-            print(str(e))
-            db.rollback()
-
 
     def store_file_by_url(self, db: Session, *, url: str) -> Storage:
 
         file_manager = FileUtils(url=url)
         storage = file_manager.save(db=db)
         return storage
+
+    # def get_file_by_uuid(self, db: Session, *, uuid: str) -> Storage:
+    #     return db.query(Storage).filter(Storage.uuid == uuid).first()
+
 
 storage = CRUDFile(Storage)
