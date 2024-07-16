@@ -74,7 +74,7 @@ class CreateQrcode(object):
         self.__get_image_info()
         self.__generate_cropped_image()
 
-      url, test = upload_file(self.path_file, self.blob_name, content_type=self.mimetype)
+      url, minio_file_name, test = upload_file(self.path_file, self.blob_name, content_type=self.mimetype)
       os.remove(self.path_file)
 
       if "file_name" in self.thumbnail:
@@ -83,7 +83,7 @@ class CreateQrcode(object):
         os.remove(rreplace(self.path_file, '.', '_thumbnail.', 1))
 
       if "file_name" in self.medium:
-        url_medium, test = upload_file(rreplace(self.path_file, '.', '_medium.', 1), self.medium["file_name"], content_type=self.mimetype)
+        url_medium, minio_file_name, test = upload_file(rreplace(self.path_file, '.', '_medium.', 1), self.medium["file_name"], content_type=self.mimetype)
         self.medium["url"] = url_medium
         os.remove(rreplace(self.path_file, '.', '_medium.', 1))
 

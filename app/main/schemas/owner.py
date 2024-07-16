@@ -1,0 +1,56 @@
+from typing import Optional
+from pydantic import BaseModel, ConfigDict, EmailStr
+from datetime import datetime
+
+from app.main.schemas import UserAuthentication, File, DataList
+from app.main.schemas.user import AddedBy
+
+
+class Owner(BaseModel):
+    uuid: Optional[str] = None
+    email: EmailStr
+    firstname: str
+    lastname: str
+    status: str
+    avatar: Optional[File]
+    added_by: Optional[AddedBy]
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OwnerSchemaBase(BaseModel):
+    firstname: Optional[str] = None
+    lastname: str
+    avatar_uuid: Optional[str] = None
+
+
+class OwnerCreate(OwnerSchemaBase):
+    email: EmailStr
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OwnerUpdateBase(OwnerSchemaBase):
+    pass
+
+
+class OwnerUpdate(OwnerUpdateBase):
+    uuid: str
+
+
+class OwnerDelete(BaseModel):
+    uuid: list[str]
+
+
+class OwnerList(DataList):
+    data: list[Owner]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdministratorAuthentication(UserAuthentication):
+    user: Owner
+
+    model_config = ConfigDict(from_attributes=True)

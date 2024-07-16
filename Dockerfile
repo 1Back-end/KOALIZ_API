@@ -36,5 +36,7 @@ RUN pip install -r requirements.txt
 
 COPY . /webapp
 
+RUN mkdir /webapp/uploads
+
 EXPOSE 80
 CMD ["uvicorn", "app.main:app", "--proxy-headers", "--port=80", "--host=0.0.0.0"]

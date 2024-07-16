@@ -30,10 +30,10 @@ class ConfigClass(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(get_secret("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 365))
 
    # Minio
-    MINIO_API_URL: str = get_secret("MINIO_API_URL", "http://localhost:5300/api/v1/storages/file/get/")
-    MINIO_URL: str = get_secret("MINIO_URL", "")
-    MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "")
-    MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "")
+    MINIO_API_URL: str = get_secret("MINIO_API_URL", "http://localhost:5300/api/v1/storages/get/")
+    MINIO_URL: str = get_secret("MINIO_URL", "play.min.io")
+    MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "Q3AM3UQ867SPQQA43P2F")
+    MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG")
     MINIO_BUCKET: str = get_secret("MINIO_BUCKET", "develop")
     MINIO_SECURE: bool = get_secret("MINIO_SECURE", True)
 
@@ -73,6 +73,12 @@ class ConfigClass(BaseSettings):
 
     CELERY_BROKER_URL: str = get_secret("CELERY_BROKER_URL", "redis://localhost:6379/0")
     CELERY_RESULT_BACKEND: str = get_secret("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+
+    # Default image size
+    # IMAGE_MEDIUM_WIDTH: int = get_secret("IMAGE_MEDIUM_WIDTH", 600)
+    # IMAGE_THUMBNAIL_WIDTH: int = get_secret("IMAGE_THUMBNAIL_WIDTH", 300)
+
+    UPLOADED_FILE_DEST: str = get_secret("UPLOADED_FILE_DEST", "uploads")
 
     class Config:
         case_sensitive = True

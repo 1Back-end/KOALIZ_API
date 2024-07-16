@@ -17,12 +17,12 @@ class FileAdd(BaseModel):
 class File(BaseModel):
     file_name: str
     url: str
-    mimetype: Optional[int] = None
+    mimetype: Optional[str] = None
     width: Optional[int] = None
     height: Optional[int] = None
     size: Optional[int] = None
-    thumbnail: Optional[FileResize] = None
-    medium: Optional[FileResize] = None
+    # thumbnail: Optional[FileResize] = None
+    # medium: Optional[FileResize] = None
 
-    class Config:
-       model_config = ConfigDict(from_attributes=True)
+
+    model_config = ConfigDict(from_attributes=True)

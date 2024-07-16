@@ -55,6 +55,16 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
+app.add_middleware(BaseHTTPMiddleware, dispatch=add_process_language_header)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
+)
+
 
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, Config.ADMIN_USERNAME)
