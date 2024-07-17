@@ -13,6 +13,29 @@ class MembershipEnum(str,Enum):
     SUSPENDED = "SUSPENDED"
     DELETED = "DELETED"
 
+# @dataclass
+# class NurseryMemberships(Base):
+#     """
+#      database model for storing Membership and Nursery related details
+#     """    
+#     __tablename__ ='nursery_memberships'
+#     uuid: str = Column(String, primary_key=True, unique=True,index = True)
+#     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
+#     membership_uuid: str = Column(String, ForeignKey('memberships.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
+#     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+#     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+# @event.listens_for(NurseryMemberships, 'before_insert')
+# def update_created_modified_on_create_listener(mapper, connection, target):
+#     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+#     target.date_added = datetime.now()
+#     target.date_modified = datetime.now()
+
+
+# @event.listens_for(NurseryMemberships, 'before_update')
+# def update_modified_on_update_listener(mapper, connection, target):
+#     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+#     target.date_modified = datetime.now()
 
 @dataclass
 class MembershipType(Base):
@@ -29,8 +52,21 @@ class MembershipType(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
     price: float = Column(Float, nullable=False, default=0.0)
 
+
     def __repr__(self):
         return '<MembershipType: uuid: {} title_fr: {} title_en: {}>'.format(self.uuid, self.title_fr, self.title_en)
+
+@event.listens_for(MembershipType, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(MembershipType, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
 
 @dataclass
 class Membership(Base):
@@ -47,6 +83,7 @@ class Membership(Base):
     owner_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
     owner = relationship("Owner", foreign_keys=[owner_uuid],uselist = False)
 
+    # nurseries = relationship("Nursery",secondary="nursery_memberships",back_populates="memberships")
     period_from:datetime = Column(DateTime, nullable=False, default=datetime.now())
     period_to: datetime = Column(DateTime, nullable=False, default=datetime.now())
 

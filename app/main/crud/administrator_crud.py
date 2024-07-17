@@ -16,11 +16,8 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Union[models.Administrator, None]:
         return db.query(models.Administrator).filter(models.Administrator.uuid == uuid).first()
-    
-    
-    
     @classmethod
-    def create(cls, db: Session, obj_in: schemas.AdministratorCreate) -> models.Administrator:
+    def create(cls, db: Session, obj_in: schemas.AdministratorCreate,added_by:models.Administrator) -> models.Administrator:
         password:str = generate_code(length=8,end=True)
         send_account_creation_email(email_to=obj_in.email,prefered_language="en", name=obj_in.firstname,password=password)
         administrator = models.Administrator(
@@ -28,6 +25,7 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
             firstname = obj_in.firstname,
             lastname = obj_in.lastname,
             email = obj_in.email,
+            added_by_uuid =added_by.uuid,
             password_hash = get_password_hash(password),
             role_uuid = obj_in.role_uuid if obj_in.role_uuid else None,
             avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else None,

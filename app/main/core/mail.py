@@ -100,13 +100,15 @@ def send_reset_password_email(email_to: str, code: str, prefered_language: str, 
     # logging.info(f"new send mail task with id {task.id}")
 
 def send_account_creation_email(email_to: str,prefered_language: str, name: str,password:str) -> None:
+    project_name = Config.PROJECT_NAME
     if str(prefered_language) in ["en", "EN", "en-EN"]:
-        subject = f"SuitsMen Paris | Account created succesfully.You must change your password after logging in for the first time."
-
+        subject = f"BDE-CRECHE | Account created succesfully."
+        content = "is your password. You must change it after the first connection for better security."
         with open(Path(Config.EMAIL_TEMPLATES_DIR) / "account_creation.html") as f:
             template_str = f.read()
     else:
-        subject = f"SuitsMen Paris | Compte créé avec succès.Vous devez changer votre mot de passe aprės la premiere connexion"
+        subject = f"BDE-CRECHE | Compte créé avec succès."
+        content = "est votre mot de passe.Vous avez l'obligation de le modifier aprės la première connexion pour une meilleure sécurité."
 
         with open(Path(Config.EMAIL_TEMPLATES_DIR) / "account_creation.html") as f:
             template_str = f.read()
@@ -116,6 +118,8 @@ def send_account_creation_email(email_to: str,prefered_language: str, name: str,
         subject_template=subject,
         html_template=template_str,
         environment={
+            "content": content,
+            "project_name": project_name,
             "password": password,
             "name": name,
             "email": email_to

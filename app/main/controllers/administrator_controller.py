@@ -13,7 +13,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorCreate,
-    current_user:models.Administrator = Depends(TokenRequired(roles =["administrators"]))
+    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"]))
 ):
     """
     Create new administrator
@@ -35,14 +35,14 @@ def create(
     if admin:
         raise HTTPException(status_code=409, detail=__("user-email-taken"))
     
-    return crud.administrator.create(db, obj_in)
+    return crud.administrator.create(db, obj_in,added_by=current_user)
 
 @router.post("/", response_model=schemas.AdministratorResponse, status_code=201)
 def update(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorUpdate,
-    current_user:models.Administrator = Depends(TokenRequired(roles =["administrators"] ))
+    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
     """
     Update new administrator
@@ -77,7 +77,7 @@ def delete(
     *,
     db: Session = Depends(get_db),
     uuid: str,
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrators"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
     """
     Delete administrator
@@ -102,7 +102,7 @@ def get(
     user_uuid:Optional[str] = None,
     status: str = Query(None, enum =["ACTIVED","UNACTIVED"]),
     # order_filed: Optional[str] = None
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrators"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
     """
     get administrator with all data by passing filters

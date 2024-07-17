@@ -4,14 +4,12 @@ from datetime import datetime, date
 
 
 class MembershipBase(BaseModel):
-    uuid:str
     title_fr: str
     title_en: str
     description: Optional[str] = None
     owner_uuid: str
     period_from:datetime
     period_to: datetime
-    price: float
     nursery_uuid: str
     membership_type_uuid: str
 
@@ -20,12 +18,14 @@ class MembershipCreate(MembershipBase):
     
 
 class MembershipUpdate(MembershipBase):
+    uuid:str
     title_fr: Optional[str] = None
     title_en: Optional[str] = None
-    description: Optional[str] = None
     owner_uuid: Optional[str] = None
     period_from: Optional[datetime] = None
     period_to: Optional[datetime] = None
+    nursery_uuid: Optional[str] = None
+    membership_type_uuid: Optional[str] = None
 
 class Nursery(BaseModel):
     uuid: str
