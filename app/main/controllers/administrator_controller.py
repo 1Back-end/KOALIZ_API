@@ -13,11 +13,14 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorCreate,
-    current_user:models.User = Depends(TokenRequired(roles =["administrateur"]))
+    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"]))
 ):
     """
     Create new administrator
     """
+    if not current_user.status.lower()=="actived":
+        raise HTTPException (status_code=405,detail ="user-not-active")
+    
     admin = crud.administrator.get_by_email(db, obj_in.email)
     role = crud.role.get_by_uuid(db, obj_in.role_uuid)
     
@@ -32,19 +35,19 @@ def create(
     if admin:
         raise HTTPException(status_code=409, detail=__("user-email-taken"))
     
-    return crud.administrator.create(db, obj_in)
+    return crud.administrator.create(db, obj_in,added_by=current_user)
 
 @router.post("/", response_model=schemas.AdministratorResponse, status_code=201)
 def update(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorUpdate,
-    current_user:models.User = Depends(TokenRequired(roles =["administrateur"] ))
+    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
     """
     Update new administrator
     """
-    if current_user.status.lower()!="active":
+    if not current_user.status.lower()=="active":
         raise HTTPException (status_code=405,detail ="user-not-active")
     
     admin = crud.administrator.get_by_uuid(db, obj_in.uuid)
@@ -74,11 +77,14 @@ def delete(
     *,
     db: Session = Depends(get_db),
     uuid: str,
-    # current_user: models.User = Depends(TokenRequired(roles =["Administrator","Administrateur"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
     """
     Delete administrator
     """
+    if not current_user.status.lower()=="active":
+        raise HTTPException (status_code=405,detail ="user-not-active")
+    
     admin = crud.administrator.get_by_uuid(db, uuid)
     if not admin:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
@@ -94,9 +100,9 @@ def get(
     per_page: int = 30,
     order:str = Query(None, enum =["ASC","DESC"]),
     user_uuid:Optional[str] = None,
-    status: str = Query(None, enum =["ACTIVED","UNACTIVED"])
+    status: str = Query(None, enum =["ACTIVED","UNACTIVED"]),
     # order_filed: Optional[str] = None
-    # current_user: models.User = Depends(TokenRequired(roles =["Administrator","Administrateur"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
     """
     get administrator with all data by passing filters

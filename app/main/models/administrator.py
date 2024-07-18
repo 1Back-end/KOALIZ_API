@@ -7,6 +7,7 @@ from .db.base_class import Base
 
 
 
+@dataclass
 class Administrator(Base):
     """
      database model for storing Administrator related details
@@ -22,6 +23,8 @@ class Administrator(Base):
     role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
     role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
 
+    added_by_uuid: str = Column(String, ForeignKey('administrators.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False)
+    added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
 
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid])
