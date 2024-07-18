@@ -94,15 +94,15 @@ class Membership(Base):
     owner_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
     owner = relationship("Owner", foreign_keys=[owner_uuid],uselist = False)
 
-    period_from:datetime = Column(DateTime, nullable=False, default=datetime.now())
-    period_to: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    period_from:datetime = Column(DateTime, nullable=False, default=datetime.utcnow())
+    period_to: datetime = Column(DateTime, nullable=False, default=datetime.utcnow())
     period_unit:str = Column(types.Enum(MembershipType), index=True, nullable=False) #DAY,
     
-    duration = Column(Float, nullable=False)
+    duration:float = Column(Float, nullable=False)
      
-    status = Column(types.Enum(MembershipEnum), index=True, nullable=False)
-    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
-    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    status:str = Column(types.Enum(MembershipEnum), index=True, nullable=False, default = MembershipEnum.PENDING)
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.utcnow())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.utcnow())
 
     def __repr__(self):
         return '<Membership: uuid: {} period_from: {} period_to: {} status: {} >'.format(self.uuid, self.period_from, self.period_to,self.status)
@@ -110,11 +110,11 @@ class Membership(Base):
 @event.listens_for(Membership, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
-    target.date_added = datetime.now()
-    target.date_modified = datetime.now()
+    target.date_added = datetime.utcnow()
+    target.date_modified = datetime.utcnow()
 
 
 @event.listens_for(Membership, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
-    target.date_modified = datetime.now()
+    target.date_modified = datetime.utcnow()

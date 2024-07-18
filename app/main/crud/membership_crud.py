@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,timezone
 import math
 from typing import Union, Optional, List
 from pydantic import EmailStr
@@ -8,13 +8,18 @@ from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models
 from dateutil.relativedelta import relativedelta
-
 import uuid
 from app.main.core.security import get_password_hash, verify_password,generate_code
 
 
 class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schemas.MembershipUpdate]):
     
+    @classmethod
+    def make_offset_aware(cls,dt):
+        if dt.tzinfo is None:
+            # Convert offset-naive to offset-aware by assuming UTC
+            return dt.replace(tzinfo=timezone.utc)
+        return dt
     
     @classmethod
     def get_period_status(cls, db: Session, period_from: datetime, period_to: datetime) -> dict:
@@ -32,7 +37,7 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
         # is_after_period = today > period_to.date()
 
         status = "ACTIVED" if is_within_period else "PENDING" if is_before_period else "UNACTIVED" 
-
+        print("==status==", status)
         return status
     
     @classmethod
@@ -54,15 +59,17 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
     
     @classmethod
     def get_period_duration(cls, period_unit: str, period_from: datetime, period_to: datetime) -> float:
+        print("get_period_duration", period_unit, period_from, period_to)
         if period_unit.lower() == "day":
-            return (period_to - period_from).days
+            duration =(period_to - period_from).days
         elif period_unit.lower() == "month":
             delta = relativedelta(period_to, period_from)
-            return delta.years * 12 + delta.months + delta.days / 30  # Approximation pour les jours
+            duration = delta.years * 12 + delta.months + delta.days / 30  # Approximation pour les jours
         elif period_unit.lower() == "year":
             delta = relativedelta(period_to, period_from)
-            return delta.years + delta.months / 12 + delta.days / 365  # Approximation pour les mois et les jours
-    
+            duration = delta.years + delta.months / 12 + delta.days / 365  # Approximation pour les mois et les jours
+        print("=duration=", duration)
+        return duration
     # @classmethod
     # def is_today_within_period(period_from: datetime, period_to: datetime) -> bool:
     #     today = datetime.now().date()
@@ -85,10 +92,11 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
     @classmethod
     def update_status(cls, db:Session, uuid:str, status:str):
         membership = cls.get_by_uuid(db, uuid)
+        print("Update-status", status)
         membership.status = status
         db.commit()
         db.refresh(membership)
-    
+        
     # @classmethod
     # def get_membershiptype(cls,db:Session, uuid:str):
     #     return db.query(models.MembershipType).filter(models.MembershipType.uuid == uuid).first()
@@ -96,8 +104,12 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
     @classmethod
     def create(cls, db: Session, obj_in: schemas.MembershipCreate) -> models.Membership:
         status = cls.get_period_status(db, obj_in.period_from,obj_in.period_to)
+        
+
+        new_uuid = str(uuid.uuid4()),
+
         membership = models.Membership(
-            uuid= str(uuid.uuid4()),
+            uuid= new_uuid,
             title_fr = obj_in.title_fr,
             title_en = obj_in.title_en,
             owner_uuid= obj_in.owner_uuid,
@@ -106,15 +118,15 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
             period_from = obj_in.period_from,
             duration = cls.get_period_duration(obj_in.period_unit, obj_in.period_from, obj_in.period_to),
             period_to = obj_in.period_to if obj_in.period_to else None,
-            status = cls.update_status(db, uuid, status)
         )
         db.add(membership)
+        db.flush()
+        membership.status = cls.update_status(db, new_uuid, status)
         db.commit()
         db.refresh(membership)
 
     @classmethod
     def update(cls, db: Session, obj_in: schemas.MembershipUpdate) -> models.Membership:
-        status = cls.get_period_status(db, obj_in.period_from,obj_in.period_to)
         membership = cls.get_by_uuid(db, obj_in.uuid)
         membership.title_fr = obj_in.title_fr if obj_in.title_fr else membership.title_fr
         
@@ -126,10 +138,17 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
         membership.period_to = obj_in.period_to if obj_in.period_to else membership.period_to
         membership.period_unit = obj_in.period_unit if obj_in.period_unit else membership.period_unit
         
-        if obj_in.period_unit and obj_in.period_from and obj_in.period_to:
-            membership.duration = cls.get_period_duration(obj_in.period_unit, obj_in.period_from, obj_in.period_to)
-        
-        membership.status = cls.update_status(db, obj_in.uuid, status)
+        print("obj_in==",obj_in.period_from,obj_in.period_to,obj_in.period_unit)
+
+        # period_unit = obj_in.period_unit if obj_in.period_unit else membership.period_unit
+        # period_from = obj_in.period_from if obj_in.period_from else membership.period_from
+        # period_to = obj_in.period_to if obj_in.period_to else membership.period_to
+
+        status = cls.get_period_status(db, obj_in.period_from,obj_in.period_to)
+
+        membership.duration = cls.get_period_duration(obj_in.period_unit, obj_in.period_from, obj_in.period_to)
+
+        cls.update_status(db, obj_in.uuid, status)
         db.commit()
         db.refresh(membership)
     
@@ -157,7 +176,7 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
         # record_query = record_query.filter(models.Administrator.status.not_in(["DELETED","BLOCKED"]))
         if owner_uuid:
             record_query = record_query.filter(models.Membership.owner_uuid == owner_uuid)
-            
+
         if duration:
             record_query = record_query.filter(models.Membership.duration == duration)
 
