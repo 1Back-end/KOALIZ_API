@@ -20,6 +20,10 @@ translation = {
     "address-creation-failed": "Unable to create address",
     "nursery-deleted": "Nursery(ies) successfully deleted",
     "nursery-not-found": "Nursery does not exist",
+    "change-password-required": "Please change your password to fully access your account",
+    "incorrect-current-password": "The current password is incorrect!",
+    "different-password-required": "The new password must not be the same as the old one!",
+    "invalid-password": "The new password must contain at least 8 characters, 1 upper case letter, 1 lower case letter, 1 special character!",
 
     "mail-subject-reset-password": "Password recovery for the user",
 

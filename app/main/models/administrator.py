@@ -37,6 +37,7 @@ class Administrator(Base):
 
     password_hash: str = Column(String(100), nullable=True, default="")
     status = Column(types.Enum(UserStatusType), index=True, nullable=False, default=UserStatusType.UNACTIVED)
+    is_new_user: bool = Column(Boolean, nullable=True, default=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

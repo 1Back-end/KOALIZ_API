@@ -12,6 +12,7 @@ class Owner(BaseModel):
     firstname: str
     lastname: str
     status: str
+    is_new_user: Optional[bool] = False
     avatar: Optional[File]
     added_by: Optional[AddedBy]
     date_added: datetime

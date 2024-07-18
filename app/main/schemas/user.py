@@ -33,6 +33,7 @@ class UserBase(BaseModel):
     email: EmailStr
     firstname: str
     lastname: str
+    is_new_user: Optional[bool] = False
 
     model_config = ConfigDict(from_attributes=True)
 

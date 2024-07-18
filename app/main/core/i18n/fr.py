@@ -30,6 +30,10 @@ translation = {
     "address-creation-failed": "Impossible de créer l'adresse",
     "nursery-deleted": "Crèche(s) supprimée(s) avec succès",
     "nursery-not-found": "La crèche n'existe pas",
+    "change-password-required": "Veuillez changer votre mot de passe pour accéder pleinement à votre compte",
+    "incorrect-current-password": "Le mot de passe actuel est incorrect!",
+    "different-password-required": "Le nouveau mot de passe ne doit pas être le même que l'ancien!",
+    "invalid-password": "Le nouveau mot de passe doit contenir au moins 8 caractères, 1 lettre majuscule, 1 lettre minuscule, 1 caractère spécial!",
 
     "mail-subject-reset-password": "Récupération de mot de passe pour l'utilisateur",
 }

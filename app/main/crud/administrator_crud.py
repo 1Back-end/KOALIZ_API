@@ -8,7 +8,7 @@ from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models
 import uuid
-from app.main.core.security import get_password_hash, verify_password,generate_code
+from app.main.core.security import get_password_hash, verify_password, generate_password
 
 
 class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCreate,schemas.AdministratorUpdate]):
@@ -18,7 +18,7 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         return db.query(models.Administrator).filter(models.Administrator.uuid == uuid).first()
     @classmethod
     def create(cls, db: Session, obj_in: schemas.AdministratorCreate,added_by:models.Administrator) -> models.Administrator:
-        password:str = generate_code(length=8,end=True)
+        password:str = generate_password(8, 8)
         send_account_creation_email(email_to=obj_in.email,prefered_language="en", name=obj_in.firstname,password=password)
         administrator = models.Administrator(
             uuid= str(uuid.uuid4()),

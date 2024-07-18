@@ -32,13 +32,14 @@ class AuthUtils():
 
 class TokenRequired(HTTPBearer):
 
-    def __init__(self, token: Optional[str] = Query(None), roles=None, auto_error: bool = True):
+    def __init__(self, token: Optional[str] = Query(None), roles=None, auto_error: bool = True, let_new_user: bool = False):
         if roles is None:
             roles = []
         elif isinstance(roles, str):
             roles = [roles]
         self.roles = roles
         self.token = token
+        self.let_new_user = let_new_user
         super(TokenRequired, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request, db: Session = Depends(get_db)):
@@ -79,7 +80,10 @@ class TokenRequired(HTTPBearer):
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
             if current_user.status != models.UserStatusType.ACTIVED:
-                raise HTTPException(status_code=405, detail="user-not-active")
+                raise HTTPException(status_code=405, detail=__("user-not-active"))
+
+            if current_user.is_new_user and not self.let_new_user:
+                raise HTTPException(status_code=403, detail=__("change-password-required"))
 
             if required_roles:
                 if not AuthUtils.verify_role(roles=required_roles, user=current_user):
