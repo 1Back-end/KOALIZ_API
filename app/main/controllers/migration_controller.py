@@ -189,6 +189,7 @@ async def create_admin_users(
                         date_modified = data["date_modified"]
                     )
                     db.add(db_obj)
+                    db.flush()
                     db.commit()
         return {"message": "Les administrateurs ont été créés avec succès"}
         
@@ -199,55 +200,8 @@ async def create_admin_users(
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
 
-@router.post("/create-membership-types", response_model=schemas.Msg, status_code=201)
-async def create_membershiptype(
-        db: Session = Depends(dependencies.get_db),
-        admin_key: schemas.AdminKey = Body(...)
-) -> dict[str, str]:
-    """
-    Create memberships.
-    """
-    check_user_access_key(admin_key)
-    
-    try:
-        with open('{}/app/main/templates/default_data/membershiptype.json'.format(os.getcwd()), encoding='utf-8') as f:        
-            datas = json.load(f)
-        
-            for data in datas:
-                db_obj = db.query(models.MembershipType).filter(models.MembershipType.uuid == data["uuid"]).first()
-                if db_obj:
-                    db_obj.title_en = data["title_en"]
-                    db_obj.title_fr = data["title_fr"]
-                    db_obj.description = data["description"]
-                    db_obj.price = data["price"]
-                    db_obj.date_added = data["date_added"]
-                    db_obj.date_modified = data["date_modified"]
-                    db.commit()
-                    
-                else:
-                    # crud.administrator.create(db,schemas.AdministratorCreate(**data))
-                    db_obj = models.MembershipType(
-                        uuid = data["uuid"],
-                        title_en = data["title_en"],
-                        title_fr = data["title_fr"],
-                        description = data["description"],
-                        price = data["price"],
-                        date_added = data["date_added"],
-                        date_modified = data["date_modified"]
-                    )
-                    db.add(db_obj)
-                    db.commit()
-        return {"message": "Les types d'adhésion ont été créés avec succès"}
-        
-    except IntegrityError as e:
-        logger.error(str(e))
-        raise HTTPException(status_code=409, detail=__("conflict"))
-    except Exception as e:
-        logger.error(str(e))
-        raise HTTPException(status_code=500, detail="Erreur du serveur")
-
 # @router.post("/create-membership-types", response_model=schemas.Msg, status_code=201)
-# async def create_membership(
+# async def create_membershiptype(
 #         db: Session = Depends(dependencies.get_db),
 #         admin_key: schemas.AdminKey = Body(...)
 # ) -> dict[str, str]:
@@ -257,11 +211,11 @@ async def create_membershiptype(
 #     check_user_access_key(admin_key)
     
 #     try:
-#         with open('{}/app/main/templates/default_data/membership.json'.format(os.getcwd()), encoding='utf-8') as f:        
+#         with open('{}/app/main/templates/default_data/membershiptype.json'.format(os.getcwd()), encoding='utf-8') as f:        
 #             datas = json.load(f)
         
 #             for data in datas:
-#                 db_obj = crud.membership.
+#                 db_obj = db.query(models.MembershipType).filter(models.MembershipType.uuid == data["uuid"]).first()
 #                 if db_obj:
 #                     db_obj.title_en = data["title_en"]
 #                     db_obj.title_fr = data["title_fr"]
@@ -292,3 +246,60 @@ async def create_membershiptype(
 #     except Exception as e:
 #         logger.error(str(e))
 #         raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/create-membership-types", response_model=schemas.Msg, status_code=201)
+async def create_membership(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create memberships.
+    """
+    check_user_access_key(admin_key)
+    
+    try:
+        with open('{}/app/main/templates/default_data/membership.json'.format(os.getcwd()), encoding='utf-8') as f:        
+            datas = json.load(f)
+        
+            for data in datas:
+                db_obj = crud.membership.get_by_uuid(db=db, uuid=data["uuid"])
+                if db_obj:
+                    db_obj.title_en = data["title_en"]
+                    db_obj.title_fr = data["title_fr"]
+                    db_obj.description = data["description"] if data["description"] else None
+                    
+                    db_obj.status = data["status"]
+                    db_obj.perido_unit = data["perido_unit"]
+                    db_obj.period_from = data["period_from"]
+
+                    db_obj.period_to = data["period_to"]
+                    db_obj.duration = data["duration"]
+                    db_obj.date_added = data["date_added"]
+                    db_obj.date_modified = data["date_modified"]
+                    db.commit()
+                    
+                else:
+                    # crud.administrator.create(db,schemas.AdministratorCreate(**data))
+                    db_obj = models.Membership(
+                        uuid = data["uuid"],
+                        title_en = data["title_en"],
+                        title_fr = data["title_fr"],
+                        description = data["description"],
+                        period_to = data["period_to"],
+                        period_from = data["period_from"],
+                        period_unit = data["period_unit"],
+                        duration = data["duration"],
+                        status = data["status"],
+                        date_added = data["date_added"],
+                        date_modified = data["date_modified"]
+                    )
+                    db.add(db_obj)
+                    db.commit()
+        return {"message": "Les abonnements ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
