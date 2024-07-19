@@ -3,6 +3,7 @@ from .address_crud import address
 from .storage_crud import storage
 from .role_crud import role
 from .administrator_crud import administrator
-from .owner_crud import owner
 from .nursery_crud import nursery
+from .owner_crud import owner
+from .preregistration_crud import preregistration
 from .membership_crud import membership

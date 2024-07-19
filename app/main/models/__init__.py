@@ -6,5 +6,6 @@ from .user import *
 from .backlist_token import BlacklistToken
 from .nursery import *
 from .owner import *
+from .preregistration import *
 from .storage import *
 from .membership import *
