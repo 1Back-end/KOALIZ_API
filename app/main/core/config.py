@@ -17,11 +17,11 @@ class ConfigClass(BaseSettings):
     SECRET_KEY: str = get_secret("SECRET_KEY", '7FJxtvSbz8ba7YKCKCUt53M4M6PxTgxBKwQSejucZScXm8')
     ALGORITHM: str = get_secret("ALGORITHM", 'HS256')
 
-    ADMIN_KEY: str = get_secret("ADMIN_KEY", "BdeMicroCreche24")
-    ADMIN_USERNAME: str = get_secret("ADMIN_USERNAME", "bdemicrocreche")
+    ADMIN_KEY: str = get_secret("ADMIN_KEY", "koaLizZ24")
+    ADMIN_USERNAME: str = get_secret("ADMIN_USERNAME", "koalizz")
     ADMIN_PASSWORD: str = get_secret("ADMIN_PASSWORD", "JXunRJ1r3g")
 
-    PROJECT_NAME: str = get_secret("PROJECT_NAME", "BDE MICRO CRECHE API")
+    PROJECT_NAME: str = get_secret("PROJECT_NAME", "KOALIZZ API")
     PROJECT_VERSION: str = get_secret("PROJECT_VERSION", "0.0.1")
     PREFERRED_LANGUAGE: str = get_secret("PREFERRED_LANGUAGE", 'fr')
     API_STR: str = get_secret("API_STR", "/api/v1")
@@ -65,7 +65,7 @@ class ConfigClass(BaseSettings):
     SMTP_USER: Optional[str] = get_secret("SMTP_USER", "")
     SMTP_PASSWORD: Optional[str] = get_secret("SMTP_PASSWORD", "")
     EMAILS_FROM_EMAIL: Optional[EmailStr] = get_secret("EMAILS_FROM_EMAIL", "liditieng@gmail.com")
-    EMAILS_FROM_NAME: Optional[str] = get_secret("EMAILS_FROM_NAME", "BDE-CRECHE")
+    EMAILS_FROM_NAME: Optional[str] = get_secret("EMAILS_FROM_NAME", "KOALIZZ")
 
     EMAIL_TEMPLATES_DIR: str = "{}/app/main/templates/emails/render".format(os.getcwd())
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = int(get_secret("EMAIL_RESET_TOKEN_EXPIRE_HOURS", 48))
