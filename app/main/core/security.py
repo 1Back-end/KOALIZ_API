@@ -3,6 +3,7 @@ import string
 import random
 import jwt
 import bcrypt
+import unicodedata
 from datetime import timedelta, datetime
 from random import randint, choice
 from string import ascii_lowercase, ascii_uppercase, digits, punctuation
@@ -139,6 +140,31 @@ def generate_password(min_length=8, max_length=16):
     # Return the password as a string
     return ''.join(password)
 
-# Example usage with minimum length of 12 and maximum of 16
-# password = generate_password(12, 16)
-# print(f"Generated password: {password}")
+
+def generate_slug(text, separator='-'):
+    """
+    Generates a slug from a given text string.
+
+    Args:
+      text: The text string to be converted into a slug.
+      separator: The character to use as a word separator (default: '-').
+
+    Returns:
+      A lowercase slug string based on the input text and using the specified separator.
+    """
+
+    # Convert to lowercase and remove accents
+    text = unicodedata.normalize('NFKD', text).lower()
+
+    words = text.split()
+
+    valid_chars = string.ascii_letters + string.digits + '-'
+    cleaned_words = [''.join(c for c in word if c in valid_chars) for word in words]
+
+    slug = separator.join(cleaned_words)
+
+    slug = slug.rstrip(separator)
+    print(slug)
+
+    return slug
+

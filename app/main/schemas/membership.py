@@ -27,7 +27,7 @@ class MembershipUpdate(MembershipBase):
     nursery_uuid: Optional[str] = None
     membership_type_uuid: Optional[str] = None
 
-class Nursery(BaseModel):
+class Nursery2(BaseModel):
     uuid: str
     email: EmailStr
     name: str
@@ -53,7 +53,7 @@ class MembershipType(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class Owner(BaseModel):
+class Owner2(BaseModel):
     uuid: Optional[str] = None
     email: EmailStr
     firstname: str
@@ -68,8 +68,8 @@ class Owner(BaseModel):
 
 class MembershipResponse(MembershipBase):
     uuid: str
-    owner: Owner
-    nursery:Nursery
+    owner: Owner2
+    nursery:Nursery2
     membership_type: MembershipType
     date_added: datetime
     date_modified: datetime

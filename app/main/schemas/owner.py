@@ -9,9 +9,10 @@ from app.main.schemas.user import AddedBy
 class Owner(BaseModel):
     uuid: Optional[str] = None
     email: EmailStr
-    firstname: str
+    firstname: Optional[str]
     lastname: str
     status: str
+    phone_number: Optional[str]
     is_new_user: Optional[bool] = False
     avatar: Optional[File]
     added_by: Optional[AddedBy]
@@ -25,6 +26,7 @@ class OwnerSchemaBase(BaseModel):
     firstname: Optional[str] = None
     lastname: str
     avatar_uuid: Optional[str] = None
+    phone_number: Optional[str] = None
 
 
 class OwnerCreate(OwnerSchemaBase):

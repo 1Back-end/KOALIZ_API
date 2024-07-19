@@ -41,6 +41,7 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
             email = obj_in.email,
             firstname = obj_in.firstname,
             lastname = obj_in.lastname,
+            phone_number = obj_in.phone_number,
             password_hash = get_password_hash(password),
             role_uuid = role.uuid,
             avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else None,

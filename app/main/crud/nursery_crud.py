@@ -11,7 +11,7 @@ from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import crud, schemas, models
 import uuid
-from app.main.core.security import get_password_hash, verify_password
+from app.main.core.security import get_password_hash, verify_password, generate_code, generate_slug
 
 
 class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.NurseryUpdate]):
@@ -47,6 +47,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         if not address:
             raise HTTPException(status_code=400, detail=__("address-creation-failed"))
 
+        slug = cls.slug_unicity(slug=generate_slug(obj_in.name), db=db)
+
         nursery = models.Nursery(
             uuid=str(uuid.uuid4()),
             email=obj_in.email,
@@ -58,7 +60,9 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             address_uuid=address.uuid,
             added_by_uuid=current_user_uuid,
             total_places=obj_in.total_places,
-            phone_number=obj_in.phone_number
+            phone_number=obj_in.phone_number,
+            website=obj_in.website,
+            slug=slug
         )
         db.add(nursery)
         db.commit()
@@ -175,10 +179,44 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         )
 
     @classmethod
+    def update_opening_hour(cls, db: Session, nursery: models.Nursery, opening_hour: schemas.OpeningTime) -> schemas.NurseryOpeningTime:
+        nursery.open_from = opening_hour.open_from
+        nursery.open_to = opening_hour.open_to
+        print("efwrthyjhwergthytjkefdgh")
+        generate_slug(text="nursery.name fweeg-ewrg")
+        print("efwrthyjhwergthytjkefdgh")
+        "c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
+        # db.commit()
+        return nursery
+
+    @classmethod
     def get_by_uuids(cls, db: Session, uuids: list[str]) -> list[Optional[models.Nursery]]:
         return db.query(models.Nursery).filter(models.Nursery.uuid.in_(uuids))\
             .filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED])).all()
 
+    @classmethod
+    def get_by_slug(cls, db: Session, slug: str, deleted_included=False) -> Optional[models.Nursery]:
+        res = db.query(models.Nursery).filter(models.Nursery.slug == slug)
+        if not deleted_included:
+            res = res.filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED]))
+
+        return res.first()
+
+
+    @classmethod
+    def get_all_uuids_of_same_owner(cls, db: Session, owner_uuid: str, except_uuids: list[str]) -> list[str]:
+        res = db.query(models.Nursery.uuid).filter(models.Nursery.owner_uuid == owner_uuid)
+        if except_uuids:
+            res = res.filter(models.Nursery.uuid.notin_(except_uuids))
+        res = res.all()
+        return [r.uuid for r in res]
+
+    @classmethod
+    def slug_unicity(cls, slug: str, db: Session):
+        while cls.get_by_slug(db, slug, deleted_included=True):
+            slug = f"{slug}-{generate_code(length=4)}"
+            return cls.slug_unicity(slug, db)
+        return slug
 
     def is_active(self, user: models.Administrator) -> bool:
         return user.status == models.UserStatusType.ACTIVED

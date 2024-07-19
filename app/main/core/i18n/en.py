@@ -24,6 +24,8 @@ translation = {
     "incorrect-current-password": "The current password is incorrect!",
     "different-password-required": "The new password must not be the same as the old one!",
     "invalid-password": "The new password must contain at least 8 characters, 1 upper case letter, 1 lower case letter, 1 special character!",
+    "invalid-time-format": "Invalid time format. Use ISO format (HH:MM).",
+    "to-not-greater-from": "Opening time must be before closing time.",
 
     "mail-subject-reset-password": "Password recovery for the user",
 

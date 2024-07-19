@@ -34,6 +34,8 @@ translation = {
     "incorrect-current-password": "Le mot de passe actuel est incorrect!",
     "different-password-required": "Le nouveau mot de passe ne doit pas être le même que l'ancien!",
     "invalid-password": "Le nouveau mot de passe doit contenir au moins 8 caractères, 1 lettre majuscule, 1 lettre minuscule, 1 caractère spécial!",
+    "invalid-time-format": "Format d'heure non valide. Utilisez le format ISO (HH:MM).",
+    "to-not-greater-from": "L'heure d'ouverture doit être antérieure à l'heure de fermeture.",
 
     "mail-subject-reset-password": "Récupération de mot de passe pour l'utilisateur",
 }
