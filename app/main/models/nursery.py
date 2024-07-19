@@ -40,10 +40,10 @@ class Nursery(Base):
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
 
     status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.ACTIVED)
-    slug: str = Column(String, index=True, default="", unique=True)
+    slug: str = Column(String, index=True, default="", unique=True, nullable=False)
     website: str = Column(String, default="")
 
-    owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
+    owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=False)
     owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False)
 
     added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
