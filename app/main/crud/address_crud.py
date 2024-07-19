@@ -1,5 +1,6 @@
 from typing import Any, Dict, Union
 
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
@@ -13,10 +14,13 @@ class CRUDAddress(CRUDBase[models.Address, schemas.AddressCreate, schemas.Addres
 
     def create(self, db: Session, *, obj_in: schemas.AddressCreate) -> models.Address:
         try:
-            db_obj = models.Address(
-                uuid=str(uuid.uuid4()),
-                **{obj_in.model_dump()}
-            )
+            obj_in_data = jsonable_encoder(obj_in)
+            obj_in_data["uuid"] = str(uuid.uuid4())
+            db_obj = self.model(**obj_in_data)
+            # db_obj = models.Address(
+            #     uuid=str(uuid.uuid4()),
+            #     **{obj_in.model_dump()}
+            # )
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)

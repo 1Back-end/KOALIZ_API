@@ -10,7 +10,7 @@ from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
 from app.main.core.mail import send_reset_password_email
-from app.main.core.security import create_access_token, get_password_hash, decode_access_token
+from app.main.core.security import create_access_token, get_password_hash, verify_password, is_valid_password
 from app.main.core.config import Config
 from app.main.schemas.user import UserProfileResponse
 from app.main.utils.helper import check_pass, generate_randon_key
@@ -140,6 +140,34 @@ def reset_password(
 
     return schemas.Msg(message=__("password-reset-successfully"))
 
+
+@router.put("/me/password", response_model=schemas.UserProfileResponse)
+async def update_current_user_password(
+        new_password: str,
+        current_password: str,
+        db: Session = Depends(get_db),
+        # current_user: any = Depends(TokenRequired())
+        current_user: any = Depends(TokenRequired(let_new_user=True))
+) -> schemas.UserProfileResponse:
+    """
+        Update password of current connected user
+    """
+    if not verify_password(plain_password=current_password, hashed_password=current_user.password_hash):
+        raise HTTPException(status_code=400, detail=__("incorrect-current-password"))
+
+    # Check if new password is equal to current
+    if verify_password(plain_password=new_password, hashed_password=current_user.password_hash):
+        raise HTTPException(status_code=400, detail=__("different-password-required"))
+
+    if not is_valid_password(password=new_password):
+        raise HTTPException(status_code=400, detail=__("invalid-password"))
+
+    current_user.password_hash = get_password_hash(new_password)
+    if current_user.is_new_user:
+        current_user.is_new_user = False
+    db.commit()
+
+    return current_user
 
 @router.put("/users/profile", response_model=UserProfileResponse, include_in_schema=False)
 async def update_user_profile(

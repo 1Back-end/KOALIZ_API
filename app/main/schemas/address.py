@@ -28,5 +28,5 @@ class AddressCreate(AddressBase):
 
 
 class AddressUpdate(AddressCreate):
-    uuid: str
+    pass
 

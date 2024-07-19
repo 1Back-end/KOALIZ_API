@@ -13,7 +13,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.OwnerCreate,
-    current_user: models.User = Depends(TokenRequired(roles=["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Create owner
@@ -34,7 +34,7 @@ def update(
     uuid: str,
     obj_in: schemas.OwnerUpdateBase,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
     """
     Update nursery owner
@@ -50,11 +50,31 @@ def update(
     return crud.owner.update(db, user, obj_in)
 
 
+@router.put("/{uuid}/status", response_model=schemas.Owner, status_code=201)
+def update(
+        uuid: str,
+        status: str = Query(..., enum=[st.value for st in models.UserStatusType if st.value != models.UserStatusType.DELETED]),
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+):
+    """
+    Update nursery owner status
+    """
+    user = crud.owner.get_by_uuid(db, uuid)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    if user.status == status:
+        return user
+
+    return crud.owner.update(db, user, {"status": status})
+
+
 @router.get("/{uuid}", response_model=schemas.Owner, status_code=201)
 def get_details(
         uuid: str,
         db: Session = Depends(get_db),
-        current_user: models.User = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Get nursery owner details
@@ -71,7 +91,7 @@ def delete(
     *,
     db: Session = Depends(get_db),
     uuids: list[str],
-    current_user: models.User = Depends(TokenRequired(roles =["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"]))
 ):
     """
     Delete many(or one)
@@ -89,7 +109,7 @@ def get(
     order: str = Query("desc", enum =["asc", "desc"]),
     order_filed: str = "date_added",
     keyword: Optional[str] = None,
-    current_user: models.User = Depends(TokenRequired(roles=["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     get all with filters

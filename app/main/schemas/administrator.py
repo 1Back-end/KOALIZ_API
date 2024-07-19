@@ -75,6 +75,7 @@ class Administrator(BaseModel):
     email: EmailStr
     firstname: str
     lastname: str
+    is_new_user: Optional[bool] = False
     avatar: Optional[File]
     date_added: datetime
     date_modified: datetime

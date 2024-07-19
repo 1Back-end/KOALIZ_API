@@ -40,6 +40,18 @@ class Nursery(Base):
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
 
     status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.ACTIVED)
+    slug: str = Column(String, index=True, default="", unique=True)
+    website: str = Column(String, default="")
+
+    owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
+    owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False)
+
+    added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
+    added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
+
+    open_from: str = Column(String(5), nullable=True)
+    open_to: str = Column(String(5), nullable=True)
+    # opening_hours = relationship("NurseryOpeningHour", backref="nursery")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -59,3 +71,36 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
+
+
+
+# class NurseryOpeningHour(Base):
+#     """
+#      database model for storing Nursery Opening Hour related details
+#     """
+#     __tablename__ = "nursery_opening_hours"
+#
+#     uuid: str = Column(String, primary_key=True, unique=True, index=True)
+#
+#     day_of_week: int = Column(Integer, nullable=False)
+#     from_time: str = Column(String(5), nullable=False)
+#     to_time: str = Column(String(5), nullable=False)
+#
+#     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+#     nursery = relationship("Nursery", foreign_keys=[nursery_uuid], uselist=False)
+#
+#     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+#     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+#
+#
+# @event.listens_for(NurseryOpeningHour, 'before_insert')
+# def update_created_modified_on_create_listener(mapper, connection, target):
+#     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+#     target.date_added = datetime.now()
+#     target.date_modified = datetime.now()
+#
+#
+# @event.listens_for(NurseryOpeningHour, 'before_update')
+# def update_modified_on_update_listener(mapper, connection, target):
+#     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+#     target.date_modified = datetime.now()
