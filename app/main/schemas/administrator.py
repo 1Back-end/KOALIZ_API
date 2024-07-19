@@ -4,7 +4,14 @@ from datetime import datetime
 
 from app.main.schemas.base import UserAuthentication
 from app.main.schemas.file import File
-from .user import AddedBy
+
+class AddedBy2(BaseModel):
+    uuid: str
+    email: EmailStr
+    firstname: Optional[str]
+    lastname: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 class Avatar(BaseModel):
     uuid:str
@@ -55,6 +62,7 @@ class AdministratorResponse(AdministratorBase):
     status:str
     avatar : Optional[Avatar] = None
     role: Roleslim
+    added_by: AddedBy2
     date_added: Any
     date_modified: Any
 
