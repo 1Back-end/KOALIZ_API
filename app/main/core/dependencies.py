@@ -68,13 +68,13 @@ class TokenRequired(HTTPBearer):
             if code_groups:
                 if "administrators" in code_groups:
                     current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
-                else:
-                    current_user = crud.user.get_by_uuid(db=db, uuid=token_data["sub"])
+                elif "owners" in code_groups:
+                    current_user = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
 
             else:
                 current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
                 if not current_user:
-                    current_user = crud.user.get_by_uuid(db=db, uuid=token_data["sub"])
+                    current_user = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
 
             if not current_user:
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
