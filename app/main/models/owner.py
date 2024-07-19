@@ -32,8 +32,8 @@ class Owner(Base):
 
     password_hash: str = Column(String(100), nullable=True, default="")
     status = Column(types.Enum(UserStatusType), index=True, nullable=False, default=UserStatusType.UNACTIVED)
-
-    # status = Column(String, index=True, nullable=False)
+    is_new_user: bool = Column(Boolean, nullable=True, default=False)
+    phone_number: str = Column(String, nullable=True, default="")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

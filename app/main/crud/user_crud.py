@@ -10,7 +10,7 @@ from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session
 from app.main.models import User
 from app.main import schemas, models
-from app.main.core.security import get_password_hash, verify_password, generate_code
+from app.main.core.security import get_password_hash, verify_password
 from app.main import utils
 from fastapi import HTTPException
 

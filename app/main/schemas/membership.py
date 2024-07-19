@@ -2,7 +2,6 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict,EmailStr
 from datetime import datetime, date
 
-
 class MembershipBase(BaseModel):
     title_fr: str
     title_en: str
@@ -22,24 +21,26 @@ class MembershipUpdate(MembershipBase):
     uuid:str
     title_fr: Optional[str] = None
     title_en: Optional[str] = None
+    owner_uuid: Optional[str] = None
     period_from: Optional[datetime] = None
     period_to: Optional[datetime] = None
-    period_unit: Optional[str] = None
+    nursery_uuid: Optional[str] = None
+    membership_type_uuid: Optional[str] = None
 
-# class Nursery(BaseModel):
-#     uuid: str
-#     email: EmailStr
-#     name: str
-#     # logo: Optional[File]
-#     # signature: Optional[File]
-#     # stamp: Optional[File]
-#     total_places: int = 0
-#     phone_number: str
-#     # address: Address
-#     date_added: datetime
-#     date_modified: datetime
+class Nursery2(BaseModel):
+    uuid: str
+    email: EmailStr
+    name: str
+    # logo: Optional[File]
+    # signature: Optional[File]
+    # stamp: Optional[File]
+    total_places: int = 0
+    phone_number: str
+    # address: Address
+    date_added: datetime
+    date_modified: datetime
 
-#     model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
 # class MembershipType(BaseModel):
 #     uuid: str
@@ -52,7 +53,7 @@ class MembershipUpdate(MembershipBase):
 
 #     model_config = ConfigDict(from_attributes=True)
 
-class OwnerResponse(BaseModel):
+class Owner2(BaseModel):
     uuid: Optional[str] = None
     email: EmailStr
     firstname: str
@@ -69,10 +70,11 @@ class MembershipResponse(MembershipBase):
     uuid: str
     status: str
     duration:float
+    owner: Owner2
+    duration: float
 
-    owner: OwnerResponse
-    # nursery:Nursery
-    # membership_type: MembershipType
+
+    # nursery:Nursery2
     date_added: datetime
     date_modified: datetime
     model_config = ConfigDict(from_attributes=True)

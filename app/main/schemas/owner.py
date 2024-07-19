@@ -9,9 +9,11 @@ from app.main.schemas.user import AddedBy
 class Owner(BaseModel):
     uuid: Optional[str] = None
     email: EmailStr
-    firstname: str
+    firstname: Optional[str]
     lastname: str
     status: str
+    phone_number: Optional[str]
+    is_new_user: Optional[bool] = False
     avatar: Optional[File]
     added_by: Optional[AddedBy]
     date_added: datetime
@@ -24,6 +26,7 @@ class OwnerSchemaBase(BaseModel):
     firstname: Optional[str] = None
     lastname: str
     avatar_uuid: Optional[str] = None
+    phone_number: Optional[str] = None
 
 
 class OwnerCreate(OwnerSchemaBase):
@@ -50,7 +53,7 @@ class OwnerList(DataList):
     model_config = ConfigDict(from_attributes=True)
 
 
-class AdministratorAuthentication(UserAuthentication):
+class OwnerAuthentication(UserAuthentication):
     user: Owner
 
     model_config = ConfigDict(from_attributes=True)

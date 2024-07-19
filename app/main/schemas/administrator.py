@@ -4,7 +4,7 @@ from datetime import datetime
 
 from app.main.schemas.base import UserAuthentication
 from app.main.schemas.file import File
-
+from .user import AddedBy
 
 class Avatar(BaseModel):
     uuid:str
@@ -75,6 +75,7 @@ class Administrator(BaseModel):
     email: EmailStr
     firstname: str
     lastname: str
+    is_new_user: Optional[bool] = False
     avatar: Optional[File]
     date_added: datetime
     date_modified: datetime

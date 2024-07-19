@@ -7,12 +7,13 @@ from pydantic import EmailStr
 from sqlalchemy import or_
 
 from app.main.core.i18n import __
+from app.main.core.mail import send_account_creation_email
 from app.main.crud.base import CRUDBase
 from app.main.crud.role_crud import role as crud_role
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models
 import uuid
-from app.main.core.security import get_password_hash, verify_password
+from app.main.core.security import get_password_hash, verify_password, generate_password
 
 
 class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.AdministratorUpdate]):
@@ -29,7 +30,8 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
     
     @classmethod
     def create(cls, db: Session, obj_in: schemas.AdministratorCreate, added_by_uuid) -> models.Owner:
-        password = "password"
+        password: str = generate_password(8, 8)
+        print(f"Owner password: {password}")
         role = crud_role.get_by_code(db=db, code="owner")
         if not role:
             raise HTTPException(status_code=404, detail=__("role-not-found"))
@@ -39,6 +41,7 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
             email = obj_in.email,
             firstname = obj_in.firstname,
             lastname = obj_in.lastname,
+            phone_number = obj_in.phone_number,
             password_hash = get_password_hash(password),
             role_uuid = role.uuid,
             avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else None,
@@ -47,12 +50,15 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
         db.add(user)
         db.commit()
         db.refresh(user)
+        send_account_creation_email(email_to=obj_in.email, prefered_language="fr", name=obj_in.firstname,
+                                    password=password)
         return user
     
     @classmethod
-    def update(cls, db: Session, user: models.Owner, obj_in: schemas.OwnerUpdate) -> models.Administrator:
-        update_data = obj_in.model_dump(exclude_unset=True)
-        return super().update(models.Owner, db, db_obj=user, obj_in=update_data)
+    def update(cls, db: Session, user: models.Owner, obj_in: Union[schemas.OwnerUpdate, dict]) -> models.Administrator:
+        if type(obj_in) != dict:
+            obj_in = obj_in.model_dump(exclude_unset=True)
+        return super().update(models.Owner, db, db_obj=user, obj_in=obj_in)
 
     @classmethod
     def delete(cls, db: Session, uuids: list[str]) -> None:
