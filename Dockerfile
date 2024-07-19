@@ -19,9 +19,6 @@ RUN apt-get install -y libxslt-dev libxml2-dev libpam-dev libedit-dev python-dev
 
 RUN sed -i '/de_DE.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
-ENV LANG de_DE.UTF-8  
-ENV LANGUAGE de_DE:de  
-ENV LC_ALL de_DE.UTF-8    
 
 RUN mkdir /webapp
 RUN mkdir -p /webapp/alembic/versions
