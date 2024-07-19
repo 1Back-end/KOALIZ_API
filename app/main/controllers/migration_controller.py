@@ -15,6 +15,7 @@ from sqlalchemy import Column, String
 from app.main import schemas
 from app.main.core.config import Config
 from app.main.core import dependencies
+from app.main.core.security import get_password_hash
 from app.main.models.db.base_class import Base
 from app.main.utils import logger
 from app.main import models,crud
@@ -163,7 +164,7 @@ async def create_admin_users(
                         otp_expired_at = data['otp_expired_at'],
                         otp_password =data['otp_password'],
                         otp_password_expired_at =data['otp_password_expired_at'],
-                        password_hash =data['password_hash'],
+                        password_hash =get_password_hash(data['password_hash']),
                         status= data['status'],
                         date_added = data['date_added'],
                         date_modified = data['date_modified']
@@ -183,7 +184,7 @@ async def create_admin_users(
                         otp_expired_at =data["otp_expired_at"],
                         otp_password =data["otp_password"],
                         otp_password_expired_at = data["otp_password_expired_at"],
-                        password_hash = data["password_hash"],
+                        password_hash = get_password_hash(data["password_hash"]),
                         status= data["status"],
                         date_added = data["date_added"],
                         date_modified = data["date_modified"]
