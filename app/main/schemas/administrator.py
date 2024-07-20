@@ -62,7 +62,7 @@ class AdministratorResponse(AdministratorBase):
     status:str
     avatar : Optional[Avatar] = None
     role: Roleslim
-    added_by: AddedBy2
+    added_by: Optional[AddedBy2] = None
     date_added: Any
     date_modified: Any
 
