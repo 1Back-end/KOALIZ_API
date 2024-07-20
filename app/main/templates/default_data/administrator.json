@@ -11,7 +11,7 @@
     "otp_expired_at": null,
     "otp_password": null,
     "otp_password_expired_at": null,
-    "password_hash": "$2b$12$glvqwbXgdFSbU5BA.07b.u8TKLplbjuR2Yr5xIjEZmOUSN7wYlZxS",
+    "password_hash": "Passw0rd!",
     "status": "ACTIVED",
     "date_added": "2024-07-18 17:41:22.486327",
     "date_modified": "2024-07-18 17:41:22.486339"
@@ -28,7 +28,7 @@
     "otp_expired_at": null,
     "otp_password": null,
     "otp_password_expired_at": null,
-    "password_hash": "$2b$12$6/SGIsTJmWp67ZmsNE8GFenHaua.Dt3qrjjlarRgD5x7540/2JiXO",
+    "password_hash": "Passw0rd!",
     "status": "UNACTIVED",
     "date_added": "2024-07-18 17:41:22.480742",
     "date_modified": "2024-07-18 17:41:22.480756"
@@ -45,7 +45,7 @@
     "otp_expired_at": null,
     "otp_password": null,
     "otp_password_expired_at": null,
-    "password_hash": "$2b$12$6/SGIsTJmWp67ZmsNE8GFenHaua.Dt3qrjjlarRgD5x7540/2JiXO",
+    "password_hash": "test1234",
     "status": "ACTIVED",
     "date_added": "2024-07-18 17:41:22.480742",
     "date_modified": "2024-07-18 17:41:22.480756"

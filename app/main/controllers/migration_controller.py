@@ -15,6 +15,7 @@ from sqlalchemy import Column, String
 from app.main import schemas
 from app.main.core.config import Config
 from app.main.core import dependencies
+from app.main.core.security import get_password_hash
 from app.main.models.db.base_class import Base
 from app.main.utils import logger
 from app.main import models,crud
@@ -156,14 +157,13 @@ async def create_admin_users(
                         firstname = data['firstname'],
                         lastname = data['lastname'],
                         email =data['email'],
-                        added_by_uuid = data['added_by_uuid'],
                         role_uuid = data['role_uuid'],
                         avatar_uuid =data['avatar_uuid'],
                         otp = data['otp'],
                         otp_expired_at = data['otp_expired_at'],
                         otp_password =data['otp_password'],
                         otp_password_expired_at =data['otp_password_expired_at'],
-                        password_hash =data['password_hash'],
+                        password_hash =get_password_hash(data['password_hash']),
                         status= data['status'],
                         date_added = data['date_added'],
                         date_modified = data['date_modified']
@@ -179,11 +179,10 @@ async def create_admin_users(
                         role_uuid = data["role_uuid"],
                         avatar_uuid =data["avatar_uuid"],
                         otp = data["otp"],
-                        added_by_uuid= data["added_by_uuid"],
                         otp_expired_at =data["otp_expired_at"],
                         otp_password =data["otp_password"],
                         otp_password_expired_at = data["otp_password_expired_at"],
-                        password_hash = data["password_hash"],
+                        password_hash = get_password_hash(data["password_hash"]),
                         status= data["status"],
                         date_added = data["date_added"],
                         date_modified = data["date_modified"]

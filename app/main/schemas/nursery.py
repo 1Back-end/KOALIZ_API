@@ -168,9 +168,15 @@ class NurseryOpeningTime(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class OtherNurseryByGuest(BaseModel):
+    uuid: str
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class NurseryByGuest(BaseModel):
     uuid: str
-    others: list[str] = []
     email: EmailStr
     name: str
     phone_number: str
@@ -178,6 +184,7 @@ class NurseryByGuest(BaseModel):
     open_to: Optional[str]
     logo: Optional[File]
     address: Address
+    others: list[OtherNurseryByGuest] = []
 
     model_config = ConfigDict(from_attributes=True)
 

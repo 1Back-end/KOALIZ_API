@@ -204,12 +204,12 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
 
     @classmethod
-    def get_all_uuids_of_same_owner(cls, db: Session, owner_uuid: str, except_uuids: list[str]) -> list[str]:
-        res = db.query(models.Nursery.uuid).filter(models.Nursery.owner_uuid == owner_uuid)
+    def get_all_uuids_of_same_owner(cls, db: Session, owner_uuid: str, except_uuids: list[str]) -> list[dict]:
+        res = db.query(models.Nursery.uuid, models.Nursery.name).filter(models.Nursery.owner_uuid == owner_uuid)
         if except_uuids:
             res = res.filter(models.Nursery.uuid.notin_(except_uuids))
-        res = res.all()
-        return [r.uuid for r in res]
+        return res.all()
+
 
     @classmethod
     def slug_unicity(cls, slug: str, db: Session):
