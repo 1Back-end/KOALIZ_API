@@ -43,7 +43,7 @@ class TokenRequired(HTTPBearer):
         super(TokenRequired, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request, db: Session = Depends(get_db)):
-        required_roles = self.roles
+        required_roles = set(self.roles)
         code_groups = []
         for required_role in required_roles:
             code_group = crud.role.get_by_code(db=db, code=required_role)
@@ -66,10 +66,14 @@ class TokenRequired(HTTPBearer):
 
             current_user = None
             if code_groups:
-                if "administrators" in code_groups:
-                    current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
-                elif "owners" in code_groups:
-                    current_user = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
+                if "administrators" in code_groups and "owners" in code_groups:
+                    current_user = (crud.owner.get_by_uuid(db=db, uuid=token_data["sub"]) or
+                                    crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"]))
+                else:
+                    if "administrators" in code_groups:
+                        current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
+                    elif "owners" in code_groups:
+                        current_user = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
 
             else:
                 current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
