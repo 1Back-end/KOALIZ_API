@@ -3,7 +3,7 @@ from typing import Generator, Optional
 from fastapi import Depends, Query
 from sqlalchemy.orm import Session
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Request, HTTPException, BackgroundTasks
+from fastapi import Request, HTTPException
 
 from app.main import models, crud
 from app.main.core.i18n import __

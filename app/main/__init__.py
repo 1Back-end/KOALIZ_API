@@ -27,7 +27,7 @@ security = HTTPBasic()
 
 protocol = HTTPBearer(auto_error=False, scheme_name="Bearer")
 
-description = '''This is BDE MICRO CRECHE API. All request in regards to the application can be found here,
+description = '''This is KOALIZZ API. All request in regards to the application can be found here,
     in general most of the methods require you being as an active user to be able to access
 '''
 

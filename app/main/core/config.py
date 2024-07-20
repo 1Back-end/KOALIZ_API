@@ -30,10 +30,10 @@ class ConfigClass(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(get_secret("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 365))
 
    # Minio
-    MINIO_API_URL: str = get_secret("MINIO_API_URL", "http://localhost:5300/api/v1/storages/get/")
-    MINIO_URL: str = get_secret("MINIO_URL", "play.min.io")
-    MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "Q3AM3UQ867SPQQA43P2F")
-    MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG")
+    MINIO_API_URL: str = get_secret("MINIO_API_URL", "https://api.develop.koalizz.fr/v1/storages/get/")
+    MINIO_URL: str = get_secret("MINIO_URL", "files.koalizz.fr")
+    MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "WlsCK$gS7CTqhmM@x0jshEzsCK$gTqSM@7CT3hTddcc3mxlfyBo=")
+    MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "jDe6SMqmmfCFyfGXD0n0N7r9AE2oKXyf/GXDpLRRCF4pOht0n0N7r9AEqZfHoskTn1jjogcANAkflmfDa0kpxfiw==")
     MINIO_BUCKET: str = get_secret("MINIO_BUCKET", "develop")
     MINIO_SECURE: bool = get_secret("MINIO_SECURE", True)
 
@@ -58,13 +58,13 @@ class ConfigClass(BaseSettings):
 
     LOCAL: bool = os.getenv("LOCAL", True)
 
-    SMTP_TLS: bool = get_secret("SMTP_TLS", False)
+    SMTP_TLS: bool = get_secret("SMTP_TLS", True)
     SMTP_SSL: bool = get_secret("SMTP_SSL", False)
-    SMTP_PORT: Optional[int] = int(get_secret("SMTP_PORT", 1025))
-    SMTP_HOST: Optional[str] = get_secret("SMTP_HOST", "localhost")
-    SMTP_USER: Optional[str] = get_secret("SMTP_USER", "")
-    SMTP_PASSWORD: Optional[str] = get_secret("SMTP_PASSWORD", "")
-    EMAILS_FROM_EMAIL: Optional[EmailStr] = get_secret("EMAILS_FROM_EMAIL", "liditieng@gmail.com")
+    SMTP_PORT: Optional[int] = int(get_secret("SMTP_PORT", 587))
+    SMTP_HOST: Optional[str] = get_secret("SMTP_HOST", "mail80.lwspanel.com")
+    SMTP_USER: Optional[str] = get_secret("SMTP_USER", "no-reply@koalizz.fr")
+    SMTP_PASSWORD: Optional[str] = get_secret("SMTP_PASSWORD", "eG7$RRzFkza-*y3")
+    EMAILS_FROM_EMAIL: Optional[EmailStr] = get_secret("EMAILS_FROM_EMAIL", "no-reply@koalizz.fr")
     EMAILS_FROM_NAME: Optional[str] = get_secret("EMAILS_FROM_NAME", "KOALIZZ")
 
     EMAIL_TEMPLATES_DIR: str = "{}/app/main/templates/emails/render".format(os.getcwd())
