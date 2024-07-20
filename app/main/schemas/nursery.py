@@ -1,11 +1,11 @@
 from typing import Optional
 
 from fastapi import Body
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator, root_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
 from datetime import datetime, time
 
 from app.main.core.i18n import __
-from app.main.schemas import UserAuthentication, File, DataList, Address, AddressCreate, AddressUpdate
+from app.main.schemas import File, DataList, Address, AddressCreate, AddressUpdate
 from app.main.schemas.user import AddedBy
 
 
