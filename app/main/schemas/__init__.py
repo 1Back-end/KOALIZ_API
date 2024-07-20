@@ -10,3 +10,4 @@ from .owner import *
 from .preregistration import *
 from .user import *
 from .role import *
+from .tag import *
