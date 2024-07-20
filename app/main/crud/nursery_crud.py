@@ -132,9 +132,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             nursery.status = models.NurseryStatusType.DELETED
             db.commit()
 
-    @classmethod
-    def get_multi(
-            cls,
+    @staticmethod
+    def get_many(
             db: Session,
             page: int = 1,
             per_page: int = 30,
@@ -142,9 +141,12 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             order_filed: Optional[str] = None,
             keyword: Optional[str] = None,
             status: Optional[str] = None,
-            total_places: int = None
+            total_places: int = None,
+            current_user_uuid: str = None
     ):
         record_query = db.query(models.Nursery)
+        if current_user_uuid:
+            record_query = record_query.filter(models.Nursery.owner_uuid == current_user_uuid)
         if status:
             record_query = record_query.filter(models.Nursery.status == status)
         else:

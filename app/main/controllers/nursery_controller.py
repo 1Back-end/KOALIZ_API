@@ -31,13 +31,16 @@ def update(
         uuid: str,
         obj_in: schemas.NurseryUpdateBase,
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
 ):
     """
     Update nursery
     """
     nursery = crud.nursery.get(db=db, uuid=uuid)
     if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    if current_user.role.code == "owner" and nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
     return crud.nursery.update(db, nursery, obj_in)
@@ -68,13 +71,16 @@ def update(
 def get_details(
         uuid: str,
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
 ):
     """
     Get nursery details
     """
     nursery = crud.nursery.get_by_uuid(db, uuid)
     if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    if current_user.role.code == "owner" and nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
     return nursery
@@ -105,13 +111,13 @@ def get(
         keyword: Optional[str] = None,
         status: Optional[str] = Query(None, enum=[st.value for st in models.NurseryStatusType]),
         total_places: int = None,
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
 ):
     """
     get all with filters
     """
 
-    return crud.nursery.get_multi(
+    return crud.nursery.get_many(
         db,
         page,
         per_page,
@@ -119,7 +125,8 @@ def get(
         order_filed,
         keyword,
         status,
-        total_places
+        total_places,
+        current_user.uuid if current_user.role.code == "owner" else None
     )
 
 
