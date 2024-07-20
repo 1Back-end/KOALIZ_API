@@ -123,32 +123,6 @@ def get(
     )
 
 
-@router.put("/{uuid}/opening-hour", response_model=schemas.NurseryOpeningTime, status_code=200)
-def update_opening_hour(
-        uuid: str,
-        data: schemas.OpeningTime,
-        db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
-):
-    """
-    Update nursery owner status
-    """
-    nursery = crud.nursery.get(db=db, uuid=uuid)
-    if not nursery:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-    try:
-        open_from = time.fromisoformat(data.open_from)
-        open_to = time.fromisoformat(data.open_to)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=__("invalid-time-format"))
-
-    if open_from >= open_to:
-        raise HTTPException(status_code=400, detail=__("to-not-greater-from"))
-
-    return crud.nursery.update_opening_hour(db, nursery, data)
-
-
 @router.get("/guest/{slug}", response_model=schemas.NurseryByGuest, status_code=200)
 def get_by_slug_guest(
         slug: str,
@@ -168,44 +142,32 @@ def get_by_slug_guest(
     return nursery
 
 
-@router.post("/opening_hours/{nursery_uuid}", response_model=schemas.OpeningHoursList, include_in_schema=False)
-async def create_opening_hours(opening_hours: schemas.OpeningHoursInput, nursery_uuid: str, db: Session = Depends(get_db)):
-
-    nursery = crud.nursery.get(db, nursery_uuid)
-    if not nursery:
+@router.post("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
+async def create_opening_hours(
+        opening_hours: list[schemas.OpeningHoursInput],
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    if len(opening_hours) > 7:
+        raise HTTPException(status_code=422, detail="Opening hours data list cannot exceed 7 items")
+    nursery = crud.nursery.get(db, uuid)
+    if not nursery or nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    try:
-        from_time = time.fromisoformat(opening_hours.hours.from_time)
-        to_time = time.fromisoformat(opening_hours.hours.to_time)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=__("invalid-time-format"))
-
-    if from_time >= to_time:
-        raise HTTPException(status_code=400, detail=__("to-not-greater-from"))
-
-    new_opening_hours = models.NurseryOpeningHour(
-        day_of_week=opening_hours.day_of_week,
-        from_time=opening_hours.hours.from_time,
-        to_time=opening_hours.hours.to_time,
-        nursery_uuid=nursery_uuid
-    )
-    db.add(new_opening_hours)
-    db.commit()
-
-    return nursery
+    return crud.nursery.add_update_opening_hours(db, nursery, opening_hours)
 
 
-@router.get("/opening_hours/{nursery_uuid}", response_model=schemas.OpeningHoursList, include_in_schema=False)
-async def get_opening_hours(nursery_uuid: str, db: Session = Depends(get_db)):
+@router.get("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
+async def get_opening_hours(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
 
-    nursery = crud.nursery.get(db, nursery_uuid)
-    if not nursery:
+    nursery = crud.nursery.get(db, uuid)
+    if not nursery or nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    # Retrieve opening hours associated with the business
-    opening_hours = db.query(models.NurseryOpeningHour).filter(models.NurseryOpeningHour.nursery_uuid == nursery.uuid).all()
-    # opening_hours_data = [oh.dict() for oh in opening_hours]  # Convert to dictionaries
-
     return nursery
-    return {"nursery": business.id, "opening_hours": opening_hours_data}
+"c0a1fba8-7015-4fff-955b-8ec95df3fdaf"

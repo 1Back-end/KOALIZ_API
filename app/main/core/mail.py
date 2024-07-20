@@ -102,12 +102,12 @@ def send_reset_password_email(email_to: str, code: str, prefered_language: str, 
 def send_account_creation_email(email_to: str,prefered_language: str, name: str,password:str) -> None:
     project_name = Config.PROJECT_NAME
     if str(prefered_language) in ["en", "EN", "en-EN"]:
-        subject = f"BDE-CRECHE | Account created succesfully."
+        subject = f"KOALIZZ | Account created succesfully."
         content = "is your password. You must change it after the first connection for better security."
         with open(Path(Config.EMAIL_TEMPLATES_DIR) / "account_creation.html") as f:
             template_str = f.read()
     else:
-        subject = f"BDE-CRECHE | Compte créé avec succès."
+        subject = f"KOALIZZ | Compte créé avec succès."
         content = "est votre mot de passe.Vous avez l'obligation de le modifier aprės la première connexion pour une meilleure sécurité."
 
         with open(Path(Config.EMAIL_TEMPLATES_DIR) / "account_creation.html") as f:

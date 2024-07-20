@@ -179,15 +179,30 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         )
 
     @classmethod
-    def update_opening_hour(cls, db: Session, nursery: models.Nursery, opening_hour: schemas.OpeningTime) -> schemas.NurseryOpeningTime:
-        nursery.open_from = opening_hour.open_from
-        nursery.open_to = opening_hour.open_to
-        print("efwrthyjhwergthytjkefdgh")
-        generate_slug(text="nursery.name fweeg-ewrg")
-        print("efwrthyjhwergthytjkefdgh")
-        "c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
-        # db.commit()
+    def add_update_opening_hours(cls, db: Session, nursery: models.Nursery, opening_hours: list[schemas.OpeningHoursInput]) -> schemas.OpeningHoursList:
+        existing_opening_hours: list[models.NurseryOpeningHour] = db.query(models.NurseryOpeningHour).filter(
+            models.NurseryOpeningHour.nursery_uuid == nursery.uuid).all()
+        for opening_hour in opening_hours:
+            create = True
+            for existing_opening_hour in existing_opening_hours:
+                if existing_opening_hour.day_of_week == opening_hour.day_of_week:
+                    create = False
+                    existing_opening_hour.from_time = opening_hour.hours.from_time
+                    existing_opening_hour.to_time = opening_hour.hours.to_time
+                    break
+            if create:
+                new_opening_hour = models.NurseryOpeningHour(
+                    uuid=str(uuid.uuid4()),
+                    day_of_week=opening_hour.day_of_week,
+                    from_time=opening_hour.hours.from_time,
+                    to_time=opening_hour.hours.to_time,
+                    nursery_uuid=nursery.uuid
+                )
+                db.add(new_opening_hour)
+        db.commit()
+        db.refresh(nursery)
         return nursery
+
 
     @classmethod
     def get_by_uuids(cls, db: Session, uuids: list[str]) -> list[Optional[models.Nursery]]:

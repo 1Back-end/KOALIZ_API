@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 from datetime import datetime, time, date
 
 from app.main import models
+from app.main.core.i18n import __
 from app.main.schemas import UserAuthentication, File, DataList, Address, AddressCreate, AddressUpdate, NurseryMini
 from app.main.schemas.user import AddedBy
 
@@ -38,7 +39,7 @@ class TimeSlotInputSchema(BaseModel):
             time.fromisoformat(value)
             return value
         except ValueError:
-            raise ValueError("Invalid time format. Use ISO format (HH:MM).")
+            raise ValueError(__("invalid-time-format"))
 
     @field_validator('to_time')
     def validate_to_after_from(cls, to_time, values):

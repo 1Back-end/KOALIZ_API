@@ -1,9 +1,10 @@
 from typing import Optional
 
 from fastapi import Body
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator, root_validator
 from datetime import datetime, time
 
+from app.main.core.i18n import __
 from app.main.schemas import UserAuthentication, File, DataList, Address, AddressCreate, AddressUpdate
 from app.main.schemas.user import AddedBy
 
@@ -26,8 +27,6 @@ class Nursery(BaseModel):
     total_places: int = 0
     phone_number: str
     status: str
-    open_from: Optional[str]
-    open_to: Optional[str]
     website: Optional[str] = None
     slug: Optional[str] = None
     logo: Optional[File]
@@ -97,16 +96,22 @@ class TimeRangeInput(BaseModel):
     """
     Model representing a time range (from_time, to_time).
     """
-    from_time: str = Body(..., pattern="00:00")
-    to_time: str = Body(..., pattern="00:00")
+    from_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
+    to_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
 
-    @field_validator("from_time", "to_time")
-    def validate_time_format(cls, value):
+    @model_validator(mode='wrap')
+    def validate_to_after_from(self, handler):
+        validated_self = handler(self)
+        from_time = validated_self.from_time
+        to_time = validated_self.to_time
         try:
-            time.fromisoformat(value)
-            return value
+            from_time_obj = time.fromisoformat(from_time)
+            to_time_obj = time.fromisoformat(to_time)
         except ValueError:
-            raise ValueError("Invalid time format. Use ISO format (HH:MM).")
+            raise ValueError(__("invalid-time-format"))
+        if to_time_obj <= from_time_obj:
+            raise ValueError(__("to-not-greater-from"))
+        return validated_self
 
 
 class OpeningHoursInput(BaseModel):
@@ -118,53 +123,21 @@ class OpeningHoursInput(BaseModel):
 
     @field_validator("day_of_week")
     def validate_day_of_week(cls, value):
-        if not 0 <= value <= 6:
+        if value < 0 or value > 6:
             raise ValueError("Invalid day of week. Must be between 0 (Sunday) and 6 (Saturday).")
+        return value
 
 
-class TimeRange(BaseModel):
+class OpeningHours(BaseModel):
+    day_of_week: int
     from_time: str
     to_time: str
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class OpeningHours(BaseModel):
-    day_of_week: int
-    hours: Optional[TimeRange] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-class OpeningHoursList(BaseModel):
-    nursery: NurseryMini
+class OpeningHoursList(NurseryMini):
     opening_hours: list[OpeningHours]
-    model_config = ConfigDict(from_attributes=True)
-
-
-class OpeningTime(BaseModel):
-    """
-    Model representing a time range (from_time, to_time).
-    """
-    # open_from: str = Body(..., pattern="00:00")
-    open_from: str = Body(...)
-    open_to: str = Body(...)
-
-    @field_validator("open_from", "open_to")
-    def validate_time_format(cls, value):
-        try:
-            time.fromisoformat(value)
-            return value
-        except ValueError:
-            raise ValueError("Invalid time format. Use ISO format (HH:MM).")
-
-
-class NurseryOpeningTime(BaseModel):
-    uuid: str
-    name: str
-    status: str
-    open_from: str
-    open_to: str
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -180,8 +153,6 @@ class NurseryByGuest(BaseModel):
     email: EmailStr
     name: str
     phone_number: str
-    open_from: Optional[str]
-    open_to: Optional[str]
     logo: Optional[File]
     address: Address
     others: list[OtherNurseryByGuest] = []
