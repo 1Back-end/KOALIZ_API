@@ -111,6 +111,7 @@ def get(
         keyword: Optional[str] = None,
         status: Optional[str] = Query(None, enum=[st.value for st in models.NurseryStatusType]),
         total_places: int = None,
+        owner_uuid: str = None,
         current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
 ):
     """
@@ -126,7 +127,7 @@ def get(
         keyword,
         status,
         total_places,
-        current_user.uuid if current_user.role.code == "owner" else None
+        current_user.uuid if current_user.role.code == "owner" else owner_uuid
     )
 
 
