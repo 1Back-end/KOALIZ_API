@@ -142,11 +142,11 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             keyword: Optional[str] = None,
             status: Optional[str] = None,
             total_places: int = None,
-            current_user_uuid: str = None
+            owner_uuid: str = None,
     ):
         record_query = db.query(models.Nursery)
-        if current_user_uuid:
-            record_query = record_query.filter(models.Nursery.owner_uuid == current_user_uuid)
+        if owner_uuid:
+            record_query = record_query.filter(models.Nursery.owner_uuid == owner_uuid)
         if status:
             record_query = record_query.filter(models.Nursery.status == status)
         else:
