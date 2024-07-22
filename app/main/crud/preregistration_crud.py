@@ -99,6 +99,50 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
     def get_by_code(cls, db: Session, code: str) -> Optional[models.PreRegistration]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
 
+    def get_many(self,
+        db,
+        tag,
+        status,
+        begin_date,
+        end_date,
+        page: int = 1,
+        per_page: int = 30,
+        order: Optional[str] = None,
+        order_filed: Optional[str] = None,
+        keyword: Optional[str] = None,
+        nursery_uuid: Optional[str] = None,
+    ):
+        record_query = db.query(models.PreRegistration).filter(models.PreRegistration.nursery_uuid==nursery_uuid)
+        if status:
+            record_query = record_query.filter(models.PreRegistration.status==status)
+
+        if begin_date and end_date:
+            record_query = record_query.filter(models.PreRegistration.date_added.be)
+
+        if keyword:
+            record_query = record_query.filter(models.PreRegistration.child.has(
+                or_(
+                    models.Child.firstname.ilike('%' + str(keyword) + '%'),
+                    models.Child.lastname.ilike('%' + str(keyword) + '%'),
+                ))
+            )
+        # if tag:
+        #     record_query = record_query.filter
+        if order == "asc":
+            record_query = record_query.order_by(getattr(models.Nursery, order_filed).asc())
+        else:
+            record_query = record_query.order_by(getattr(models.Nursery, order_filed).desc())
+
+        total = record_query.count()
+        record_query = record_query.offset((page - 1) * per_page).limit(per_page)
+
+        return schemas.NurseryList(
+            total=total,
+            pages=math.ceil(total / per_page),
+            per_page=per_page,
+            current_page=page,
+            data=record_query
+        )
 
     @classmethod
     def code_unicity(cls, code: str, db: Session):

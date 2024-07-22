@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import time, date
 
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
@@ -35,3 +35,34 @@ def get_details(
     Get nursery details
     """
     return crud.preregistration.get_child_by_uuid(db, child_uuid)
+
+
+@router.get("", response_model=schemas.ChildDetails, status_code=200)
+def get_many(
+        tag: str = None,
+        status: str = None,
+        begin_date: date = None,
+        end_date: date = date.today(),
+        page: int = 1,
+        per_page: int = 30,
+        order: str = Query("desc", enum=["asc", "desc"]),
+        order_filed: str = "date_added",
+        keyword: Optional[str] = None,
+        db: Session = Depends(get_db),
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Get nursery details
+    """
+    return crud.preregistration.get_many(
+        db,
+        tag,
+        status,
+        begin_date,
+        end_date,
+        page,
+        per_page,
+        order,
+        order_filed,
+        keyword,
+    )
