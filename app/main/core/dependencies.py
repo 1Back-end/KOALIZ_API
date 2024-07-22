@@ -3,7 +3,7 @@ from typing import Generator, Optional
 from fastapi import Depends, Query
 from sqlalchemy.orm import Session
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Request, HTTPException, BackgroundTasks
+from fastapi import Request, HTTPException
 
 from app.main import models, crud
 from app.main.core.i18n import __
@@ -32,17 +32,18 @@ class AuthUtils():
 
 class TokenRequired(HTTPBearer):
 
-    def __init__(self, token: Optional[str] = Query(None), roles=None, auto_error: bool = True):
+    def __init__(self, token: Optional[str] = Query(None), roles=None, auto_error: bool = True, let_new_user: bool = False):
         if roles is None:
             roles = []
         elif isinstance(roles, str):
             roles = [roles]
         self.roles = roles
         self.token = token
+        self.let_new_user = let_new_user
         super(TokenRequired, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request, db: Session = Depends(get_db)):
-        required_roles = self.roles
+        required_roles = set(self.roles)
         code_groups = []
         for required_role in required_roles:
             code_group = crud.role.get_by_code(db=db, code=required_role)
@@ -65,21 +66,28 @@ class TokenRequired(HTTPBearer):
 
             current_user = None
             if code_groups:
-                if "administrators" in code_groups:
-                    current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
+                if "administrators" in code_groups and "owners" in code_groups:
+                    current_user = (crud.owner.get_by_uuid(db=db, uuid=token_data["sub"]) or
+                                    crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"]))
                 else:
-                    current_user = crud.user.get_by_uuid(db=db, uuid=token_data["sub"])
+                    if "administrators" in code_groups:
+                        current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
+                    elif "owners" in code_groups:
+                        current_user = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
 
             else:
                 current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
                 if not current_user:
-                    current_user = crud.user.get_by_uuid(db=db, uuid=token_data["sub"])
+                    current_user = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
 
             if not current_user:
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
             if current_user.status != models.UserStatusType.ACTIVED:
-                raise HTTPException(status_code=405, detail="user-not-active")
+                raise HTTPException(status_code=405, detail=__("user-not-active"))
+
+            if current_user.is_new_user and not self.let_new_user:
+                raise HTTPException(status_code=403, detail=__("change-password-required"))
 
             if required_roles:
                 if not AuthUtils.verify_role(roles=required_roles, user=current_user):

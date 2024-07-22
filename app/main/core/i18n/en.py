@@ -9,16 +9,23 @@ translation = {
     "avatar-not-found": "Avatar not found",
     "user-deleted": "user have been deleted successfully.",
     "user-not-active":"Not active user.",
-
     "user-email-not-found": "No users found with this e-mail.",
     "validation-code-not-found": "Validation code expired or invalid",
     "password-reset-successfully": "Password successfully updated",
-
     "user-not-found": "User does not exist",
     "file-not-found": "File not found",
     "logo-not-found": "Logo not found",
     "signature-not-found": "Signature not found",
     "stamp-not-found": "Stamp not found",
+    "address-creation-failed": "Unable to create address",
+    "nursery-deleted": "Nursery(ies) successfully deleted",
+    "nursery-not-found": "Nursery does not exist",
+    "change-password-required": "Please change your password to fully access your account",
+    "incorrect-current-password": "The current password is incorrect!",
+    "different-password-required": "The new password must not be the same as the old one!",
+    "invalid-password": "The new password must contain at least 8 characters, 1 upper case letter, 1 lower case letter, 1 special character!",
+    "invalid-time-format": "Invalid time format. Use ISO format (HH:MM).",
+    "to-not-greater-from": "Opening time must be before closing time.",
 
     "mail-subject-reset-password": "Password recovery for the user",
 
