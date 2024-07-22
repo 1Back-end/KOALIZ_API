@@ -70,18 +70,13 @@ async def create_database_tables(
         # Get the environment system
         if platform.system() == 'Windows':
 
-            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic revision --autogenerate')
+            os.system('set PYTHONPATH=. && .\\venv\Scripts\python.exe -m alembic revision --autogenerate')
+            os.system('set PYTHONPATH=. && .\\venv\Scripts\python.exe -m alembic upgrade head')
 
         else:
             os.system('PYTHONPATH=. alembic revision --autogenerate')
-
-        # Get the environment system
-        if platform.system() == 'Windows':
-
-            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic upgrade head')
-
-        else:
             os.system('PYTHONPATH=. alembic upgrade head')
+
 
         """ Try to remove previous alembic versions folder """
         try:
@@ -141,14 +136,12 @@ async def create_admin_users(
         admin_key: schemas.AdminKey = Body(...)
 ) -> dict[str, str]:
     """
-    Create user roles.
+    Create admins users.
     """
     check_user_access_key(admin_key)
-    
     try:
         with open('{}/app/main/templates/default_data/administrator.json'.format(os.getcwd()), encoding='utf-8') as f:        
             datas = json.load(f)
-        
             for data in datas:
                 db_obj = crud.administrator.get_by_uuid(db=db, uuid=data["uuid"])
                 if db_obj:
