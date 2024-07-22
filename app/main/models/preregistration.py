@@ -176,6 +176,8 @@ class PreRegistration(Base):
     note: str = Column(String, default="")
     status: str = Column(types.Enum(PreRegistrationStatusType), nullable=False, default=PreRegistrationStatusType.PENDING)
 
+    # tags = relationship("Tags",back_populates="preregistrations", uselist=True)
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 

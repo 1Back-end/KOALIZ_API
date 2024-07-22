@@ -1,0 +1,44 @@
+[
+    {
+        "uuid": "c9253b28-0d01-4127-9a08-f663a4ddd875",
+        "title_fr": "Gratuit",
+        "title_en": "Free",
+        "description": "Free membership",
+        "period_from": "2024-07-17 05:03:15.019776",
+        "period_to": "2024-07-28 05:03:15.019776",
+        "perido_unit": "DAYLY",
+        "duration": 0,
+        "status": "ACTIVED",
+        "date_added": "2024-07-17 05:03:15.019776",
+        "date_modified": "2024-07-17 05:20:52.376042"
+
+    },
+    {
+        "uuid": "b9253b28-0d01-4127-9a08-f663a4ddd875",
+        "title_fr": "Standard",
+        "title_en": "Standard",
+        "description": "Standard membership",
+        "period_from": "2024-07-20 05:03:15.019776",
+        "period_to": "2027-07-28 05:03:15.019776",
+        "perido_unit": "YEARLY",
+        "duration": 0,
+        "status": "PENDING",
+        "date_added": "2024-07-17 05:03:15.019776",
+        "date_modified": "2024-07-17 05:20:52.376042"
+
+    },
+    {
+        "uuid": "d8253b28-0d01-4127-9a08-f663a4ddd875",
+        "title_fr": "Prime",
+        "title_en": "Premium",
+        "description": "Premium membership",
+        "period_from": "2023-07-16 05:03:15.019776",
+        "period_to": "2024-07-16 05:03:15.019776",
+        "perido_unit": "YEARLY",
+        "duration": 0,
+        "status": "UNACTIVED",
+        "date_added": "2024-07-17 05:03:15.019776",
+        "date_modified": "2024-07-17 05:20:52.376042"
+
+    }
+]

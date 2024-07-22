@@ -46,7 +46,7 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
             role_uuid = role.uuid,
             avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else None,
             added_by_uuid = added_by_uuid,
-            status=models.UserStatusType.UNACTIVED
+            status = models.UserStatusType.ACTIVED,
         )
         db.add(user)
         db.commit()

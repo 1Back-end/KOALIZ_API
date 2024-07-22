@@ -26,6 +26,7 @@ translation = {
     "invalid-password": "The new password must contain at least 8 characters, 1 upper case letter, 1 lower case letter, 1 special character!",
     "invalid-time-format": "Invalid time format. Use ISO format (HH:MM).",
     "to-not-greater-from": "Opening time must be before closing time.",
+    "token-invalid": "Invalid token.",
     "mail-subject-reset-password": "Password recovery for the user",
     "folder-not-found": "Folder not found",
     "folder-deleted": "Folder successfully deleted",
