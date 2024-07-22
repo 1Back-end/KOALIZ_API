@@ -30,9 +30,22 @@ class CRUDTag(CRUDBase[models.Tags, schemas.TagCreate,schemas.TagUpdate]):
             title_en=obj_in.title_en,
             color=obj_in.color,
             icon_uuid=obj_in.icon_uuid,
-            type=obj_in.type
+            type=obj_in.type,
+            # element_uuid=obj_in.element_uuid
+            # elemntype=obj= obj_in.elemntype
         )
         db.add(tag)
+        db.flush()
+        
+        tag_element:models.TagElement = models.TagElement(
+            uuid=str(uuid.uuid4()),
+            tag_uuid=tag.uuid,
+            element_uuid=obj_in.element_uuid,
+            element_type=tag.type
+            # element_type=obj_in.elemntype
+
+        )
+        db.add(tag_element)
         db.commit()
         db.refresh(tag)
         return tag
