@@ -24,6 +24,21 @@ class ChildSchema(BaseModel):
         if value >= date.today():
             raise ValueError("Birthdate must be before today's date.")
         return value
+    
+@field_validator("birthdate")
+class ChildUpdateSchema(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+    birthplace: str
+
+    @field_validator("birthdate")
+    def validate_birthdate(cls, value):
+        if value >= date.today():
+            raise ValueError("Birthdate must be before today's date.")
+        return value
 
 
 class TimeSlotInputSchema(BaseModel):
@@ -71,6 +86,25 @@ class ContractSchema(BaseModel):
         if value <= begin_date:
             raise ValueError("End date must be after to begin date.")
         return value
+class ContractUpdateSchema(BaseModel):
+    uuid: str
+    begin_date: date
+    end_date: date
+    typical_weeks: list[list[list[TimeSlotInputSchema]]]
+
+    @field_validator('typical_weeks')
+    def validate_week_length(cls, value):
+        for week in value:
+            if len(week) > 5:
+                raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
+        return value
+
+    @field_validator("end_date")
+    def validate_end_date(cls, value, values):
+        begin_date = values.data.get('begin_date')
+        if value <= begin_date:
+            raise ValueError("End date must be after to begin date.")
+        return value
 
 
 class ParentGuestSchema(BaseModel):
@@ -91,7 +125,6 @@ class ParentGuestSchema(BaseModel):
     has_company_contract: bool
     dependent_children: int
     disabled_children: int
-
 
 class PreregistrationCreate(BaseModel):
     child: ChildSchema
@@ -147,8 +180,38 @@ class ChildDetails(BaseModel):
     contract: Contract
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
+class ChildMini(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+    birthplace: str
+    date_added: datetime
+    date_modified: datetime
+    parents: list[ParentGuest]
+    model_config = ConfigDict(from_attributes=True)
+
+class PreregistrationDetails(BaseModel):
+    uuid: str
+    code: str
+    child: ChildMini
+    nursery: NurseryMini
+    contract: Contract
+    note: str = None
+    status: str = None
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PreregistrationUpdate(BaseModel):
-    pass
+    uuid: str
+    child: ChildUpdateSchema
+    nurseries: list[str]
+    contract: ContractUpdateSchema
+    parents: list[ParentGuestSchema]
+    note: str = None
 
+    model_config = ConfigDict(from_attributes=True)
