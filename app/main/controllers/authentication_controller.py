@@ -9,8 +9,9 @@ from starlette.requests import Request
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
-from app.main.core.mail import send_reset_password_email
-from app.main.core.security import create_access_token, get_password_hash, verify_password, is_valid_password
+from app.main.core.mail import send_reset_password_email, send_reset_password_option2_email
+from app.main.core.security import create_access_token, get_password_hash, verify_password, is_valid_password, \
+    decode_access_token
 from app.main.core.config import Config
 from app.main.schemas.user import UserProfileResponse
 from app.main.utils.helper import check_pass, generate_randon_key
@@ -175,7 +176,7 @@ def reset_password(
 
 @router.post("/owner/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg)
 def start_reset_password(
-        input: schemas.ResetPasswordStep1,
+        input: schemas.ResetPasswordOption2Step1,
         db: Session = Depends(get_db),
 ) -> schemas.Msg:
     """
@@ -188,26 +189,21 @@ def start_reset_password(
     elif not crud.owner.is_active(user):
         raise HTTPException(status_code=400, detail=__("user-not-activated"))
 
-    if not is_valid_password(password=input.new_password):
-        raise HTTPException(
-            status_code=400,
-            detail=__("password-invalid")
-        )
-
-    code = generate_randon_key(length=5)
+    token = create_access_token(
+                user.uuid, expires_delta=timedelta(minutes=30)
+            )
 
     user_code = models.OwnerActionValidation(
         uuid=str(uuid.uuid4()),
-        code=str(code),
+        code=token,
         user_uuid=user.uuid,
-        value=get_password_hash(input.new_password),
-        expired_date=datetime.now() + timedelta(minutes=5)
+        expired_date=datetime.now() + timedelta(minutes=30)
     )
     db.add(user_code)
     db.commit()
 
-    send_reset_password_email(
-        email_to=user.email, name=user.firstname, token=code, valid_minutes=5
+    send_reset_password_option2_email(
+        email_to=user.email, name=user.firstname, token=token, valid_minutes=30, language=input.language
     )
 
     return schemas.Msg(message=__("reset-password-started"))
@@ -215,33 +211,37 @@ def start_reset_password(
 
 @router.put("/owner/reset-password", summary="Reset password", response_model=schemas.Msg)
 def reset_password(
-        input: schemas.ResetPasswordStep2,
+        input: schemas.ResetPasswordOption2Step2,
         db: Session = Depends(get_db),
 ) -> schemas.Msg:
     """
     Reset password
     """
-    user = crud.owner.get_by_email(db, email=input.email)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=__("user-email-not-found")
-        )
-    elif not crud.owner.is_active(user):
-        raise HTTPException(status_code=400, detail=__("user-not-activated"))
+    token_data = decode_access_token(input.token)
+    if not token_data:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
 
-    user_code: models.OwnerActionValidation = db.query(models.OwnerActionValidation).filter(models.OwnerActionValidation.code==input.otp).filter(
+    user = crud.owner.get_by_uuid(db, token_data["sub"])
+
+    user_code: models.OwnerActionValidation = db.query(models.OwnerActionValidation).filter(
+        models.OwnerActionValidation.code == input.token).filter(
         models.OwnerActionValidation.user_uuid == user.uuid).filter(
         models.OwnerActionValidation.expired_date >= datetime.now()).first()
     if not user_code:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+
+    elif not crud.owner.is_active(user):
+        raise HTTPException(status_code=400, detail=__("user-not-activated"))
+
+    if not is_valid_password(password=input.new_password):
         raise HTTPException(
-            status_code=404,
-            detail=__("validation-code-not-found"),
+            status_code=400,
+            detail=__("password-invalid")
         )
 
     db.delete(user_code)
 
-    user.password_hash = user_code.value
+    user.password_hash = get_password_hash(input.new_password)
     db.add(user)
     db.commit()
 
