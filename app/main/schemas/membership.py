@@ -2,7 +2,6 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict,EmailStr
 from datetime import datetime, date
 
-
 class MembershipBase(BaseModel):
     title_fr: str
     title_en: str
@@ -10,8 +9,9 @@ class MembershipBase(BaseModel):
     owner_uuid: str
     period_from:datetime
     period_to: datetime
-    nursery_uuid: str
-    membership_type_uuid: str
+    period_unit:str 
+    # nursery_uuid: str
+    # membership_type_uuid: str
 
 class MembershipCreate(MembershipBase):
     pass
@@ -42,16 +42,16 @@ class Nursery2(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class MembershipType(BaseModel):
-    uuid: str
-    title_fr: str
-    title_en: str
-    description: str
-    date_added: datetime
-    date_modified: datetime
-    price: float
+# class MembershipType(BaseModel):
+#     uuid: str
+#     title_fr: str
+#     title_en: str
+#     description: str
+#     date_added: datetime
+#     date_modified: datetime
+#     price: float
 
-    model_config = ConfigDict(from_attributes=True)
+#     model_config = ConfigDict(from_attributes=True)
 
 class Owner2(BaseModel):
     uuid: Optional[str] = None
@@ -68,9 +68,13 @@ class Owner2(BaseModel):
 
 class MembershipResponse(MembershipBase):
     uuid: str
+    status: str
+    duration:float
     owner: Owner2
-    nursery:Nursery2
-    membership_type: MembershipType
+    duration: float
+
+
+    # nursery:Nursery2
     date_added: datetime
     date_modified: datetime
     model_config = ConfigDict(from_attributes=True)
