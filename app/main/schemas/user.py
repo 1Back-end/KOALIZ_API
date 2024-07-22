@@ -29,6 +29,16 @@ class ResetPasswordStep2(BaseModel):
     otp: str
 
 
+class ResetPasswordOption2Step1(BaseModel):
+    email: EmailStr
+    language: str = "fr"
+
+
+class ResetPasswordOption2Step2(BaseModel):
+    new_password: str
+    token: str
+
+
 class UserBase(BaseModel):
     email: EmailStr
     firstname: str
