@@ -2,9 +2,11 @@ from dataclasses import dataclass
 from .user import UserStatusType
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, Table, Boolean,types,event,Date,Float
 from datetime import datetime, date
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship,aliased
 from .db.base_class import Base
+from sqlalchemy.ext.hybrid import hybrid_property
 from enum import Enum
+from app.main.models.db.session import SessionLocal
 
 class MembershipEnum(str,Enum):
     ACTIVED = "ACTIVED"
@@ -91,8 +93,11 @@ class Membership(Base):
     title_en: str = Column(String(100), unique=True, index=True)
     description: str = Column(Text)
     
-    owner_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
-    owner = relationship("Owner", foreign_keys=[owner_uuid],uselist = False)
+    # owner_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
+    # owner = relationship("Owner", foreign_keys=[owner_uuid],uselist = False)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
+    nursery = relationship("Nursery", foreign_keys=[nursery_uuid],back_populates="memberships")
 
     period_from:datetime = Column(DateTime, nullable=False, default=datetime.utcnow())
     period_to: datetime = Column(DateTime, nullable=False, default=datetime.utcnow())

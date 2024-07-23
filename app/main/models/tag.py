@@ -36,19 +36,7 @@ class Tags(Base):
 
     type:str = Column(types.Enum(TagTypeEnum), index=True, nullable=True)
 
-    @hybrid_property
-    def tag_elements(self):
-        db= SessionLocal()
-        """
-        Returns a list of related TagElements.
-        """
-        record = db.query(TagElement).filter(TagElement.tag_uuid == self.uuid).all() 
-        db.close()
-        return record
-
-
-    # added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
-    # added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
+    tag_elements = relationship("TagElement", back_populates="tag")
 
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -80,7 +68,7 @@ class TagElement(Base):
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     tag_uuid: str = Column(String, ForeignKey('tags.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False)
-    tag = relationship("Tags", foreign_keys=[tag_uuid],uselist=False)
+    tag = relationship("Tags", foreign_keys=[tag_uuid],uselist=False,back_populates="tag_elements")
 
     element_uuid: str = Column(String, nullable=False)
     element_type: str = Column(String, nullable=False)
@@ -91,7 +79,7 @@ class TagElement(Base):
         model_mapping = {
             "PRE_ENROLLMENT": PreRegistration,
             # "MEMEBERSHIP": Membership,
-            "CHILDREN": Membership,
+            "CHILDREN": Child,
             "PARENTS": ParentGuest,
             "PICTURE":Storage,
             # "Administrator":Administrator,
@@ -100,14 +88,15 @@ class TagElement(Base):
         }
         
         if self.tag and self.tag.type:
-            # Pour les cas généraux, utilisez le dictionnaire pour accéder dynamiquement au modèle
-            model = model_mapping.get(self.tag.type)
-            if model:
-                record = db.query(model).filter(model.uuid == self.element_uuid).first()
-                return record
-        else:
-            return None
-        db.close()
+            try:
+                # Pour les cas généraux, utilisez le dictionnaire pour accéder dynamiquement au modèle
+                model = model_mapping.get(self.tag.type)
+                if model:
+                    record = db.query(model).filter(model.uuid == self.element_uuid).first()
+                    return record
+            finally:
+                db.close()
+            
 
 
 

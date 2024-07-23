@@ -1,16 +1,20 @@
 from typing import Optional
-from pydantic import BaseModel, ConfigDict,EmailStr
+from pydantic import BaseModel, ConfigDict,EmailStr, model_validator, root_validator, validator
 from datetime import datetime, date
+from .tag import Tag
+from app.main.models.db.session import SessionLocal
+from app.main.models import tag
+
 
 class MembershipBase(BaseModel):
     title_fr: str
     title_en: str
     description: Optional[str] = None
-    owner_uuid: str
+    # owner_uuid: str
     period_from:datetime
     period_to: datetime
     period_unit:str 
-    # nursery_uuid: str
+    nursery_uuid: str
     # membership_type_uuid: str
 
 class MembershipCreate(MembershipBase):
@@ -21,11 +25,11 @@ class MembershipUpdate(MembershipBase):
     uuid:str
     title_fr: Optional[str] = None
     title_en: Optional[str] = None
-    owner_uuid: Optional[str] = None
+    # owner_uuid: Optional[str] = None
     period_from: Optional[datetime] = None
     period_to: Optional[datetime] = None
     nursery_uuid: Optional[str] = None
-    membership_type_uuid: Optional[str] = None
+    # membership_type_uuid: Optional[str] = None
 
 class Nursery2(BaseModel):
     uuid: str
@@ -70,11 +74,7 @@ class MembershipResponse(MembershipBase):
     uuid: str
     status: str
     duration:float
-    owner: Owner2
-    duration: float
-
-
-    # nursery:Nursery2
+    nursery:Nursery2
     date_added: datetime
     date_modified: datetime
     model_config = ConfigDict(from_attributes=True)

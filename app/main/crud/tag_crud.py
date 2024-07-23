@@ -35,20 +35,50 @@ class CRUDTag(CRUDBase[models.Tags, schemas.TagCreate,schemas.TagUpdate]):
             # elemntype=obj= obj_in.elemntype
         )
         db.add(tag)
-        db.flush()
+        # db.flush()
         
-        tag_element:models.TagElement = models.TagElement(
-            uuid=str(uuid.uuid4()),
-            tag_uuid=tag.uuid,
-            element_uuid=obj_in.element_uuid,
-            element_type=tag.type
-            # element_type=obj_in.elemntype
+        # tag_element:models.TagElement = models.TagElement(
+        #     uuid=str(uuid.uuid4()),
+        #     tag_uuid=tag.uuid,
+        #     element_uuid=obj_in.element_uuid,
+        #     element_type=tag.type
+        #     # element_type=obj_in.elemntype
 
-        )
-        db.add(tag_element)
+        # )
+        # db.add(tag_element)
         db.commit()
         db.refresh(tag)
         return tag
+    
+    @classmethod
+    def add_tag_to_element(cls, db: Session,obj_in: schemas.TagElementCreate) -> models.TagElement:
+        for tag_uuid in obj_in.tag_uuids:
+            db_obj = models.TagElement(
+                uuid=str(uuid.uuid4()),
+                tag_uuid=tag_uuid,
+                element_uuid=obj_in.element_uuid,
+                element_type= obj_in.element_type
+            )
+            db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+    
+    @classmethod
+    def get_tag_by_element(cls, db: Session,tag_uuid, element_uuid: str, element_type: str) -> Optional[list[models.TagElement]]:
+        return db.query(models.TagElement).filter(
+            models.TagElement.tag_uuid == tag_uuid,
+            models.TagElement.element_uuid == element_uuid,
+            models.TagElement.element_type == element_type
+        ).first()
+    
+    @classmethod
+    def delete_tag_from_element(cls, db: Session,obj_in:schemas.TagElementDelete) -> None:
+        db.query(models.TagElement).filter(models.TagElement.uuid.in_(obj_in.uuids)
+        ).delete()
+        db.commit()
+    
+    
     
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Tags]:
@@ -56,7 +86,7 @@ class CRUDTag(CRUDBase[models.Tags, schemas.TagCreate,schemas.TagUpdate]):
     
     @classmethod
     def get_by_uuids(cls, db: Session, uuids: list[str]) -> Optional[list[models.Tags]]:
-        return db.query(models.Tags).filter(models.Tags.uuid.in_(uuids)).all
+        return db.query(models.Tags).filter(models.Tags.uuid.in_(uuids)).all()
     
     @classmethod
     def update(cls, db: Session, obj_in: schemas.TagUpdate) -> models.Tags:
@@ -139,7 +169,46 @@ class CRUDTag(CRUDBase[models.Tags, schemas.TagCreate,schemas.TagUpdate]):
             current_page = page,
             data = record_query
         )
+    
+    @classmethod
+    def get_multi_by_element(
+        cls, 
+        db: Session, 
+        page: int = 1, 
+        per_page: int = 30, 
+        order: Optional[str] = None, 
+        type: Optional[str] = None,
+        uuid:Optional[str]= None
+        ):
+        
+        record_query = db.query(models.TagElement)
+        
+        if uuid:
+            record_query = record_query.filter(models.TagElement.uuid==uuid)
 
+        if type:
+            record_query = record_query.filter(models.TagElement.element_type.ilike(type))
+        
+        
+        
+        
+        total = record_query.count()
+
+        record_query = record_query.offset((page - 1) * per_page).limit(per_page)
+
+        return schemas.TagElementResponseList(
+            total = total,
+            pages = math.ceil(total/per_page),
+            per_page = per_page,
+            current_page = page,
+            data = record_query
+        )
+
+
+    @classmethod
+    def get_tag_element(cls, db: Session, uuid: str) -> Optional[models.TagElement]:
+        return db.query(models.TagElement).filter(models.TagElement.uuid == uuid).first()
+    
 
 
 
