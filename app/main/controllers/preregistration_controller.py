@@ -37,16 +37,17 @@ def get_details(
     return crud.preregistration.get_child_by_uuid(db, child_uuid)
 
 
-@router.get("", response_model=schemas.ChildDetails, status_code=200)
+@router.get("", response_model=schemas.PreRegistrationList, status_code=200)
 def get_many(
-        tag: str = None,
+        nursery_uuid: str,
+        tag_uuid: str = None,
         status: str = None,
         begin_date: date = None,
         end_date: date = date.today(),
         page: int = 1,
         per_page: int = 30,
         order: str = Query("desc", enum=["asc", "desc"]),
-        order_filed: str = "date_added",
+        order_field: str = "date_added",
         keyword: Optional[str] = None,
         db: Session = Depends(get_db),
         current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
@@ -56,13 +57,14 @@ def get_many(
     """
     return crud.preregistration.get_many(
         db,
-        tag,
+        nursery_uuid,
+        tag_uuid,
         status,
         begin_date,
         end_date,
         page,
         per_page,
         order,
-        order_filed,
-        keyword,
+        order_field,
+        keyword
     )

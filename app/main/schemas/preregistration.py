@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional, Any
 
 from fastapi import Body, HTTPException
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
 from datetime import datetime, time, date
 
 from app.main import models
@@ -33,22 +33,18 @@ class TimeSlotInputSchema(BaseModel):
     from_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
     to_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
 
-    @field_validator("from_time", "to_time")
-    def validate_time_format(cls, value):
+    @model_validator(mode='wrap')
+    def validate_to_after_from(self, handler):
+        validated_self = handler(self)
         try:
-            time.fromisoformat(value)
-            return value
+            from_time_obj = time.fromisoformat(validated_self.from_time)
+            to_time_obj = time.fromisoformat(validated_self.to_time)
         except ValueError:
             raise ValueError(__("invalid-time-format"))
 
-    @field_validator('to_time')
-    def validate_to_after_from(cls, to_time, values):
-        from_time = values.data.get('from_time')
-        from_time_obj = time.fromisoformat(from_time)
-        to_time_obj = time.fromisoformat(to_time)
         if to_time_obj <= from_time_obj:
             raise ValueError('to_time must be after from_time')
-        return to_time
+        return validated_self
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -58,19 +54,18 @@ class ContractSchema(BaseModel):
     end_date: date
     typical_weeks: list[list[list[TimeSlotInputSchema]]]
 
-    @field_validator('typical_weeks')
-    def validate_week_length(cls, value):
-        for week in value:
-            if len(week) > 5:
-                raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
-        return value
+    @model_validator(mode='wrap')
+    def validate_end_date(self, handler):
+        validated_self = handler(self)
+        for week in validated_self.typical_weeks:
+            for day in week:
+                if len(day) > 5:
+                    raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
 
-    @field_validator("end_date")
-    def validate_end_date(cls, value, values):
-        begin_date = values.data.get('begin_date')
-        if value <= begin_date:
+        begin_date = validated_self.begin_date
+        if validated_self.end_date <= begin_date:
             raise ValueError("End date must be after to begin date.")
-        return value
+        return validated_self
 
 
 class ParentGuestSchema(BaseModel):
@@ -134,6 +129,7 @@ class PreregistrationMini(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ChildDetails(BaseModel):
     uuid: str
     firstname: str
@@ -151,4 +147,37 @@ class ChildDetails(BaseModel):
 
 class PreregistrationUpdate(BaseModel):
     pass
+
+
+class ChildSlim(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ContractSlim(BaseModel):
+    begin_date: date
+    end_date: date
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PreregistrationSlim(BaseModel):
+    uuid: str
+    child: ChildSlim
+    contract: ContractSlim
+    status: str = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PreRegistrationList(DataList):
+    data: list[PreregistrationSlim]
+
+    model_config = ConfigDict(from_attributes=True)
+
 
