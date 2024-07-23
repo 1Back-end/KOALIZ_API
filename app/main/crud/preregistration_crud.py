@@ -309,6 +309,45 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             data=record_query
         )
 
+    def get_tracking_cases(self,
+        db,
+        preregistration_uuid,
+        interaction_type,
+        page: int = 1,
+        per_page: int = 30,
+        order: Optional[str] = 'desc',
+        order_field: Optional[str] = 'date_added',
+        # keyword: Optional[str] = None,
+    ):
+        record_query = db.query(models.TrackingCase).filter(models.TrackingCase.preregistration_uuid==preregistration_uuid)
+        if interaction_type:
+            record_query = record_query.filter(models.TrackingCase.interaction_type==interaction_type)
+
+        # if keyword:
+        #     record_query = record_query.filter(
+        #         or_(
+        #             models.Child.firstname.ilike('%' + str(keyword) + '%'),
+        #             models.Child.lastname.ilike('%' + str(keyword) + '%'),
+        #         )
+        #     )
+
+
+        if order == "asc":
+            record_query = record_query.order_by(getattr(models.TrackingCase, order_field).asc())
+        else:
+            record_query = record_query.order_by(getattr(models.TrackingCase, order_field).desc())
+
+        total = record_query.count()
+        record_query = record_query.offset((page - 1) * per_page).limit(per_page)
+
+        return schemas.TrackingCaseList(
+            total=total,
+            pages=math.ceil(total / per_page),
+            per_page=per_page,
+            current_page=page,
+            data=record_query
+        )
+
     @classmethod
     def code_unicity(cls, code: str, db: Session):
         while cls.get_by_code(db, code):
