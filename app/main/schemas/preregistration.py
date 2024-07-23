@@ -258,9 +258,12 @@ class PreregistrationSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
 class PreRegistrationList(DataList):
     data: list[PreregistrationSlim]
+
+    model_config = ConfigDict(from_attributes=True)
+class TrackingCaseList(DataList):
+    data: list[TrackingCaseMini]
 
     model_config = ConfigDict(from_attributes=True)
 

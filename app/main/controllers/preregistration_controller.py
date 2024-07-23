@@ -158,3 +158,29 @@ def get_many(
         order_field,
         keyword
     )
+
+# @router.get("/tracking-case", response_model=schemas.TrackingCaseList, status_code=200)
+# def get_tracking_cases(
+#         preregistration_uuid: str,
+#         interaction_type: Optional[str] = Query(None, enum =["CALL","ACTION","MEETING","DOCUMENT","NOTE"]),
+#         page: int = 1,
+#         per_page: int = 30,
+#         order: str = Query("desc", enum=["asc", "desc"]),
+#         order_field: str = "date_added",
+#         # keyword: Optional[str] = None,
+#         db: Session = Depends(get_db),
+#         # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+# ):
+    
+#     """ Get tracking case details """
+
+#     return crud.preregistration.get_tracking_cases(
+#         db,
+#         preregistration_uuid,
+#         interaction_type,
+#         page,
+#         per_page,
+#         order,
+#         order_field,
+#         # keyword
+#     )

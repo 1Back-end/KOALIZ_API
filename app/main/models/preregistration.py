@@ -204,6 +204,7 @@ class PreRegistration(Base):
     contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False)
 
     tracking_cases = relationship("TrackingCase", order_by="TrackingCase.date_added", back_populates="preregistration")
+    logs = relationship("Log", order_by="Log.date_added", back_populates="preregistration")
 
     note: str = Column(String, default="")
     status: str = Column(types.Enum(PreRegistrationStatusType), nullable=False, default=PreRegistrationStatusType.PENDING)
