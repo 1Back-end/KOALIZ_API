@@ -36,7 +36,8 @@ class Administrator(Base):
     otp_password_expired_at: datetime = Column(DateTime, nullable=True, default=None)
 
     password_hash: str = Column(String(100), nullable=True, default="")
-    status = Column(types.Enum(UserStatusType), index=True, nullable=False, default=UserStatusType.UNACTIVED)
+    # status = Column(types.Enum(UserStatusType), index=True, nullable=False, default=UserStatusType.UNACTIVED)
+    status = Column(String, index=True, nullable=False)
     is_new_user: bool = Column(Boolean, nullable=True, default=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
