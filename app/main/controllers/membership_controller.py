@@ -19,10 +19,35 @@ def create(
     """
     Create membership
     """
-    membership = db.query(models.Membership).filter(models.Membership.owner_uuid == obj_in.owner_uuid).first()
-    if membership:  
-        raise HTTPException(status_code=409, detail=__("membership-already-exists"))
+    # owner = crud.owner.get_by_uuid(db, obj_in.owner_uuid)
+    
+    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
 
+    # if crud.membership.get_by_title(db, obj_in.title_fr, obj_in.title_en):
+
+    #     raise HTTPException(status_code=409, detail=__("membership-already-exists"))
+
+    errors = []
+
+    # if owner:  
+    #     raise HTTPException(status_code=409, detail=__("membership-already-exists"))
+    
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-already-membershiped"))
+    
+    uuids = [obj_in.nursery_uuid]
+    nursery_existing_memberships = crud.membership.get_by_nursery_uuid(db, uuids)
+
+    if nursery_existing_memberships:
+
+        for membership in nursery_existing_memberships:
+
+            if crud.membership.is_overlapping(db, membership.period_from, membership.period_to,obj_in.period_from, obj_in.period_to):
+                errors.append(f"Membership overlaps with {membership.uuid} for nursery {membership.nursery_uuid}")
+        
+        if len(errors) > 0:
+            raise HTTPException(status_code=400, detail=__("overlapping-periods"))
+        
     return crud.membership.create(db, obj_in)
 
 @router.put("/update", response_model=schemas.MembershipResponse, status_code=201)
@@ -35,19 +60,41 @@ def update(
     Update membership
     """
 
-    membership = crud.membership.get_by_uuid(db, obj_in.uuid)
-    if not membership:
+    # if crud.membership.get_by_title(db, obj_in.title_fr, obj_in.title_en):
+        
+    #     raise HTTPException(status_code=409, detail=__("membership-already-exists"))
+
+
+    db_membership = crud.membership.get_by_uuid(db, obj_in.uuid)
+    if not db_membership:
         raise HTTPException(status_code=404, detail=__("membership-not-found"))
     
-    obj_in.period_from = membership.period_from if not obj_in.period_from else obj_in.period_from
-    obj_in.period_to = membership.period_to if not obj_in.period_to else obj_in.period_to  
-    obj_in.period_unit = membership.period_unit if not obj_in.period_unit else obj_in.period_unit
+    uuids = [obj_in.nursery_uuid]
+    nursery_existing_memberships = crud.membership.get_by_nursery_uuid(db, uuids)
+
+    errors =[]
+    if nursery_existing_memberships:
+        for current_membership in nursery_existing_memberships:
+
+            if crud.membership.is_overlapping(db, current_membership.period_from, current_membership.period_to,obj_in.period_from, obj_in.period_to)\
+                  and current_membership.uuid!= db_membership.uuid:
+                
+                errors.append(f"Membership overlaps with {current_membership.uuid} for nursery {current_membership.nursery_uuid}")
+        
+        if len(errors) > 0:
+            raise HTTPException(status_code=400, detail=__("overlapping-periods"))
+        
+    obj_in.period_from = db_membership.period_from if not obj_in.period_from else obj_in.period_from
+    obj_in.period_to = db_membership.period_to if not obj_in.period_to else obj_in.period_to  
+    obj_in.period_unit = db_membership.period_unit if not obj_in.period_unit else obj_in.period_unit
 
     obj_in.period_from = crud.membership.make_offset_aware(obj_in.period_from)
     obj_in.period_to = crud.membership.make_offset_aware(obj_in.period_to)
 
     if obj_in.period_from > obj_in.period_to:
         raise HTTPException(status_code=400, detail=__("period-to-cannot-be-less-than-period-from"))
+    
+    
 
     return crud.membership.update(db, obj_in)
 
