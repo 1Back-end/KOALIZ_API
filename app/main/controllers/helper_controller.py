@@ -7,16 +7,17 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/helper", tags=["helpers"])
 
 
-@router.get("/roles", response_model=list[schemas.RoleBase])
+@router.get("/roles", response_model=list[schemas.RoleSchema])
 async def get_roles(
     *,
+    group: str = None,
     db: Session = Depends(get_db),
-    current_user=Depends(TokenRequired())
+    # current_user=Depends(TokenRequired())
 ) -> list:
     """
     Default data form.
     """
-    return crud.role.get_all(db)
+    return crud.role.get_all(db, group)
 
     # return {
     #     "roles": roles,
