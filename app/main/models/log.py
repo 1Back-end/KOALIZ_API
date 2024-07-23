@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, Mapped
 from app.main.models.db.session import SessionLocal
 from sqlalchemy.ext.hybrid import hybrid_property
-from app.main import schemas, models, crud
+from app.main import crud
 
 
 
