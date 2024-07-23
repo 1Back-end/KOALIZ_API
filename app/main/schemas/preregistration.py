@@ -8,6 +8,7 @@ from datetime import datetime, time, date
 from app.main import models
 from app.main.core.i18n import __
 from app.main.schemas import UserAuthentication, File, DataList, Address, AddressCreate, AddressUpdate, NurseryMini
+from app.main.schemas.base import Items
 from app.main.schemas.user import AddedBy
 
 
@@ -192,12 +193,22 @@ class ChildMini(BaseModel):
     parents: list[ParentGuest]
     model_config = ConfigDict(from_attributes=True)
 
+class TrackingCaseMini(BaseModel):
+    uuid: str
+    details: Any
+    interaction_type: str
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
 class PreregistrationDetails(BaseModel):
     uuid: str
     code: str
     child: ChildMini
     nursery: NurseryMini
     contract: Contract
+    tracking_cases: list[TrackingCaseMini]
     note: str = None
     status: str = None
     date_added: datetime
@@ -213,5 +224,11 @@ class PreregistrationUpdate(BaseModel):
     contract: ContractUpdateSchema
     parents: list[ParentGuestSchema]
     note: str = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class TrackingCase(BaseModel):
+    preregistration_uuid: str
+    details: Items
 
     model_config = ConfigDict(from_attributes=True)

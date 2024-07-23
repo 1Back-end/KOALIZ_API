@@ -54,6 +54,23 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         return exist_folder
     
     @classmethod
+    def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str) -> Optional[schemas.PreregistrationDetails]:
+
+        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == obj_in.preregistration_uuid).first()
+        if not exist_folder:
+            raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
+        interaction = models.TrackingCase(
+            preregistration_uuid=exist_folder.uuid,
+            interaction_type=interaction_type,
+            details=obj_in.details
+        )
+        db.add(interaction)
+        db.commit()
+
+        return exist_folder
+    
+    @classmethod
     def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate) -> models.Child:
 
         obj_in.nurseries = set(obj_in.nurseries)

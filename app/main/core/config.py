@@ -38,8 +38,8 @@ class ConfigClass(BaseSettings):
     MINIO_SECURE: bool = get_secret("MINIO_SECURE", True)
 
     # Sqlalchemy
-    # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
-    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:root@localhost:5432/bde_micro_creche_dev')
+    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
+    # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:root@localhost:5432/bde_micro_creche_dev')
     SQLALCHEMY_POOL_SIZE: int = 100
     SQLALCHEMY_MAX_OVERFLOW: int = 0
     SQLALCHEMY_POOL_TIMEOUT: int = 30
