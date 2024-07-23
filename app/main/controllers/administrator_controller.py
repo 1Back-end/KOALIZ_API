@@ -47,9 +47,7 @@ def update(
     """
     Update new administrator
     """
-    if not current_user.status.lower()=="active":
-        raise HTTPException (status_code=405,detail ="user-not-active")
-    
+
     admin = crud.administrator.get_by_uuid(db, obj_in.uuid)
     if not admin:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
@@ -101,6 +99,7 @@ def get(
     order:str = Query(None, enum =["ASC","DESC"]),
     user_uuid:Optional[str] = None,
     status: str = Query(None, enum =["ACTIVED","UNACTIVED"]),
+    keyword:Optional[str] = None,
     # order_filed: Optional[str] = None
     current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
@@ -116,5 +115,6 @@ def get(
         status,
         user_uuid,
         # order_filed
+        keyword
     )
     

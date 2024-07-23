@@ -4,32 +4,46 @@ from datetime import datetime, date
 from .tag import Tag
 from app.main.models.db.session import SessionLocal
 from app.main.models import tag
+from app.main.models.membership import MembershipType
 
 
 class MembershipBase(BaseModel):
-    title_fr: str
-    title_en: str
-    description: Optional[str] = None
     # owner_uuid: str
     period_from:datetime
     period_to: datetime
     period_unit:str 
     nursery_uuid: str
+    membership_uuid:str
     # membership_type_uuid: str
 
 class MembershipCreate(MembershipBase):
-    pass
-    
+    period_unit:MembershipType
 
-class MembershipUpdate(MembershipBase):
+# class NurseryMembershipSim(BaseModel):
+#     membership_uuid:str
+#     period_from:datetime
+#     period_to: datetime
+#     period_unit:Optional[MembershipType] 
+#     nursery_uuid: str
+
+# class AddNurseryMemberships(BaseModel):
+#     memberships:list[NurseryMembershipSim]
+
+class MembershipUpdate(BaseModel):
     uuid:str
-    title_fr: Optional[str] = None
-    title_en: Optional[str] = None
-    # owner_uuid: Optional[str] = None
+    period_unit:Optional[MembershipType] = None
     period_from: Optional[datetime] = None
     period_to: Optional[datetime] = None
-    nursery_uuid: Optional[str] = None
-    # membership_type_uuid: Optional[str] = None
+    nursery_uuid: str 
+    membership_type_uuid:Optional[str]  = None
+
+class MembershipTypeSlim(BaseModel):
+    uuid: Optional[str]=None
+    title_fr: Optional[str] =None
+    title_en: Optional[str] =None
+    description: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 class Nursery2(BaseModel):
     uuid: str
@@ -38,6 +52,7 @@ class Nursery2(BaseModel):
     # logo: Optional[File]
     # signature: Optional[File]
     # stamp: Optional[File]
+    memberships:Optional[MembershipTypeSlim] = None
     total_places: int = 0
     phone_number: str
     # address: Address
@@ -46,16 +61,7 @@ class Nursery2(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-# class MembershipType(BaseModel):
-#     uuid: str
-#     title_fr: str
-#     title_en: str
-#     description: str
-#     date_added: datetime
-#     date_modified: datetime
-#     price: float
 
-#     model_config = ConfigDict(from_attributes=True)
 
 class Owner2(BaseModel):
     uuid: Optional[str] = None
