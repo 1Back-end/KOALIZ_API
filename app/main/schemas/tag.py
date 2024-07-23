@@ -65,7 +65,8 @@ class TagsInDB(TagBase):
     model_config = ConfigDict(from_attributes=True)
 
 class Tag(TagsInDB):
-    pass
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 class TagsResponseList(BaseModel):

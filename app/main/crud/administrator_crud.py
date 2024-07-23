@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import math
 from typing import Union, Optional, List
 from pydantic import EmailStr
+from sqlalchemy import or_
 from app.main.core.i18n import __
 from app.main.core.mail import send_account_creation_email, send_reset_password_email
 from app.main.crud.base import CRUDBase
@@ -16,6 +17,7 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Union[models.Administrator, None]:
         return db.query(models.Administrator).filter(models.Administrator.uuid == uuid).first()
+    
     @classmethod
     def create(cls, db: Session, obj_in: schemas.AdministratorCreate,added_by:models.Administrator) -> models.Administrator:
         password:str = generate_password(8, 8)
@@ -73,7 +75,8 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         per_page:int = 30,
         order:Optional[str] = None,
         status:Optional[str] = None,
-        user_uuid:Optional[str] = None
+        user_uuid:Optional[str] = None,
+        keyword:Optional[str]= None
         # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Administrator).options(joinedload(models.Administrator.role))
@@ -83,6 +86,14 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
 
         record_query = record_query.filter(models.Administrator.status.not_in(["DELETED","BLOCKED"]))
         
+        if keyword:
+            record_query = record_query.filter(
+                or_(
+                    models.Administrator.firstname.ilike('%' + str(keyword) + '%'),
+                    models.Administrator.email.ilike('%' + str(keyword) + '%'),
+                    models.Administrator.lastname.ilike('%' + str(keyword) + '%'),
+                )
+            )
         if status:
             record_query = record_query.filter(models.Administrator.status == status)
         

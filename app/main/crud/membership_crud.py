@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta,timezone
 import math
 from typing import Union, Optional, List
+from fastapi.encoders import jsonable_encoder
 from pydantic import EmailStr
 from sqlalchemy import or_
 from app.main.core.i18n import __
@@ -13,17 +14,34 @@ import uuid
 from app.main.core.security import get_password_hash, verify_password,generate_code
 
 
-class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schemas.MembershipUpdate]):
+class CRUDMembership(CRUDBase[models.NurseryMemberships, schemas.MembershipCreate,schemas.MembershipUpdate]):
     
     @classmethod
-    def get_by_title(cls,db:Session, title_fr:str,title_en:str):
-        print(f"yo-1 title_fr{title_fr},title_en:{title_en}",title_fr,title_en)
-        return db.query(models.Membership).filter(
-            or_(
-                models.Membership.title_fr == title_fr,
-                models.Membership.title_en == title_en
+    def create(cls, db: Session, obj_in:schemas.MembershipCreate):
+        
+        result:list[models.NurseryMemberships] =[]
+        for membership in obj_in:
+            print("membership   ",membership.period_from)
+            status = cls.get_period_status(db, membership.period_from, membership.period_to)
+            new_uuid = str(uuid.uuid4())
+            db_obj = models.NurseryMemberships(
+                uuid = new_uuid,
+                membership_uuid = membership.membership_uuid,
+                nursery_uuid = membership.nursery_uuid,
+                period_unit = membership.period_unit,
+                period_from = membership.period_from,
+                period_to = membership.period_to,
+                duration = cls.get_period_duration(membership.period_unit, membership.period_from, membership.period_to),
             )
-        ).first()
+
+            db.add(db_obj)
+            result.append(db_obj)
+            db.commit()
+            cls.update_status(db, new_uuid, status)
+
+            db.refresh(db_obj)
+            return 
+
     
     @classmethod
     def make_offset_aware(cls,dt):
@@ -42,6 +60,8 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
         :param period_to: Date de fin de la période.
         :return: Un dictionnaire indiquant si aujourd'hui est avant, pendant, ou après la période.
         """
+        period_from =cls.make_offset_aware(period_from)
+        period_to =cls.make_offset_aware(period_to)
         today = datetime.now().date()
         is_within_period = period_from.date() <= today <= period_to.date()
         is_before_period = today < period_from.date()
@@ -54,8 +74,8 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
     @classmethod
     def is_overlapping(
         cls, 
-        db: Session,
         old_period_from:datetime,old_period_to:datetime,new_period_from: datetime,new_period_to:datetime):
+        
         """
         Verifie s'il y'a chevauchement de dates.
         """
@@ -72,7 +92,10 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
             membership_new_period_from <= membership_old_period_from <= membership_new_period_to or\
             membership_new_period_from <= membership_old_period_to <= membership_new_period_to else False
         
-        
+    # @classmethod
+    # def get_membership_by_uuid(cls,db:Session,db_uuid:str):
+    #     return db.query(models.Membership).filter(models.Membership.uuid == db_uuid).first()
+    
     
     @classmethod
     def convert_period_to_hours(cls,period_from: datetime, period_to: datetime) -> int:
@@ -107,12 +130,13 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
     
     
     @classmethod
-    def get_by_nursery_uuid(cls, db: Session, nursery_uuids: list[str]) -> Optional[models.Membership]:
-        return db.query(models.Membership).filter(models.Membership.nursery_uuid.in_(nursery_uuids)).all()
+    def get_by_nursery_uuid(cls, db: Session, nursery_uuids: list[str]) -> Optional[models.NurseryMemberships]:
+        return db.query(models.NurseryMemberships).filter(models.NurseryMemberships.nursery_uuid.in_(nursery_uuids)).all()
     
     @classmethod
-    def get_by_uuid(cls, db: Session, obj_uuid: str) -> Optional[models.Membership]:
-        return db.query(models.Membership).filter(models.Membership.uuid == obj_uuid).first()
+    def get_by_uuid(cls, db: Session, obj_uuid: str) -> Optional[models.NurseryMemberships]:
+        return db.query(models.NurseryMemberships).filter(models.NurseryMemberships.uuid == obj_uuid).first()
+    
     
     @classmethod
     def update_status(cls, db:Session, uuid:str, status:str):
@@ -122,43 +146,10 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
         db.commit()
         db.refresh(membership)
         
-    # @classmethod
-    # def get_membershiptype(cls,db:Session, uuid:str):
-    #     return db.query(models.MembershipType).filter(models.MembershipType.uuid == uuid).first()
-        
-    @classmethod
-    def create(cls, db: Session, obj_in: schemas.MembershipCreate) -> models.Membership:
-        status = cls.get_period_status(db, obj_in.period_from,obj_in.period_to)
-        
-
-        new_uuid = str(uuid.uuid4()),
-
-        membership = models.Membership(
-            uuid= new_uuid,
-            title_fr = obj_in.title_fr,
-            title_en = obj_in.title_en,
-            # owner_uuid= obj_in.owner_uuid,
-            nursery_uuid = obj_in.nursery_uuid,
-            description = obj_in.description if obj_in.description else None,
-            period_unit = obj_in.period_unit,
-            period_from = obj_in.period_from,
-            duration = cls.get_period_duration(obj_in.period_unit, obj_in.period_from, obj_in.period_to),
-            period_to = obj_in.period_to if obj_in.period_to else None,
-        )
-        db.add(membership)
-        db.commit()
-        db.refresh(membership)
-        cls.update_status(db, new_uuid, status)
-        return membership
 
     @classmethod
-    def update(cls, db: Session, obj_in: schemas.MembershipUpdate) -> models.Membership:
+    def update(cls, db: Session, obj_in: schemas.MembershipUpdate) -> models.NurseryMemberships:
         membership = cls.get_by_uuid(db, obj_in.uuid)
-        membership.title_fr = obj_in.title_fr if obj_in.title_fr else membership.title_fr
-        membership.title_en = obj_in.title_en if obj_in.title_en else membership.title_en
-
-        membership.description = obj_in.description if obj_in.description else membership.description
-        membership.owner_uuid = obj_in.owner_uuid if obj_in.owner_uuid else membership.owner_uuid
         membership.nursery_uuid = obj_in.nursery_uuid if obj_in.nursery_uuid else membership.nursery_uuid
 
         membership.period_from = obj_in.period_from if obj_in.period_from else membership.period_from
@@ -166,10 +157,6 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
         membership.period_unit = obj_in.period_unit if obj_in.period_unit else membership.period_unit
         
         print("obj_in==",obj_in.period_from,obj_in.period_to,obj_in.period_unit)
-
-        # period_unit = obj_in.period_unit if obj_in.period_unit else membership.period_unit
-        # period_from = obj_in.period_from if obj_in.period_from else membership.period_from
-        # period_to = obj_in.period_to if obj_in.period_to else membership.period_to
 
         status = cls.get_period_status(db, obj_in.period_from,obj_in.period_to)
 
@@ -193,36 +180,42 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
         period_from:Optional[str] = None,
         period_to: Optional[str] = None,
         duration:Optional[str] = None,
+        keyword:Optional[str] = None,
+        membership_type:Optional[str] = None
         # owner_uuid:Optional[str] = None
     ):
-        record_query = db.query(models.Membership)
+        record_query = db.query(models.NurseryMemberships)
 
+        if keyword:
+            record_query = record_query.filter(
+                or_(
+                    models.NurseryMemberships.status.ilike('%' + str(keyword) + '%'),
+                    # models.Nursery.email.ilike('%' + str(keyword) + '%'),
+                    # models.Nursery.phone_number.ilike('%' + str(keyword) + '%'),
+                )
+            )
         # if order_filed:
         #     record_query = record_query.order_by(getattr(models.Administrator, order_filed))
 
-        # record_query = record_query.filter(models.Administrator.status.not_in(["DELETED","BLOCKED"]))
-        # if owner_uuid:
-        #     record_query = record_query.filter(models.Membership.owner_uuid == owner_uuid)
-
         if duration:
-            record_query = record_query.filter(models.Membership.duration == duration)
+            record_query = record_query.filter(models.NurseryMemberships.duration == duration)
 
         if status:
-            record_query = record_query.filter(models.Membership.status == status)
+            record_query = record_query.filter(models.NurseryMemberships.status == status)
         
         if period_unit:
-            record_query = record_query.filter(models.Membership.period_unit == period_unit)
+            record_query = record_query.filter(models.NurseryMemberships.period_unit == period_unit)
             
         if period_to and period_from:
             record_query = record_query.filter(
-                models.Membership.period_from >= period_from<= period_to,
-                models.Membership.period_to >= period_from<= period_to)
+                models.NurseryMemberships.period_from >= period_from<= period_to,
+                models.NurseryMemberships.period_to >= period_from<= period_to)
         
         if order and order.lower() == "asc":
-            record_query = record_query.order_by(models.Administrator.date_added.asc())
+            record_query = record_query.order_by(models.NurseryMemberships.date_added.asc())
         
         elif order and order.lower() == "desc":
-            record_query = record_query.order_by(models.Administrator.date_added.desc())
+            record_query = record_query.order_by(models.NurseryMemberships.date_added.desc())
 
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
@@ -235,4 +228,4 @@ class CRUDMembership(CRUDBase[models.Membership, schemas.MembershipCreate,schema
             data =record_query
         )
 
-membership = CRUDMembership(models.Membership)
+membership = CRUDMembership(models.NurseryMemberships)

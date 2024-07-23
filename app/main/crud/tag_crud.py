@@ -129,7 +129,9 @@ class CRUDTag(CRUDBase[models.Tags, schemas.TagCreate,schemas.TagUpdate]):
         title: Optional[str] = None,
         color: Optional[str] = None,
         type: Optional[str] = None,
-        icon_uuid:Optional[str]= None
+        icon_uuid:Optional[str]= None,
+        keyword:Optional[str]= None,
+
         ):
         
         record_query = db.query(models.Tags).options(
@@ -143,6 +145,17 @@ class CRUDTag(CRUDBase[models.Tags, schemas.TagCreate,schemas.TagUpdate]):
                     models.Tags.title_en.ilike(f"%{title}%")
                     )
             )
+        
+        if keyword:
+            record_query = record_query.filter(
+                or_(
+                    models.Tags.title_fr.ilike('%' + str(keyword) + '%'),
+                    models.Tags.title_en.ilike('%' + str(keyword) + '%'),
+                    models.Tags.color.ilike('%' + str(keyword) + '%'),
+                    models.Tags.type.ilike('%' + str(keyword) + '%'),
+
+                )
+            )
 
         if color:
             record_query = record_query.filter(models.Tags.type.ilike(color))
@@ -155,10 +168,10 @@ class CRUDTag(CRUDBase[models.Tags, schemas.TagCreate,schemas.TagUpdate]):
         total = record_query.count()
 
         if order and order.lower() == "asc":
-            record_query = record_query.order_by(models.Administrator.date_added.asc())
+            record_query = record_query.order_by(models.Tags.date_added.asc())
         
         elif order and order.lower() == "desc":
-            record_query = record_query.order_by(models.Administrator.date_added.desc())
+            record_query = record_query.order_by(models.Tags.date_added.desc())
 
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
