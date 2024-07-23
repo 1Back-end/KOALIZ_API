@@ -57,7 +57,7 @@ def change_status_of_special_folder(
 ):
     """ Change status of a special folder """
 
-    return crud.preregistration.change_status_of_a_special_folder(db, uuid=uuid, status=status, added_by_uuid=current_user.uuid)
+    return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, added_by_uuid=current_user.uuid)
 
 
 @router.put("", response_model=schemas.ChildDetails, status_code=200)
@@ -76,11 +76,11 @@ def add_note_to_special_folder(
     *,
     obj_in: schemas.TrackingCase=Body(...),
     db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Add note to special folder """
 
-    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="NOTE", added_by_uuid=current_user.uuid)
+    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="NOTE", added_by_uuid="current_user.uuid")
 
 @router.put("/document", response_model=schemas.PreregistrationDetails, status_code=200)
 def add_document_to_special_folder(

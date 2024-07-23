@@ -32,19 +32,39 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         db.commit()
 
     @classmethod
-    def change_status_of_a_special_folder(cls, db: Session, uuid: str, status: str, added_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
+    def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, added_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
 
-        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
+        
+        before_details = {
+            "preregistration_uuid": exist_folder.uuid,
+            "status": exist_folder.status,
+        }
 
         exist_folder.status = status
+        db.commit()
+
+        after_details = {
+            "preregistration_uuid": exist_folder.uuid,
+            "status": exist_folder.status,
+        }
+
+        log = models.Log(
+            uuid=str(uuid.uuid4()),
+            preregistration_uuid=exist_folder.uuid,
+            before_details=before_details,
+            added_by_uuid=added_by_uuid,
+            after_details=after_details
+        )
+        db.add(log)
         db.commit()
 
         # Update others folders with refused status
         if status in ['ACCEPTED']:
             others_folders = db.query(models.PreRegistration).\
-                filter(models.PreRegistration.uuid!=uuid).\
+                filter(models.PreRegistration.uuid!=folder_uuid).\
                 filter(models.PreRegistration.child_uuid==exist_folder.child_uuid).\
                 all()
             for folder in others_folders:
