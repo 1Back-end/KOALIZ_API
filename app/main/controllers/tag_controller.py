@@ -14,7 +14,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.TagCreate,
-    current_user:models.Administrator = Depends(TokenRequired(roles =["owner"]))
+    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"]))
 ):
     """
     Create new Tag
