@@ -32,7 +32,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         db.commit()
 
     @classmethod
-    def change_status_of_a_special_folder(cls, db: Session, uuid: str, status: str) -> Optional[schemas.PreregistrationDetails]:
+    def change_status_of_a_special_folder(cls, db: Session, uuid: str, status: str, added_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
 
         exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
         if not exist_folder:
@@ -54,11 +54,14 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         return exist_folder
     
     @classmethod
-    def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str) -> Optional[schemas.PreregistrationDetails]:
+    def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str, added_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
 
         exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == obj_in.preregistration_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
+        # Before insere data
+        before_details ={}
 
         interaction = models.TrackingCase(
             uuid=str(uuid.uuid4()),
@@ -67,6 +70,22 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             details=obj_in.details.root
         )
         db.add(interaction)
+        db.commit()
+
+        after_details = {
+            "tracking_cases": obj_in.details.root,
+            "preregistration_uuid": exist_folder.uuid,
+            "interaction_type": interaction_type,
+        }
+
+        log = models.Log(
+            uuid=str(uuid.uuid4()),
+            tracking_case_uuid=interaction.uuid,
+            before_details=before_details,
+            added_by_uuid=added_by_uuid,
+            after_details=after_details
+        )
+        db.add(log)
         db.commit()
 
         return exist_folder

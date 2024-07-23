@@ -167,6 +167,8 @@ class TrackingCase(Base):
     interaction_type = Column(String, nullable=False)  # Type d'interaction: note, document, réunion, action, appel
     details = Column(JSONB, nullable=True)  # Détails spécifiques à l'interaction
 
+    logs = relationship("Log", order_by="Log.date_added", back_populates="tracking_case")
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
