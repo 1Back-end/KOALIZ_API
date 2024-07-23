@@ -64,7 +64,7 @@ async def create_database_tables(
     except OSError:
         logger.error("Creation of the directory %s failed" % migrations_folder)
     else:
-        logger.error("Successfully created the directory %s " % migrations_folder)
+        logger.info("Successfully created the directory %s " % migrations_folder)
 
     try:
         # Get the environment system

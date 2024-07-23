@@ -1,8 +1,10 @@
 
 
-from pydantic import BaseModel, ConfigDict
-from typing import Any, List, Optional
+from pydantic import BaseModel, ConfigDict, RootModel
+from typing import Any, List, Optional, Dict
 
+class Items(RootModel):
+    root: Dict[str, str]
 
 class Token(BaseModel):
     access_token: Optional[str] = None

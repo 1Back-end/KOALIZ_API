@@ -71,6 +71,62 @@ def update_special_folder(
     return crud.preregistration.update(db, obj_in)
 
 
+@router.put("/note", response_model=schemas.PreregistrationDetails, status_code=200)
+def add_note_to_special_folder(
+    *,
+    obj_in: schemas.TrackingCase=Body(...),
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Add note to special folder """
+
+    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="NOTE")
+
+@router.put("/document", response_model=schemas.PreregistrationDetails, status_code=200)
+def add_document_to_special_folder(
+    *,
+    obj_in: schemas.TrackingCase=Body(...),
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Add document to special folder """
+
+    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="DOCUMENT")
+
+@router.put("/meeting", response_model=schemas.PreregistrationDetails, status_code=200)
+def add_meeting_to_special_folder(
+    *,
+    obj_in: schemas.TrackingCase=Body(...),
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Add meeting to special folder """
+
+    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="MEETING")
+
+@router.put("/action", response_model=schemas.PreregistrationDetails, status_code=200)
+def add_action_to_special_folder(
+    *,
+    obj_in: schemas.TrackingCase=Body(...),
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Add action to special folder """
+
+    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="ACTION")
+
+
+@router.put("/call", response_model=schemas.PreregistrationDetails, status_code=200)
+def add_call_to_special_folder(
+    *,
+    obj_in: schemas.TrackingCase=Body(...),
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Add call to special folder """
+
+    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="CALL")
+
 @router.get("", response_model=schemas.PreRegistrationList, status_code=200)
 def get_many(
         nursery_uuid: str,

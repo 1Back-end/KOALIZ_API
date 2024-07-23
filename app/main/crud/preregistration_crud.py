@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta
 import math
-from typing import Union, Optional, List
+from typing import  Optional, List
 
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -9,9 +8,10 @@ from sqlalchemy import or_
 
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
-from sqlalchemy.orm import Session,joinedload
+from sqlalchemy.orm import Session
 from app.main import crud, schemas, models
 import uuid
+import json
 from app.main.core.security import generate_code, generate_slug
 
 
@@ -50,6 +50,24 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             for folder in others_folders:
                 folder.status = models.PreRegistrationStatusType.REFUSED
                 db.commit()
+
+        return exist_folder
+    
+    @classmethod
+    def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str) -> Optional[schemas.PreregistrationDetails]:
+
+        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == obj_in.preregistration_uuid).first()
+        if not exist_folder:
+            raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
+        interaction = models.TrackingCase(
+            uuid=str(uuid.uuid4()),
+            preregistration_uuid=exist_folder.uuid,
+            interaction_type=interaction_type,
+            details=obj_in.details.root
+        )
+        db.add(interaction)
+        db.commit()
 
         return exist_folder
     
