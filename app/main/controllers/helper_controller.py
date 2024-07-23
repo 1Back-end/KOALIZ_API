@@ -12,7 +12,7 @@ async def get_roles(
     *,
     group: str = None,
     db: Session = Depends(get_db),
-    # current_user=Depends(TokenRequired())
+    current_user=Depends(TokenRequired())
 ) -> list:
     """
     Default data form.
