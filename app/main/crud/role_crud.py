@@ -14,8 +14,11 @@ class CRUDRole(CRUDBase[models.Role, schemas.RoleCreate,schemas.RoleUpdate]):
         return db.query(models.Role).filter(models.Role.uuid == uuid).first()
 
     @classmethod
-    def get_all(cls, db: Session) -> Union[models.Role, []]:
-        return db.query(models.Role).all()
+    def get_all(cls, db: Session, group: str = None) -> list[models.Role]:
+        roles = db.query(models.Role)
+        if group:
+            roles = roles.filter(models.Role.group==group)
+        return roles.all()
 
     @classmethod
     def get_by_code(cls, db: Session, code: str) -> Union[models.Role, None]:
