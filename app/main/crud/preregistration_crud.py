@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta
 import math
-from typing import Union, Optional, List
+from typing import  Optional, List
 
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -9,11 +8,12 @@ from sqlalchemy import or_
 
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
-from sqlalchemy.orm import Session,joinedload
+from sqlalchemy.orm import Session
 from app.main import crud, schemas, models
 import uuid
-from app.main.core.security import get_password_hash, verify_password, generate_code, generate_slug
 import json
+from app.main.core.security import generate_code, generate_slug
+
 
 class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
@@ -225,6 +225,89 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
     def get_by_code(cls, db: Session, code: str) -> Optional[models.PreRegistration]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
 
+    def get_elements_by_tag(self, db: Session, tag: str) -> List:
+
+        query = db.query(models.TagElement).join(models.Tags, models.Tags.uuid==models.TagElement.tag_uuid)
+        query = query.filter(or_(
+            # models.Tags.title_en.ilike("%"+tag_type+"%"),
+            # models.Tags.title_fr.ilike("%"+tag_type+"%")
+            models.Tags.title_en==tag,
+            models.Tags.title_fr==tag
+        ))
+
+        tag_elements = query.all()
+
+        elements = []
+        for tag_element in tag_elements:
+            element = tag_element.element
+            if element is None:
+                continue  # Skip elements with no associated element
+
+            # Dynamic element type handling (replace with your actual model mapping)
+            element_type_mapping = {
+                "PRE_ENROLLMENT": "PreRegistration",
+                "CHILDREN": "Membership",
+                "PARENTS": "ParentGuest",
+                "PICTURE": "Storage",
+            }
+            model_name = element_type_mapping.get(tag_element.element_type)
+            # if not model_name:
+            #     raise ValueError(f"Unsupported element type: {tag_element.element_type}")
+
+            # Assuming your models have a `__repr__` method for human-readable output
+            element_data = element
+            elements.append({"model": model_name, "data": element_data})
+
+        return elements
+
+
+    def get_many(self,
+        db,
+        nursery_uuid,
+        tag_uuid,
+        status,
+        begin_date,
+        end_date,
+        page: int = 1,
+        per_page: int = 30,
+        order: Optional[str] = None,
+        order_field: Optional[str] = None,
+        keyword: Optional[str] = None,
+    ):
+        record_query = db.query(models.PreRegistration).filter(models.PreRegistration.nursery_uuid==nursery_uuid)
+        if status:
+            record_query = record_query.filter(models.PreRegistration.status==status)
+
+        if begin_date and end_date:
+            record_query = record_query.filter(models.PreRegistration.date_added.between(begin_date, end_date))
+
+        if keyword:
+            record_query = record_query.filter(models.PreRegistration.child.has(
+                or_(
+                    models.Child.firstname.ilike('%' + str(keyword) + '%'),
+                    models.Child.lastname.ilike('%' + str(keyword) + '%'),
+                ))
+            )
+        if tag_uuid:
+            elements = self.get_elements_by_tag(db, tag_uuid)
+            element_uuids = [element.get("data", {}).uuid for element in elements]
+            record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
+
+        if order == "asc":
+            record_query = record_query.order_by(getattr(models.PreRegistration, order_field).asc())
+        else:
+            record_query = record_query.order_by(getattr(models.PreRegistration, order_field).desc())
+
+        total = record_query.count()
+        record_query = record_query.offset((page - 1) * per_page).limit(per_page)
+
+        return schemas.PreRegistrationList(
+            total=total,
+            pages=math.ceil(total / per_page),
+            per_page=per_page,
+            current_page=page,
+            data=record_query
+        )
 
     @classmethod
     def code_unicity(cls, code: str, db: Session):
