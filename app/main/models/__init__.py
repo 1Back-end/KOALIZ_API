@@ -10,3 +10,4 @@ from .preregistration import *
 from .storage import *
 from .membership import *
 from .tag import *
+from .log import *

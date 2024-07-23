@@ -1,18 +1,33 @@
-from enum import Enum
 from typing import Optional, Any
 
 from fastapi import Body, HTTPException
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
 from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.schemas import UserAuthentication, File, DataList, Address, AddressCreate, AddressUpdate, NurseryMini
-from app.main.schemas.user import AddedBy
+from app.main.schemas import DataList, NurseryMini
+from app.main.schemas.base import Items
+from app.main.schemas.log import LogSchema
 
 
 @field_validator("birthdate")
 class ChildSchema(BaseModel):
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+    birthplace: str
+
+    @field_validator("birthdate")
+    def validate_birthdate(cls, value):
+        if value >= date.today():
+            raise ValueError("Birthdate must be before today's date.")
+        return value
+
+@field_validator("birthdate")
+class ChildUpdateSchema(BaseModel):
+    uuid: str
     firstname: str
     lastname: str
     gender: models.Gender
@@ -33,27 +48,43 @@ class TimeSlotInputSchema(BaseModel):
     from_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
     to_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
 
-    @field_validator("from_time", "to_time")
-    def validate_time_format(cls, value):
+    @model_validator(mode='wrap')
+    def validate_to_after_from(self, handler):
+        validated_self = handler(self)
         try:
-            time.fromisoformat(value)
-            return value
+            from_time_obj = time.fromisoformat(validated_self.from_time)
+            to_time_obj = time.fromisoformat(validated_self.to_time)
         except ValueError:
             raise ValueError(__("invalid-time-format"))
 
-    @field_validator('to_time')
-    def validate_to_after_from(cls, to_time, values):
-        from_time = values.data.get('from_time')
-        from_time_obj = time.fromisoformat(from_time)
-        to_time_obj = time.fromisoformat(to_time)
         if to_time_obj <= from_time_obj:
             raise ValueError('to_time must be after from_time')
-        return to_time
+        return validated_self
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ContractSchema(BaseModel):
+    begin_date: date
+    end_date: date
+    typical_weeks: list[list[list[TimeSlotInputSchema]]]
+
+    @model_validator(mode='wrap')
+    def validate_end_date(self, handler):
+        validated_self = handler(self)
+        for week in validated_self.typical_weeks:
+            for day in week:
+                if len(day) > 5:
+                    raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
+
+        begin_date = validated_self.begin_date
+        if validated_self.end_date <= begin_date:
+            raise ValueError("End date must be after to begin date.")
+        return validated_self
+
+
+class ContractUpdateSchema(BaseModel):
+    uuid: str
     begin_date: date
     end_date: date
     typical_weeks: list[list[list[TimeSlotInputSchema]]]
@@ -71,7 +102,6 @@ class ContractSchema(BaseModel):
         if value <= begin_date:
             raise ValueError("End date must be after to begin date.")
         return value
-
 
 class ParentGuestSchema(BaseModel):
     link: models.ParentRelationship
@@ -134,6 +164,7 @@ class PreregistrationMini(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ChildDetails(BaseModel):
     uuid: str
     firstname: str
@@ -149,6 +180,94 @@ class ChildDetails(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChildMini(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+    birthplace: str
+    date_added: datetime
+    date_modified: datetime
+    parents: list[ParentGuest]
+    model_config = ConfigDict(from_attributes=True)
+
+
+    model_config = ConfigDict(from_attributes=True)
+class TrackingCaseMini(BaseModel):
+    uuid: str
+    details: Any
+    interaction_type: str
+    # logs: list[LogSchema]
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class PreregistrationDetails(BaseModel):
+    uuid: str
+    code: str
+    child: ChildMini
+    nursery: NurseryMini
+    contract: Contract
+    tracking_cases: list[TrackingCaseMini]
+    logs: list[LogSchema]
+    note: str = None
+    status: str = None
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PreregistrationUpdate(BaseModel):
-    pass
+    uuid: str
+    child: ChildUpdateSchema
+    nurseries: list[str]
+    contract: ContractUpdateSchema
+    parents: list[ParentGuestSchema]
+    note: str = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class TrackingCase(BaseModel):
+    preregistration_uuid: str
+    details: Items
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ChildSlim(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ContractSlim(BaseModel):
+    begin_date: date
+    end_date: date
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PreregistrationSlim(BaseModel):
+    uuid: str
+    child: ChildSlim
+    contract: ContractSlim
+    status: str = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class PreRegistrationList(DataList):
+    data: list[PreregistrationSlim]
+
+    model_config = ConfigDict(from_attributes=True)
+class TrackingCaseList(DataList):
+    data: list[TrackingCaseMini]
+
+    model_config = ConfigDict(from_attributes=True)
+
 

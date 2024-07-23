@@ -1,11 +1,9 @@
 import uuid
 from datetime import datetime, timedelta
-from typing import Union, Optional, List
+from typing import Union, Optional
 
 from fastapi.encoders import jsonable_encoder
-from pydantic_core import to_json
 
-from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session
 from app.main.models import User

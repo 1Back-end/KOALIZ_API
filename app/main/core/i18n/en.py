@@ -27,7 +27,10 @@ translation = {
     "invalid-time-format": "Invalid time format. Use ISO format (HH:MM).",
     "to-not-greater-from": "Opening time must be before closing time.",
     "token-invalid": "Invalid token.",
-
     "mail-subject-reset-password": "Password recovery for the user",
+    "folder-not-found": "Folder not found",
+    "folder-deleted": "Folder successfully deleted",
+    "child-not-found": "Child not found",
+    "contract-not-found": "Contract not found"
 
 }

@@ -32,3 +32,12 @@ class RoleInDB(RoleBase):
 
 class Role(RoleInDB):
     pass
+
+
+class RoleSchema(BaseModel):
+    uuid: str
+    title_fr: str
+    title_en: str
+    code: str
+    description: Optional[str] = None
+    group: str
