@@ -181,6 +181,9 @@ class PreRegistration(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
+    def __repr__(self):
+        return '<PreRegistration: uuid: {} code: {}>'.format(self.uuid, self.code)
+
 
 @event.listens_for(PreRegistration, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):

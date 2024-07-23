@@ -1,1 +1,1 @@
-uvicorn app.main:app --reload --port=5300 --host=0.0.0.0
+uvicorn app.main:app --reload --port=5300

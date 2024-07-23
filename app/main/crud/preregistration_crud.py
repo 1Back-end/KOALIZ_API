@@ -18,8 +18,116 @@ from app.main.core.security import generate_code, generate_slug
 class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
     @classmethod
-    def get_by_uuid(cls, db: Session, uuid: str) -> Optional[models.PreRegistration]:
+    def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
+        print(db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first())
         return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+    
+    @classmethod
+    def delete_a_special_folder(cls, db: Session, uuid: str):
+        folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+        if not folder:
+            raise HTTPException(status_code=404, detail=__("folder-not-found"))
+        
+        db.delete(folder)
+        db.commit()
+
+    @classmethod
+    def change_status_of_a_special_folder(cls, db: Session, uuid: str, status: str) -> Optional[schemas.PreregistrationDetails]:
+
+        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+        if not exist_folder:
+            raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
+        exist_folder.status = status
+        db.commit()
+
+        # Update others folders with refused status
+        if status in ['ACCEPTED']:
+            others_folders = db.query(models.PreRegistration).\
+                filter(models.PreRegistration.uuid!=uuid).\
+                filter(models.PreRegistration.child_uuid==exist_folder.child_uuid).\
+                all()
+            for folder in others_folders:
+                folder.status = models.PreRegistrationStatusType.REFUSED
+                db.commit()
+
+        return exist_folder
+    
+    @classmethod
+    def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate) -> models.Child:
+
+        obj_in.nurseries = set(obj_in.nurseries)
+        nurseries = crud.nursery.get_by_uuids(db, obj_in.nurseries)
+        if len(obj_in.nurseries) != len(nurseries):
+            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+        # Child information update
+        child = db.query(models.Child).filter(models.Child.uuid==obj_in.child.uuid).first()
+        if not child:
+            raise HTTPException(status_code=404, detail=__("child-not-found"))
+
+        child.firstname=obj_in.child.firstname
+        child.lastname=obj_in.child.lastname
+        child.gender=obj_in.child.gender
+        child.birthdate=obj_in.child.birthdate
+        child.birthplace=obj_in.child.birthplace
+
+        # Contract information update
+        contract = db.query(models.Contract).filter(models.Contract.uuid==obj_in.contract.uuid).first()
+        if not contract:
+            raise HTTPException(status_code=404, detail=__("contract-not-found"))
+
+        contract.begin_date=obj_in.contract.begin_date,
+        contract.end_date=obj_in.contract.end_date,
+        contract.typical_weeks=jsonable_encoder(obj_in.contract.typical_weeks)
+
+        # Delete the old parents data
+        db.query(models.ParentGuest).\
+            filter(models.ParentGuest.child_uuid==child.uuid).\
+            delete()
+        
+        db.commit()
+
+        for pg in obj_in.parents:
+
+            parent_guest = models.ParentGuest(
+                uuid=str(uuid.uuid4()),
+                link=pg.link,
+                firstname=pg.firstname,
+                lastname=pg.lastname,
+                birthplace=pg.birthplace,
+                fix_phone=pg.fix_phone,
+                phone=pg.phone,
+                email=pg.email,
+                recipient_number=pg.recipient_number,
+                zip_code=pg.zip_code,
+                city=pg.city,
+                country=pg.country,
+                profession=pg.profession,
+                annual_income=pg.annual_income,
+                company_name=pg.company_name,
+                has_company_contract=pg.has_company_contract,
+                dependent_children=pg.dependent_children,
+                disabled_children=pg.disabled_children,
+                child_uuid=child.uuid
+            )
+            db.add(parent_guest)
+
+        code = cls.code_unicity(code=generate_slug(f"{child.firstname} {child.lastname}"), db=db)
+        for nursery_uuid in obj_in.nurseries:
+            preregistration = db.query(models.PreRegistration).\
+                filter(models.PreRegistration.uuid==obj_in.uuid).\
+                filter(models.PreRegistration.nursery_uuid==nursery_uuid).\
+                first()
+            if preregistration:
+                preregistration.code = code
+                preregistration.note = obj_in.note if obj_in.note else preregistration.note
+                db.commit()
+
+        db.commit()
+        db.refresh(child)
+
+        return child
 
     @classmethod
     def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Child]:

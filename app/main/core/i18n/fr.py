@@ -37,6 +37,9 @@ translation = {
     "invalid-time-format": "Format d'heure non valide. Utilisez le format ISO (HH:MM).",
     "to-not-greater-from": "L'heure d'ouverture doit être antérieure à l'heure de fermeture.",
     "token-invalid": "Token invalide.",
-
     "mail-subject-reset-password": "Récupération de mot de passe pour l'utilisateur",
+    "folder-not-found": "Dossier non trouvé",
+    "folder-deleted": "Dossier supprimé avec succès",
+    "child-not-found": "Enfant non trouvé",
+    "contract-not-found": "Contrat non trouvé"
 }
