@@ -113,7 +113,7 @@ def add_action_to_special_folder(
 ):
     """ Add action to special folder """
 
-    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="MEETING")
+    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="ACTION")
 
 
 @router.put("/call", response_model=schemas.PreregistrationDetails, status_code=200)

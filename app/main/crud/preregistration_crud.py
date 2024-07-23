@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session,joinedload
 from app.main import crud, schemas, models
 import uuid
 from app.main.core.security import get_password_hash, verify_password, generate_code, generate_slug
-
+import json
 
 class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
@@ -61,9 +61,10 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
         interaction = models.TrackingCase(
+            uuid=str(uuid.uuid4()),
             preregistration_uuid=exist_folder.uuid,
             interaction_type=interaction_type,
-            details=obj_in.details
+            details=obj_in.details.root
         )
         db.add(interaction)
         db.commit()
