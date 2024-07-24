@@ -106,7 +106,7 @@ def get(
     period_to: Optional[str] = None,
     duration:Optional[float] = None,
     keyword:Optional[str] = None,
-    membership_type:Optional[str] = None,
+    # membership_type:Optional[str] = None,
     # order_filed: Optional[str] = None
     current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
@@ -125,7 +125,7 @@ def get(
         period_to,
         duration,
         keyword,
-        membership_type
+        # membership_type
         # order_filed
     )
 
