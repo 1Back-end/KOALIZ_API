@@ -11,4 +11,4 @@ from .preregistration import *
 from .user import *
 from .role import *
 from .tag import *
-from .log import *
+from .audit_log import *

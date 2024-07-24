@@ -10,4 +10,4 @@ from .preregistration import *
 from .storage import *
 from .membership import *
 from .tag import *
-from .log import *
+from app.main.models.audit_log import *

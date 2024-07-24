@@ -11,69 +11,61 @@ from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session
 from app.main import crud, schemas, models
 import uuid
-import json
 from app.main.core.security import generate_code, generate_slug
 from app.main.utils.helper import convert_dates_to_strings
 
 
-class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
+class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
-    
+
     @classmethod
-    def delete_a_special_folder(cls, db: Session, folder_uuid: str, added_by_uuid: str):
+    def delete_a_special_folder(cls, db: Session, folder_uuid: str, performed_by_uuid: str):
         folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
         if not folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
-        before_details = schemas.PreregistrationDetails.from_orm(folder).dict()
-
-        after_details = {}
-
-        log = models.Log(
-            uuid=str(uuid.uuid4()),
-            preregistration_uuid=folder.uuid,
-            before_details=convert_dates_to_strings(before_details),
-            added_by_uuid=added_by_uuid,
-            after_details=after_details
+        # Create the log tracking
+        before_changes = schemas.PreregistrationDetails.model_validate(folder).model_dump()
+        crud.audit_log.create(
+            db=db,
+            entity_type="PreRegistration",
+            entity_id=folder.uuid,
+            action="DELETE",
+            before_changes=convert_dates_to_strings(before_changes),
+            performed_by_uuid=performed_by_uuid,
+            after_changes={}
         )
-        db.add(log)
-        db.commit()
-        
+
         db.delete(folder)
         db.commit()
 
     @classmethod
-    def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, added_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
+    def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, performed_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
 
         exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
         
-        before_details = {
-            "preregistration_uuid": exist_folder.uuid,
-            "status": exist_folder.status
-        }
+        # Create the log tracking
+        before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
         exist_folder.status = status
         db.commit()
 
-        after_details = {
-            "preregistration_uuid": exist_folder.uuid,
-            "status": exist_folder.status
-        }
+        after_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
-        log = models.Log(
-            uuid=str(uuid.uuid4()),
-            preregistration_uuid=exist_folder.uuid,
-            before_details=before_details,
-            added_by_uuid=added_by_uuid,
-            after_details=after_details
+        crud.audit_log.create(
+            db=db,
+            entity_type="PreRegistration",
+            entity_id=exist_folder.uuid,
+            action="UPDATE",
+            before_changes=convert_dates_to_strings(before_changes),
+            performed_by_uuid=performed_by_uuid,
+            after_changes=convert_dates_to_strings(after_changes)
         )
-        db.add(log)
-        db.commit()
 
         # Update others folders with refused status
         if status in ['ACCEPTED']:
@@ -86,16 +78,13 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
                 db.commit()
 
         return exist_folder
-    
+
     @classmethod
-    def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str, added_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
+    def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str, performed_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
 
         exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == obj_in.preregistration_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
-
-        # Before insere data
-        before_details ={}
 
         interaction = models.TrackingCase(
             uuid=str(uuid.uuid4()),
@@ -106,30 +95,29 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         db.add(interaction)
         db.commit()
 
-        # After update the data
-        after_details = schemas.TrackingCaseMini.from_orm(interaction).dict()
+        after_changes = schemas.TrackingCaseMini.model_validate(interaction).model_dump()
 
-        log = models.Log(
-            uuid=str(uuid.uuid4()),
-            tracking_case_uuid=interaction.uuid,
-            before_details=before_details,
-            added_by_uuid=added_by_uuid,
-            after_details=convert_dates_to_strings(after_details)
+        crud.audit_log.create(
+            db=db,
+            entity_type="TrackingCase",
+            entity_id=interaction.uuid,
+            action="CREATE",
+            before_changes={},
+            performed_by_uuid=performed_by_uuid,
+            after_changes=convert_dates_to_strings(after_changes)
         )
-        db.add(log)
-        db.commit()
 
         return exist_folder
-    
+
     @classmethod
-    def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate, added_by_uuid: str) -> models.Child:
+    def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate, performed_by_uuid: str) -> models.Child:
 
         preregistration = db.query(models.PreRegistration).\
             filter(models.PreRegistration.uuid==obj_in.uuid).\
             first()
-        
+
         # Before update the data
-        before_details = schemas.PreregistrationDetails.from_orm(preregistration).dict()
+        before_changes = schemas.PreregistrationDetails.model_validate(preregistration).model_dump()
 
         obj_in.nurseries = set(obj_in.nurseries)
         nurseries = crud.nursery.get_by_uuids(db, obj_in.nurseries)
@@ -160,7 +148,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         db.query(models.ParentGuest).\
             filter(models.ParentGuest.child_uuid==child.uuid).\
             delete()
-        
+
         db.commit()
 
         for pg in obj_in.parents:
@@ -203,22 +191,22 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         db.refresh(child)
 
         # After update the data
-        after_details = schemas.PreregistrationDetails.from_orm(preregistration).dict()
+        after_changes = schemas.PreregistrationDetails.model_validate(preregistration).model_dump()
 
-        log = models.Log(
-            uuid=str(uuid.uuid4()),
-            preregistration_uuid=preregistration.uuid,
-            before_details=convert_dates_to_strings(before_details),
-            added_by_uuid=added_by_uuid,
-            after_details=convert_dates_to_strings(after_details)
+        crud.audit_log.create(
+            db=db,
+            entity_type="PreRegistration",
+            entity_id=preregistration.uuid,
+            action="UPDATE",
+            before_changes=convert_dates_to_strings(before_changes),
+            performed_by_uuid=performed_by_uuid,
+            after_changes=convert_dates_to_strings(after_changes)
         )
-        db.add(log)
-        db.commit()
 
         return child
 
     @classmethod
-    def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Child]:
+    def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.ChildDetails]:
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
 
     @classmethod
@@ -292,7 +280,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         return child
 
     @classmethod
-    def get_by_code(cls, db: Session, code: str) -> Optional[models.PreRegistration]:
+    def get_by_code(cls, db: Session, code: str) -> Optional[schemas.PreregistrationDetails]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
 
     def get_elements_by_tag(self, db: Session, tag: str) -> List:
