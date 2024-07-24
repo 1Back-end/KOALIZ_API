@@ -13,20 +13,34 @@ from app.main import crud, schemas, models
 import uuid
 import json
 from app.main.core.security import generate_code, generate_slug
+from app.main.utils.helper import convert_dates_to_strings
 
 
 class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
-        print(db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first())
         return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
     
     @classmethod
-    def delete_a_special_folder(cls, db: Session, uuid: str):
-        folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+    def delete_a_special_folder(cls, db: Session, folder_uuid: str, added_by_uuid: str):
+        folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
         if not folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
+        before_details = schemas.PreregistrationDetails.from_orm(folder).dict()
+
+        after_details = {}
+
+        log = models.Log(
+            uuid=str(uuid.uuid4()),
+            preregistration_uuid=folder.uuid,
+            before_details=convert_dates_to_strings(before_details),
+            added_by_uuid=added_by_uuid,
+            after_details=after_details
+        )
+        db.add(log)
+        db.commit()
         
         db.delete(folder)
         db.commit()
@@ -40,7 +54,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         
         before_details = {
             "preregistration_uuid": exist_folder.uuid,
-            "status": exist_folder.status,
+            "status": exist_folder.status
         }
 
         exist_folder.status = status
@@ -48,7 +62,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
 
         after_details = {
             "preregistration_uuid": exist_folder.uuid,
-            "status": exist_folder.status,
+            "status": exist_folder.status
         }
 
         log = models.Log(
@@ -92,18 +106,15 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         db.add(interaction)
         db.commit()
 
-        after_details = {
-            "tracking_cases": obj_in.details.root,
-            "preregistration_uuid": exist_folder.uuid,
-            "interaction_type": interaction_type,
-        }
+        # After update the data
+        after_details = schemas.TrackingCaseMini.from_orm(interaction).dict()
 
         log = models.Log(
             uuid=str(uuid.uuid4()),
             tracking_case_uuid=interaction.uuid,
             before_details=before_details,
             added_by_uuid=added_by_uuid,
-            after_details=after_details
+            after_details=convert_dates_to_strings(after_details)
         )
         db.add(log)
         db.commit()
@@ -111,7 +122,14 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         return exist_folder
     
     @classmethod
-    def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate) -> models.Child:
+    def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate, added_by_uuid: str) -> models.Child:
+
+        preregistration = db.query(models.PreRegistration).\
+            filter(models.PreRegistration.uuid==obj_in.uuid).\
+            first()
+        
+        # Before update the data
+        before_details = schemas.PreregistrationDetails.from_orm(preregistration).dict()
 
         obj_in.nurseries = set(obj_in.nurseries)
         nurseries = crud.nursery.get_by_uuids(db, obj_in.nurseries)
@@ -183,6 +201,19 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
 
         db.commit()
         db.refresh(child)
+
+        # After update the data
+        after_details = schemas.PreregistrationDetails.from_orm(preregistration).dict()
+
+        log = models.Log(
+            uuid=str(uuid.uuid4()),
+            preregistration_uuid=preregistration.uuid,
+            before_details=convert_dates_to_strings(before_details),
+            added_by_uuid=added_by_uuid,
+            after_details=convert_dates_to_strings(after_details)
+        )
+        db.add(log)
+        db.commit()
 
         return child
 

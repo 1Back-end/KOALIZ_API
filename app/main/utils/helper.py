@@ -5,10 +5,23 @@ import random
 import re
 import secrets
 import string
+from typing import Dict, Any
 
-from datetime import datetime
+from datetime import datetime, date
 from math import sin, cos, sqrt, atan2, radians
 from random import randint, choice
+
+
+def convert_dates_to_strings(details: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursively convert date objects to string format in the details dictionary."""
+    for key, value in details.items():
+        if isinstance(value, dict):
+            details[key] = convert_dates_to_strings(value)
+        elif isinstance(value, datetime):
+            details[key] = value.isoformat()
+        elif isinstance(value, date):
+            details[key] = value.isoformat()
+    return details
 
 
 def check_pass(password:str):
