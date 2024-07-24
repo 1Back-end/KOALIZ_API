@@ -92,6 +92,9 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
                     models.Administrator.firstname.ilike('%' + str(keyword) + '%'),
                     models.Administrator.email.ilike('%' + str(keyword) + '%'),
                     models.Administrator.lastname.ilike('%' + str(keyword) + '%'),
+                    models.Role.title_fr.ilike('%' + str(keyword) + '%'),
+                    models.Role.title_en.ilike('%' + str(keyword) + '%'),
+
                 )
             )
         if status:
