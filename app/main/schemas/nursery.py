@@ -19,6 +19,17 @@ class NurseryMini(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class Membership1(BaseModel):
+    uuid: Optional[str] = None
+    # status: Optional[str] = None
+    title_en:str
+    title_fr:str
+    # duration:Optional[float] = None
+    # period_from:Optional[datetime]= None
+    # period_to:Optional[datetime]= None
+    # date_added: Optional[datetime]= None
+    # date_modified: Optional[datetime]= None
+    model_config = ConfigDict(from_attributes=True)
 
 class Nursery(BaseModel):
     uuid: str
@@ -34,6 +45,7 @@ class Nursery(BaseModel):
     stamp: Optional[File]
     address: Address
     owner: AddedBy
+    memberships:Optional[list[Membership1]]=[]
     date_added: datetime
     date_modified: datetime
 
