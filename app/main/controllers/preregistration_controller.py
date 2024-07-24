@@ -44,7 +44,7 @@ def delete_special_folder(
 ):
     """ Delete a special folder """
 
-    crud.preregistration.delete_a_special_folder(db, uuid)
+    crud.preregistration.delete_a_special_folder(db, folder_uuid=uuid, added_by_uuid=current_user.uuid)
 
     return {"message": __("folder-deleted")}
 
@@ -59,7 +59,7 @@ def change_status_of_special_folder(
 
     return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, added_by_uuid=current_user.uuid)
 
-
+# 4cdb3f7f-8f7d-4113-95b8-35521d55d76c owner uuid
 @router.put("", response_model=schemas.ChildDetails, status_code=200)
 def update_special_folder(
     obj_in: schemas.PreregistrationUpdate,
@@ -68,7 +68,7 @@ def update_special_folder(
 ):
     """ Update a special folder """
 
-    return crud.preregistration.update(db, obj_in)
+    return crud.preregistration.update(db, obj_in=obj_in, added_by_uuid=current_user.uuid)
 
 
 @router.put("/note", response_model=schemas.PreregistrationDetails, status_code=200)
@@ -76,11 +76,11 @@ def add_note_to_special_folder(
     *,
     obj_in: schemas.TrackingCase=Body(...),
     db: Session = Depends(get_db),
-    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Add note to special folder """
 
-    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="NOTE", added_by_uuid="current_user.uuid")
+    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="NOTE", added_by_uuid=current_user.uuid)
 
 @router.put("/document", response_model=schemas.PreregistrationDetails, status_code=200)
 def add_document_to_special_folder(
@@ -158,29 +158,3 @@ def get_many(
         order_field,
         keyword
     )
-
-# @router.get("/tracking-case", response_model=schemas.TrackingCaseList, status_code=200)
-# def get_tracking_cases(
-#         preregistration_uuid: str,
-#         interaction_type: Optional[str] = Query(None, enum =["CALL","ACTION","MEETING","DOCUMENT","NOTE"]),
-#         page: int = 1,
-#         per_page: int = 30,
-#         order: str = Query("desc", enum=["asc", "desc"]),
-#         order_field: str = "date_added",
-#         # keyword: Optional[str] = None,
-#         db: Session = Depends(get_db),
-#         # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
-# ):
-    
-#     """ Get tracking case details """
-
-#     return crud.preregistration.get_tracking_cases(
-#         db,
-#         preregistration_uuid,
-#         interaction_type,
-#         page,
-#         per_page,
-#         order,
-#         order_field,
-#         # keyword
-#     )
