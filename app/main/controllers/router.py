@@ -10,9 +10,11 @@ from .preregistration_controller import router as preregistration
 from .storage_controller import router as storage
 from .membership_controller import router as membership
 from .tag_controller import router as tag
+from .audit_log_controller import router as audit_logs
 
 api_router = APIRouter()
 
+api_router.include_router(audit_logs)
 api_router.include_router(authentication)
 api_router.include_router(administrator)
 api_router.include_router(owner)
