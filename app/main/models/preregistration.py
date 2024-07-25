@@ -59,6 +59,10 @@ class Child(Base):
 
     preregistrations: Mapped[list[any]] = relationship("PreRegistration", back_populates="child", uselist=True)
 
+    added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
+    added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    is_accepted: bool = Column(Boolean, default=False)
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 

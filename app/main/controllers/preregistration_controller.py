@@ -24,7 +24,22 @@ def create(
     Create preregistration
     """
 
-    return crud.preregistration.create(db, obj_in, "dfd")
+    return crud.preregistration.create(db, obj_in)
+
+
+@router.post("/create/owner", response_model=schemas.ChildDetails, status_code=201)
+def create_by_owner(
+    *,
+    db: Session = Depends(get_db),
+    obj_in: schemas.PreregistrationCreate,
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Owner create preregistration
+    """
+
+    return crud.preregistration.create(db, obj_in, current_user.uuid)
+
 
 
 @router.put("/{uuid}/transfer", response_model=schemas.Msg, status_code=200)

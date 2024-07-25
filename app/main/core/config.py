@@ -30,12 +30,14 @@ class ConfigClass(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(get_secret("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 365))
 
    # Minio
-    MINIO_API_URL: str = get_secret("MINIO_API_URL", "https://api.develop.koalizz.fr/v1/storages/get/")
+    MINIO_API_URL: str = get_secret("MINIO_API_URL", "https://api.development.koalizz.fr/v1/storages/get/")
     MINIO_URL: str = get_secret("MINIO_URL", "files.koalizz.fr")
     MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "WlsCK$gS7CTqhmM@x0jshEzsCK$gTqSM@7CT3hTddcc3mxlfyBo=")
     MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "jDe6SMqmmfCFyfGXD0n0N7r9AE2oKXyf/GXDpLRRCF4pOht0n0N7r9AEqZfHoskTn1jjogcANAkflmfDa0kpxfiw==")
     MINIO_BUCKET: str = get_secret("MINIO_BUCKET", "develop")
     MINIO_SECURE: bool = get_secret("MINIO_SECURE", True)
+
+    ONESIGNAL_APP_ID: str = get_secret("ONESIGNAL_APP_ID", "ONESIGNAL_APP_ID")
 
     # Sqlalchemy
     # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
@@ -49,7 +51,7 @@ class ConfigClass(BaseSettings):
         "pool_pre_ping": True,
         "pool_recycle": SQLALCHEMY_POOL_RECYCLE,
     }
-    
+
     # Redis
     REDIS_HOST: str = get_secret("REDIS_HOST", "localhost")  # redis_develop
     REDIS_PORT: int = get_secret("REDIS_PORT", 6379)

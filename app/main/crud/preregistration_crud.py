@@ -60,6 +60,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
 
         if status in ['ACCEPTED']:
             exist_folder.accepted_date = datetime.now()
+            exist_folder.child.is_accepted = True
 
         db.commit()
 
@@ -313,10 +314,10 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
 
     @classmethod
-    def create(cls, db: Session, obj_in: schemas.PreregistrationCreate, current_user_uuid: str) -> models.Child:
+    def create(cls, db: Session, obj_in: schemas.PreregistrationCreate, current_user_uuid: str = None) -> models.Child:
 
         obj_in.nurseries = set(obj_in.nurseries)
-        nurseries = crud.nursery.get_by_uuids(db, obj_in.nurseries)
+        nurseries = crud.nursery.get_by_uuids(db, obj_in.nurseries, current_user_uuid)
         if len(obj_in.nurseries) != len(nurseries):
             raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
@@ -326,7 +327,8 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             lastname=obj_in.child.lastname,
             gender=obj_in.child.gender,
             birthdate=obj_in.child.birthdate,
-            birthplace=obj_in.child.birthplace
+            birthplace=obj_in.child.birthplace,
+            added_by_uuid=current_user_uuid
         )
         db.add(child)
 

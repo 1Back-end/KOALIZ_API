@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, DateTime, String, event
+from sqlalchemy import Column, DateTime, String, event
 
 from app.main.models.db.base_class import Base
 
