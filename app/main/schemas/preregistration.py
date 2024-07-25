@@ -211,6 +211,8 @@ class PreregistrationDetails(BaseModel):
     tracking_cases: list[TrackingCaseMini]
     note: str = None
     status: str = None
+    accepted_date: datetime = None
+    refused_date: datetime = None
     date_added: datetime
     date_modified: datetime
 
