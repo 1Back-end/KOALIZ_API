@@ -235,6 +235,23 @@ class TrackingCase(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class ActivityReminder(BaseModel):
+    preregistration_uuid: str
+    title: str
+    activity_reminder_type_uuid: str
+    datetime:datetime
+    description:Optional[str]= None
+
+class MeetingType(BaseModel):
+    preregistration_uuid: str
+    title: str
+    meeting_type_uuid: str
+    datetime:datetime
+    description:Optional[str]= None
+    
+
+    # model_config = ConfigDict(from_attributes=True)
+
 class ChildSlim(BaseModel):
     uuid: str
     firstname: str
