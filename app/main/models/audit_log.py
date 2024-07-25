@@ -19,7 +19,7 @@ class AuditLog(Base):
     entity_id = Column(String, nullable=False)  # Identifiant de l'entité modifiée
     action = Column(String, nullable=False)  # Action effectuée (ex: 'create', 'update', 'delete')
 
-    performed_by_uuid: str = Column(String, nullable=False)
+    performed_by_uuid: str = Column(String, nullable=True)
     before_changes = Column(JSONB, nullable=False)
     after_changes = Column(JSONB, nullable=False)
 
@@ -29,10 +29,12 @@ class AuditLog(Base):
     @hybrid_property
     def performed_by (self):
         db = SessionLocal()
-        current_user = db.query(models.Administrator).filter(models.Administrator.uuid==self.performed_by_uuid).first()
-        if not current_user:
-            current_user = db.query(models.Owner).filter(models.Owner.uuid==self.performed_by_uuid)
-        return current_user
+        if self.performed_by_uuid:
+            current_user = db.query(models.Administrator).filter(models.Administrator.uuid==self.performed_by_uuid).first()
+            if not current_user:
+                current_user = db.query(models.Owner).filter(models.Owner.uuid==self.performed_by_uuid)
+            return current_user
+        return None
 
     def __repr__(self):
         return f'<AuditLog {self.action} on {self.entity_type} by {self.performed_by} at {self.date_added}>'
