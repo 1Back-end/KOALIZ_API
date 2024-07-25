@@ -52,7 +52,7 @@ class Nursery2(BaseModel):
     # logo: Optional[File]
     # signature: Optional[File]
     # stamp: Optional[File]
-    memberships:Optional[MembershipTypeSlim] = None
+    memberships:Optional[list[MembershipTypeSlim]] =[]
     total_places: int = 0
     phone_number: str
     # address: Address

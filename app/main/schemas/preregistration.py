@@ -8,7 +8,6 @@ from app.main import models
 from app.main.core.i18n import __
 from app.main.schemas import DataList, NurseryMini
 from app.main.schemas.base import Items
-from app.main.schemas.log import LogSchema
 
 
 @field_validator("birthdate")
@@ -198,7 +197,6 @@ class TrackingCaseMini(BaseModel):
     uuid: str
     details: Any
     interaction_type: str
-    # logs: list[LogSchema]
     date_added: datetime
     date_modified: datetime
 
@@ -211,7 +209,6 @@ class PreregistrationDetails(BaseModel):
     nursery: NurseryMini
     contract: Contract
     tracking_cases: list[TrackingCaseMini]
-    logs: list[LogSchema]
     note: str = None
     status: str = None
     date_added: datetime

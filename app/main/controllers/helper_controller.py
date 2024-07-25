@@ -19,6 +19,17 @@ async def get_roles(
     """
     return crud.role.get_all(db, group)
 
+@router.get("/membership-types", response_model=list[schemas.MembershipTypeSlim])
+async def get_membership_types(
+    *,
+    db: Session = Depends(get_db),
+    # current_user=Depends(TokenRequired())
+) -> list:
+    """
+    Membership types
+    """
+    return crud.membership.get_membership_type(db)
+
 @router.get("/enums", response_model=dict)
 async def get_enums(
         *,
