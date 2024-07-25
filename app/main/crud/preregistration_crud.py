@@ -1,3 +1,4 @@
+from datetime import datetime
 import math
 from typing import  Optional, List
 
@@ -53,6 +54,13 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
         exist_folder.status = status
+        
+        if status in ['REFUSED']:
+            exist_folder.refused_date = datetime.now()
+
+        if status in ['ACCEPTED']:
+            exist_folder.accepted_date = datetime.now()
+
         db.commit()
 
         after_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
@@ -75,6 +83,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 all()
             for folder in others_folders:
                 folder.status = models.PreRegistrationStatusType.REFUSED
+                folder.refused_date = datetime.now()
                 db.commit()
 
         return exist_folder
