@@ -30,7 +30,7 @@ class ConfigClass(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(get_secret("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 365))
 
    # Minio
-    MINIO_API_URL: str = get_secret("MINIO_API_URL", "https://api.develop.koalizz.fr/v1/storages/get/")
+    MINIO_API_URL: str = get_secret("MINIO_API_URL", "https://api.development.koalizz.fr/v1/storages/get/")
     MINIO_URL: str = get_secret("MINIO_URL", "files.koalizz.fr")
     MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "WlsCK$gS7CTqhmM@x0jshEzsCK$gTqSM@7CT3hTddcc3mxlfyBo=")
     MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "jDe6SMqmmfCFyfGXD0n0N7r9AE2oKXyf/GXDpLRRCF4pOht0n0N7r9AEqZfHoskTn1jjogcANAkflmfDa0kpxfiw==")
