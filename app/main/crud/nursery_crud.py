@@ -207,9 +207,12 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
 
     @classmethod
-    def get_by_uuids(cls, db: Session, uuids: list[str]) -> list[Optional[models.Nursery]]:
-        return db.query(models.Nursery).filter(models.Nursery.uuid.in_(uuids))\
-            .filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED])).all()
+    def get_by_uuids(cls, db: Session, uuids: list[str], owner_uuid: str = None) -> list[Optional[models.Nursery]]:
+        res = (db.query(models.Nursery).filter(models.Nursery.uuid.in_(uuids))\
+            .filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED])))
+        if owner_uuid:
+            res = res.filter(models.Nursery.owner_uuid==owner_uuid)
+        return res.all()
 
     @classmethod
     def get_by_slug(cls, db: Session, slug: str, deleted_included=False) -> Optional[models.Nursery]:
