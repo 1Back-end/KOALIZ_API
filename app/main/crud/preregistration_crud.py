@@ -136,7 +136,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         child.birthplace=obj_in.child.birthplace
 
         # Contract information update
-        contract = db.query(models.Contract).filter(models.Contract.uuid==obj_in.contract.uuid).first()
+        contract = db.query(models.PreContract).filter(models.PreContract.uuid == obj_in.contract.uuid).first()
         if not contract:
             raise HTTPException(status_code=404, detail=__("contract-not-found"))
 
@@ -227,7 +227,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         )
         db.add(child)
 
-        contract = models.Contract(
+        contract = models.PreContract(
             uuid=str(uuid.uuid4()),
             begin_date=obj_in.contract.begin_date,
             end_date=obj_in.contract.end_date,
