@@ -31,6 +31,7 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
             password_hash = get_password_hash(password),
             role_uuid = obj_in.role_uuid if obj_in.role_uuid else None,
             avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else None,
+            status = models.UserStatusType.UNACTIVED
         )
         db.add(administrator)
         db.commit()
