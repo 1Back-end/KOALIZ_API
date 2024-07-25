@@ -270,3 +270,6 @@ class TrackingCaseList(DataList):
     model_config = ConfigDict(from_attributes=True)
 
 
+class TransferPreRegistration(BaseModel):
+    nursery_uuid: str
+

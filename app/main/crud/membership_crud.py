@@ -3,7 +3,8 @@ import math
 from typing import Union, Optional, List
 from fastapi.encoders import jsonable_encoder
 from pydantic import EmailStr
-from sqlalchemy import or_
+from sqlalchemy import or_,cast, String
+
 from app.main.core.i18n import __
 from app.main.core.mail import send_account_creation_email, send_reset_password_email
 from app.main.crud.base import CRUDBase
@@ -181,21 +182,26 @@ class CRUDMembership(CRUDBase[models.NurseryMemberships, schemas.MembershipCreat
         period_to: Optional[str] = None,
         duration:Optional[str] = None,
         keyword:Optional[str] = None,
-        membership_type:Optional[str] = None
-        # owner_uuid:Optional[str] = None
+        # membership_type:Optional[str] = None
+        nursery_uuid:Optional[str] = None
     ):
         record_query = db.query(models.NurseryMemberships)
+
 
         if keyword:
             record_query = record_query.filter(
                 or_(
-                    models.NurseryMemberships.status.ilike('%' + str(keyword) + '%'),
-                    # models.Nursery.email.ilike('%' + str(keyword) + '%'),
+                    cast(models.NurseryMemberships.status, String).ilike(f'%{keyword}%'),
+                    models.Membership.title_fr.ilike('%' + str(keyword) + '%'),
+                    models.Membership.title_en.ilike('%' + str(keyword) + '%'),
                     # models.Nursery.phone_number.ilike('%' + str(keyword) + '%'),
                 )
             )
         # if order_filed:
         #     record_query = record_query.order_by(getattr(models.Administrator, order_filed))
+
+        if nursery_uuid:
+            record_query = record_query.filter(models.NurseryMemberships.nursery_uuid == nursery_uuid)
 
         if duration:
             record_query = record_query.filter(models.NurseryMemberships.duration == duration)
@@ -210,6 +216,14 @@ class CRUDMembership(CRUDBase[models.NurseryMemberships, schemas.MembershipCreat
             record_query = record_query.filter(
                 models.NurseryMemberships.period_from >= period_from<= period_to,
                 models.NurseryMemberships.period_to >= period_from<= period_to)
+        
+        elif period_to or period_from:
+            record_query = record_query.filter(
+                or_(
+                    models.NurseryMemberships.period_from == period_from,
+                    models.NurseryMemberships.period_to == period_to
+                )
+            )
         
         if order and order.lower() == "asc":
             record_query = record_query.order_by(models.NurseryMemberships.date_added.asc())
@@ -227,5 +241,9 @@ class CRUDMembership(CRUDBase[models.NurseryMemberships, schemas.MembershipCreat
             current_page =page,
             data =record_query
         )
+    
+    @classmethod
+    def get_membership_type(cls,db:Session):
+        return db.query(models.Membership).all()
 
 membership = CRUDMembership(models.NurseryMemberships)

@@ -25,6 +25,22 @@ def create(
     return crud.preregistration.create(db, obj_in, "dfd")
 
 
+@router.put("/{uuid}/transfer", response_model=schemas.Msg, status_code=200)
+def transfer(
+    *,
+    uuid: str,
+    db: Session = Depends(get_db),
+    obj_in: schemas.TransferPreRegistration,
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Transfer a preregistration
+    """
+
+    crud.preregistration.transfer(db, uuid, obj_in, current_user.uuid)
+    return schemas.Msg(message=__("nursery-transfer-successfully"))
+
+
 @router.get("/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
 def get_special_folder(
     uuid: str,
