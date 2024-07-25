@@ -145,13 +145,13 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         child.birthplace=obj_in.child.birthplace
 
         # Contract information update
-        contract = db.query(models.PreContract).filter(models.PreContract.uuid == obj_in.contract.uuid).first()
+        contract = db.query(models.PreContract).filter(models.PreContract.uuid == obj_in.pre_contract.uuid).first()
         if not contract:
             raise HTTPException(status_code=404, detail=__("contract-not-found"))
 
-        contract.begin_date=obj_in.contract.begin_date,
-        contract.end_date=obj_in.contract.end_date,
-        contract.typical_weeks=jsonable_encoder(obj_in.contract.typical_weeks)
+        contract.begin_date=obj_in.pre_contract.begin_date,
+        contract.end_date=obj_in.pre_contract.end_date,
+        contract.typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
 
         # Delete the old parents data
         db.query(models.ParentGuest).\
@@ -238,13 +238,13 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
 
         contract = models.PreContract(
             uuid=str(uuid.uuid4()),
-            begin_date=obj_in.contract.begin_date,
-            end_date=obj_in.contract.end_date,
-            typical_weeks=jsonable_encoder(obj_in.contract.typical_weeks)
+            begin_date=obj_in.pre_contract.begin_date,
+            end_date=obj_in.pre_contract.end_date,
+            typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
         )
         db.add(contract)
 
-        child.contract_uuid = contract.uuid
+        child.pre_contract_uuid = contract.uuid
 
         for pg in obj_in.parents:
             parent_guest = models.ParentGuest(
@@ -277,7 +277,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
                 code=code,
                 child_uuid=child.uuid,
                 nursery_uuid=nursery_uuid,
-                contract_uuid=contract.uuid,
+                pre_contract_uuid=contract.uuid,
                 note=obj_in.note,
                 status=models.PreRegistrationStatusType.PENDING
             )
