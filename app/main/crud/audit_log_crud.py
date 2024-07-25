@@ -10,7 +10,7 @@ from app.main import schemas, models
 class CRUDAuditLog(CRUDBase[models.AuditLog, schemas.AuditLogCreate, schemas.AuditLogUpdate]):
 
     @classmethod
-    def create(self, db: Session, *, before_changes: Any, performed_by_uuid: str, after_changes: Any, entity_type: str, entity_id: str, action: str) -> schemas.AuditLogSchema:
+    def create(self, db: Session, *, before_changes: Any, performed_by_uuid: Optional[str] = None, after_changes: Any, entity_type: str, entity_id: str, action: str) -> schemas.AuditLogSchema:
         try:
             audit_log = models.AuditLog(
                 uuid=str(uuid.uuid4()),

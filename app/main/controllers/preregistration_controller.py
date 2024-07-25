@@ -51,7 +51,17 @@ def get_special_folder(
 
     return crud.preregistration.get_by_uuid(db, uuid)
 
+@router.get("/detail/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
+def get_special_folder(
+    uuid: str,
+    db: Session = Depends(get_db),
+):
+    """ Get a special folder without authentication"""
 
+    return crud.preregistration.get_by_uuid(db, uuid)
+
+
+# 8d54df37-9954-44a3-8733-9be1f9f5a148
 @router.delete("/{uuid}", response_model=schemas.Msg, status_code=200)
 def delete_special_folder(
     uuid: str,
@@ -85,6 +95,15 @@ def update_special_folder(
     """ Update a special folder """
 
     return crud.preregistration.update(db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
+
+@router.put("/update", response_model=schemas.ChildDetails, status_code=200)
+def update_special_folder(
+    obj_in: schemas.PreregistrationUpdate,
+    db: Session = Depends(get_db),
+):
+    """ Update a special folder without authentication """
+
+    return crud.preregistration.update_pre_registration(db, obj_in=obj_in)
 
 
 @router.put("/note", response_model=schemas.PreregistrationDetails, status_code=200)
