@@ -15,12 +15,12 @@ from app.main.core.security import generate_code, generate_slug
 from app.main.utils.helper import convert_dates_to_strings
 
 
-class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
+class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
-
+    
     @classmethod
     def delete_a_special_folder(cls, db: Session, folder_uuid: str, performed_by_uuid: str):
         folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
@@ -206,7 +206,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         return child
 
     @classmethod
-    def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.ChildDetails]:
+    def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Child]:
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
 
     @classmethod
@@ -280,7 +280,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         return child
 
     @classmethod
-    def get_by_code(cls, db: Session, code: str) -> Optional[schemas.PreregistrationDetails]:
+    def get_by_code(cls, db: Session, code: str) -> Optional[models.PreRegistration]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
 
     def get_elements_by_tag(self, db: Session, tag: str) -> List:
@@ -405,6 +405,23 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             current_page=page,
             data=record_query
         )
+
+
+    def transfer(self, db, uuid, obj_in: schemas.TransferPreRegistration, current_user_uuid: str):
+        preregistration = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+        if not preregistration:
+            raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
+        nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+        if not nursery or nursery.owner_uuid != current_user_uuid:
+            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+        if preregistration.nursery_uuid == obj_in.nursery_uuid:
+            raise HTTPException(status_code=400, detail=__("folder-already-in-nursery"))
+
+        preregistration.nursery_uuid = nursery.uuid
+        db.commit()
+        return preregistration
 
     @classmethod
     def code_unicity(cls, code: str, db: Session):
