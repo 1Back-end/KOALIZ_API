@@ -52,8 +52,8 @@ class Child(Base):
     birthdate: date = Column(Date, nullable=False)
     birthplace: str = Column(String)
 
-    contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
-    contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, back_populates="child", uselist=False)
+    pre_contract_uuid: str = Column(String, ForeignKey('pre_contracts.uuid'), nullable=True)
+    pre_contract: Mapped[any] = relationship("PreContract", foreign_keys=pre_contract_uuid, back_populates="child", uselist=False)
 
     parents: Mapped[list[any]] = relationship("ParentGuest", back_populates="child", uselist=True)
 
@@ -61,6 +61,7 @@ class Child(Base):
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
 
 @event.listens_for(Child, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
@@ -75,34 +76,34 @@ def update_modified_on_update_listener(mapper, connection, target):
     target.date_modified = datetime.now()
 
 
-class Contract(Base):
+class PreContract(Base):
     """
          database model for storing Nursery Opening Hour related details
     """
-    __tablename__ = "contracts"
+    __tablename__ = "pre_contracts"
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     begin_date: date = Column(Date, nullable=False)
     end_date: date = Column(Date, nullable=False)
-    # typical_weeks: list = relationship("TypicalWeek", backref="contract")
-    # typical_weeks: Mapped[list[any]] = relationship("TypicalWeek", back_populates="contract", uselist=True)
+    # typical_weeks: list = relationship("TypicalWeek", backref="pre_contract")
+    # typical_weeks: Mapped[list[any]] = relationship("TypicalWeek", back_populates="pre_contract", uselist=True)
     # typical_weeks: list[any] = Column(MutableList.as_mutable(ARRAY(JSONB)), nullable=False)
     typical_weeks: list[any] = Column(MutableList.as_mutable(JSONB), nullable=False)
-    child: Mapped[any] = relationship("Child", back_populates="contract", uselist=False)
+    child: Mapped[any] = relationship("Child", back_populates="pre_contract", uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
 
-@event.listens_for(Contract, 'before_insert')
+@event.listens_for(PreContract, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
     target.date_modified = datetime.now()
 
 
-@event.listens_for(Contract, 'before_update')
+@event.listens_for(PreContract, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
@@ -202,8 +203,8 @@ class PreRegistration(Base):
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
-    contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
-    contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False)
+    pre_contract_uuid: str = Column(String, ForeignKey('pre_contracts.uuid'), nullable=True)
+    pre_contract: Mapped[any] = relationship("PreContract", foreign_keys=pre_contract_uuid, uselist=False)
 
     tracking_cases = relationship("TrackingCase", order_by="TrackingCase.date_added", back_populates="preregistration")
     # logs = relationship("Log", order_by="Log.date_added", back_populates="preregistration")

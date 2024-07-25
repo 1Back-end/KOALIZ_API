@@ -63,7 +63,7 @@ class TimeSlotInputSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ContractSchema(BaseModel):
+class PreContractSchema(BaseModel):
     begin_date: date
     end_date: date
     typical_weeks: list[list[list[TimeSlotInputSchema]]]
@@ -82,7 +82,7 @@ class ContractSchema(BaseModel):
         return validated_self
 
 
-class ContractUpdateSchema(BaseModel):
+class PreContractUpdateSchema(BaseModel):
     uuid: str
     begin_date: date
     end_date: date
@@ -125,14 +125,14 @@ class ParentGuestSchema(BaseModel):
 class PreregistrationCreate(BaseModel):
     child: ChildSchema
     nurseries: list[str]
-    contract: ContractSchema
+    pre_contract: PreContractSchema
     parents: list[ParentGuestSchema]
     note: str = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class Contract(BaseModel):
+class PreContract(BaseModel):
     begin_date: date
     end_date: date
     typical_weeks: list[Any]
@@ -174,7 +174,7 @@ class ChildDetails(BaseModel):
     date_added: datetime
     date_modified: datetime
     parents: list[ParentGuest]
-    contract: Contract
+    pre_contract: PreContract
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
 
@@ -207,7 +207,7 @@ class PreregistrationDetails(BaseModel):
     code: str
     child: ChildMini
     nursery: NurseryMini
-    contract: Contract
+    pre_contract: PreContract
     tracking_cases: list[TrackingCaseMini]
     note: str = None
     status: str = None
@@ -223,7 +223,7 @@ class PreregistrationUpdate(BaseModel):
     uuid: str
     child: ChildUpdateSchema
     nurseries: list[str]
-    contract: ContractUpdateSchema
+    pre_contract: PreContractUpdateSchema
     parents: list[ParentGuestSchema]
     note: str = None
 
@@ -245,7 +245,7 @@ class ChildSlim(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ContractSlim(BaseModel):
+class PreContractSlim(BaseModel):
     begin_date: date
     end_date: date
 
@@ -255,7 +255,7 @@ class ContractSlim(BaseModel):
 class PreregistrationSlim(BaseModel):
     uuid: str
     child: ChildSlim
-    contract: ContractSlim
+    pre_contract: PreContractSlim
     status: str = None
 
     model_config = ConfigDict(from_attributes=True)
