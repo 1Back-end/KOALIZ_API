@@ -41,5 +41,7 @@ translation = {
     "folder-not-found": "Dossier non trouvé",
     "folder-deleted": "Dossier supprimé avec succès",
     "child-not-found": "Enfant non trouvé",
-    "contract-not-found": "Contrat non trouvé"
+    "contract-not-found": "Contrat non trouvé",
+    "folder-already-in-nursery": "Le dossier existe déjà dans la crèche",
+    "nursery-transfer-successfully": "Nursery successfully transferred",
 }

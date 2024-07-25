@@ -21,7 +21,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
-    
+
     @classmethod
     def delete_a_special_folder(cls, db: Session, folder_uuid: str, added_by_uuid: str):
         folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
@@ -41,7 +41,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         )
         db.add(log)
         db.commit()
-        
+
         db.delete(folder)
         db.commit()
 
@@ -51,7 +51,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
-        
+
         before_details = {
             "preregistration_uuid": exist_folder.uuid,
             "status": exist_folder.status
@@ -77,16 +77,16 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
 
         # Update others folders with refused status
         if status in ['ACCEPTED']:
-            others_folders = db.query(models.PreRegistration).\
-                filter(models.PreRegistration.uuid!=folder_uuid).\
-                filter(models.PreRegistration.child_uuid==exist_folder.child_uuid).\
+            others_folders = db.query(models.PreRegistration). \
+                filter(models.PreRegistration.uuid!=folder_uuid). \
+                filter(models.PreRegistration.child_uuid==exist_folder.child_uuid). \
                 all()
             for folder in others_folders:
                 folder.status = models.PreRegistrationStatusType.REFUSED
                 db.commit()
 
         return exist_folder
-    
+
     @classmethod
     def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str, added_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
 
@@ -120,14 +120,14 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         db.commit()
 
         return exist_folder
-    
+
     @classmethod
     def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate, added_by_uuid: str) -> models.Child:
 
-        preregistration = db.query(models.PreRegistration).\
-            filter(models.PreRegistration.uuid==obj_in.uuid).\
+        preregistration = db.query(models.PreRegistration). \
+            filter(models.PreRegistration.uuid==obj_in.uuid). \
             first()
-        
+
         # Before update the data
         before_details = schemas.PreregistrationDetails.from_orm(preregistration).dict()
 
@@ -157,10 +157,10 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         contract.typical_weeks=jsonable_encoder(obj_in.contract.typical_weeks)
 
         # Delete the old parents data
-        db.query(models.ParentGuest).\
-            filter(models.ParentGuest.child_uuid==child.uuid).\
+        db.query(models.ParentGuest). \
+            filter(models.ParentGuest.child_uuid==child.uuid). \
             delete()
-        
+
         db.commit()
 
         for pg in obj_in.parents:
@@ -190,9 +190,9 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
 
         code = cls.code_unicity(code=generate_slug(f"{child.firstname} {child.lastname}"), db=db)
         for nursery_uuid in obj_in.nurseries:
-            preregistration = db.query(models.PreRegistration).\
-                filter(models.PreRegistration.uuid==obj_in.uuid).\
-                filter(models.PreRegistration.nursery_uuid==nursery_uuid).\
+            preregistration = db.query(models.PreRegistration). \
+                filter(models.PreRegistration.uuid==obj_in.uuid). \
+                filter(models.PreRegistration.nursery_uuid==nursery_uuid). \
                 first()
             if preregistration:
                 preregistration.code = code
@@ -332,18 +332,18 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
 
 
     def get_many(self,
-        db,
-        nursery_uuid,
-        tag_uuid,
-        status,
-        begin_date,
-        end_date,
-        page: int = 1,
-        per_page: int = 30,
-        order: Optional[str] = None,
-        order_field: Optional[str] = None,
-        keyword: Optional[str] = None,
-    ):
+                 db,
+                 nursery_uuid,
+                 tag_uuid,
+                 status,
+                 begin_date,
+                 end_date,
+                 page: int = 1,
+                 per_page: int = 30,
+                 order: Optional[str] = None,
+                 order_field: Optional[str] = None,
+                 keyword: Optional[str] = None,
+                 ):
         record_query = db.query(models.PreRegistration).filter(models.PreRegistration.nursery_uuid==nursery_uuid)
         if status:
             record_query = record_query.filter(models.PreRegistration.status==status)
@@ -380,15 +380,15 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         )
 
     def get_tracking_cases(self,
-        db,
-        preregistration_uuid,
-        interaction_type,
-        page: int = 1,
-        per_page: int = 30,
-        order: Optional[str] = 'desc',
-        order_field: Optional[str] = 'date_added',
-        # keyword: Optional[str] = None,
-    ):
+                           db,
+                           preregistration_uuid,
+                           interaction_type,
+                           page: int = 1,
+                           per_page: int = 30,
+                           order: Optional[str] = 'desc',
+                           order_field: Optional[str] = 'date_added',
+                           # keyword: Optional[str] = None,
+                           ):
         record_query = db.query(models.TrackingCase).filter(models.TrackingCase.preregistration_uuid==preregistration_uuid)
         if interaction_type:
             record_query = record_query.filter(models.TrackingCase.interaction_type==interaction_type)
@@ -417,6 +417,23 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             current_page=page,
             data=record_query
         )
+
+
+    def transfer(self, db, uuid, obj_in: schemas.TransferPreRegistration, current_user_uuid: str):
+        preregistration = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+        if not preregistration:
+            raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
+        nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+        if not nursery or nursery.owner_uuid != current_user_uuid:
+            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+        if preregistration.nursery_uuid == obj_in.nursery_uuid:
+            raise HTTPException(status_code=400, detail=__("folder-already-in-nursery"))
+
+        preregistration.nursery_uuid = nursery.uuid
+        db.commit()
+        return preregistration
 
     @classmethod
     def code_unicity(cls, code: str, db: Session):
