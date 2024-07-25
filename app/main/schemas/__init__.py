@@ -12,3 +12,4 @@ from .user import *
 from .role import *
 from .tag import *
 from .audit_log import *
+from .notification import *
