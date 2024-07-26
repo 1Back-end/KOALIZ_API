@@ -426,15 +426,18 @@ def reset_password(
     """
     Reset password
     """
-    token_data = decode_access_token(input.token)
+
+    token_data = db.query(models.FatherActionValidation).filter(
+        models.FatherActionValidation.code == input.token).filter(
+        models.FatherActionValidation.expired_date >= datetime.now()).first()
     if not token_data:
         raise HTTPException(status_code=403, detail=__("token-invalid"))
 
-    user = crud.owner.get_by_uuid(db, token_data["sub"])
+    user = crud.owner.get_by_uuid(db, token_data.user_uuid)
 
     user_code = db.query(models.FatherActionValidation).filter(
         models.FatherActionValidation.code == input.token).filter(
-        models.FatherActionValidation.user_uuid == user.uuid).filter(
+        models.FatherActionValidation.user_uuid == token_data.user_uuid).filter(
         models.FatherActionValidation.expired_date >= datetime.now()).first()
     if not user_code:
         raise HTTPException(status_code=403, detail=__("token-invalid"))
