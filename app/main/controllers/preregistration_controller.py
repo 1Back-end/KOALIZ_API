@@ -126,13 +126,33 @@ def add_document_to_special_folder(
 @router.put("/meeting", response_model=schemas.PreregistrationDetails, status_code=200)
 def add_meeting_to_special_folder(
     *,
-    obj_in: schemas.TrackingCase=Body(...),
+    obj_in: schemas.MeetingType=Body(...),
     db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Add meeting to special folder """
 
-    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="MEETING", performed_by_uuid=current_user.uuid)
+    obj_in = jsonable_encoder(obj_in)
+    meeting_type = db.query(models.MeetingType).\
+        filter(models.MeetingType.uuid == obj_in["meeting_type_uuid"]).\
+            first()
+    if not meeting_type:
+        raise HTTPException(status_code=400, detail=__("meeting-type-not-found"))
+    
+    obj_in["meeting_type"] = {
+        "uuid": meeting_type.uuid,
+        "title_fr": meeting_type.title_fr,
+        "title_en": meeting_type.title_en
+    }
+    # print("obj_in112:",obj_in["preregistration_uuid"])
+
+    obj= schemas.TrackingCase(
+        preregistration_uuid=obj_in["preregistration_uuid"],
+        details = obj_in
+    )
+    # print("obj1",obj)
+
+    return crud.preregistration.add_tracking_case(db, obj_in=obj, interaction_type="MEETING", performed_by_uuid="current_user.uuid")
 
 @router.put("/activity-reminder", response_model=schemas.PreregistrationDetails, status_code=200)
 def add_activity_reminder_to_special_folder(
@@ -155,13 +175,13 @@ def add_activity_reminder_to_special_folder(
         "title_fr": activity_reminder_type.title_fr,
         "title_en": activity_reminder_type.title_en
     }
-    print("obj_in11:",obj_in)
+    # print("obj_in11:",obj_in)
 
     obj= schemas.TrackingCase(
         preregistration_uuid=obj_in["preregistration_uuid"],
         details = obj_in
     )
-    print("obj1",obj)
+    # print("obj1",obj)
 
     return crud.preregistration.add_tracking_case(db, obj_in=obj, interaction_type="ACTIVITY_REMINDER", performed_by_uuid="current_user.uuid")
 

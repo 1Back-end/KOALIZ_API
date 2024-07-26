@@ -23,8 +23,7 @@ class Notification(Base):
     uuid: str = Column(String, primary_key=True, unique=True)
     type: str = Column(types.Enum(NotificationType), nullable=False, default=NotificationType.EVENT_NEW_NOTIFICATION)
 
-    user_uuid: str = Column(String, ForeignKey('users.uuid'), nullable=False)
-    user = relationship("User", foreign_keys=[user_uuid], uselist = False)
+    user_uuid: str = Column(String, nullable=False)
 
     payload_json: dict = Column(JSONB, nullable=False)
     is_read: bool = Column(Boolean, nullable=False, default=False)

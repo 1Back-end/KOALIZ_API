@@ -244,11 +244,11 @@ class ActivityReminder(BaseModel):
 
 class MeetingType(BaseModel):
     preregistration_uuid: str
-    title: str
     meeting_type_uuid: str
-    datetime:datetime
+    meeting_date:date
+    meeting_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
     description:Optional[str]= None
-    
+
 
     # model_config = ConfigDict(from_attributes=True)
 
