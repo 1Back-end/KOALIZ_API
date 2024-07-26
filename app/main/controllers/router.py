@@ -12,6 +12,7 @@ from .membership_controller import router as membership
 from .tag_controller import router as tag
 from .audit_log_controller import router as audit_logs
 from .notification_controller import router as notification
+from .father_controller import router as father
 
 api_router = APIRouter()
 
@@ -21,6 +22,7 @@ api_router.include_router(administrator)
 api_router.include_router(owner)
 api_router.include_router(membership)
 api_router.include_router(nursery)
+api_router.include_router(father)
 api_router.include_router(preregistration)
 api_router.include_router(notification)
 api_router.include_router(migration)

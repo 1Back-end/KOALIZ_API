@@ -10,3 +10,4 @@ from .membership_crud import membership
 from .tag_crud import tag
 from .audit_log_crud import audit_log
 from .notification_crud import notification
+from .father_crud import father
