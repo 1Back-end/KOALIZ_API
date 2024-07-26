@@ -69,7 +69,7 @@ def update(
         uuid: str,
         status: str = Query(..., enum=[st.value for st in models.UserStatusType if st.value != models.UserStatusType.DELETED]),
         db: Session = Depends(get_db),
-        # current_user: models.Father = Depends(TokenRequired(roles=["parent"]))
+        current_user: models.Father = Depends(TokenRequired(roles=["parent"]))
 ):
     """
     Update father status
