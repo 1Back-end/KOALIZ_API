@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, RootModel
 from typing import Any, List, Optional, Dict
 
 class Items(RootModel):
-    root: Dict[str, str]
+    root: Dict[str, Any]
 
 class Token(BaseModel):
     access_token: Optional[str] = None

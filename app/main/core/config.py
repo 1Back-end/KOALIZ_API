@@ -54,6 +54,8 @@ class ConfigClass(BaseSettings):
 
     # Redis
     REDIS_HOST: str = get_secret("REDIS_HOST", "localhost")  # redis_develop
+    REDIS_HOST_PROD: str = get_secret("REDIS_HOST_PROD", "redis_production")
+    IS_DEV: bool = get_secret("IS_DEV", True)
     REDIS_PORT: int = get_secret("REDIS_PORT", 6379)
     REDIS_DB: int = get_secret("REDIS_DB", 2)
     REDIS_CHARSET: str = get_secret("REDIS_CHARSET", "UTF-8")
