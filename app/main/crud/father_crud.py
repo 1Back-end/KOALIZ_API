@@ -49,15 +49,15 @@ class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpda
         father.firstname = obj_in.firstname if obj_in.firstname else father.firstname
         father.lastname = obj_in.lastname if obj_in.lastname else father.lastname
         father.avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else father.avatar_uuid
-
+        father.email = obj_in.email if obj_in.email else father.email
         db.commit()
         db.refresh(father)
         return father
     
     @classmethod
-    def delete(cls,db:Session, uuid) -> models.Father:
-        father = cls.get_by_uuid(db, uuid)
-        db.delete(father)
+    def delete(cls,db:Session, uuids:list[str]) -> models.Father:
+        db.query(models.Father).filter(models.Father.uuid.in_(uuids)).delete()
+        # db.delete(fathers)
         db.commit()
     
     @classmethod
@@ -79,8 +79,8 @@ class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpda
         order:Optional[str] = None,
         status:Optional[str] = None,
         user_uuid:Optional[str] = None,
+        order_filed:Optional[str] = None,   
         keyword:Optional[str]= None
-        # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Father).options(joinedload(models.Father.role))
 
@@ -89,6 +89,7 @@ class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpda
 
         record_query = record_query.filter(models.Father.status.not_in(["DELETED","BLOCKED"]))
         
+        print("record_query.first()", record_query.all())
         if keyword:
             record_query = record_query.filter(
                 or_(
@@ -115,6 +116,7 @@ class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpda
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
+        print("total:",total)
         return schemas.FatherResponseList(
             total = total,
             pages = math.ceil(total/per_page),
@@ -123,6 +125,9 @@ class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpda
             data =record_query
         )
 
+    @classmethod
+    def password_confirmation(cls, db: Session, password1: str,password2:str) -> bool:
+        return password1 == password2
 
     @classmethod
     def authenticate(cls, db: Session, email: str, password: str, role_group: str) -> Optional[models.Father]:
@@ -139,6 +144,11 @@ class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpda
 
     def is_active(self, user: models.Father) -> bool:
         return user.status == models.UserStatusType.ACTIVED
+    
+    @classmethod
+    def update_status(cls, db:Session, user: models.Father, status: str):
+        user.status = status
+        db.commit()
 
 father = CRUDFather(models.Father)
 

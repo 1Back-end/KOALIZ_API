@@ -361,7 +361,7 @@ async def verify_otp(
         }
     }
 
-@router.post("/father", summary="Create the father in the system", response_model=schemas.UserAuthentication, include_in_schema=False)
+@router.post("/father", response_model=schemas.UserAuthentication)
 async def create_father_on_system(
     input: schemas.FatherCreate,
     db: Session = Depends(get_db),
@@ -369,6 +369,13 @@ async def create_father_on_system(
     """
     Create the father in the system
     """
+    user = crud.father.get_by_email(db,input.email)
+    if user:
+        raise HTTPException(status_code=400, detail=__("user-email-taken"))
+    
+    if not crud.father.password_confirmation(db, input.password, input.confirm_password):
+        raise HTTPException(status_code=400, detail=__("passwords-not-match"))
+
     user = crud.father.create(db=db, obj_in=input)
 
     access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -401,7 +408,7 @@ def start_reset_password(
     
     # Generate code for validation after
     code = generate_code(length=12)
-
+    code = str(code[0:6])
     user_code = models.FatherActionValidation(
         uuid=str(uuid.uuid4()),
         code=code[:6],
@@ -433,7 +440,7 @@ def reset_password(
     if not token_data:
         raise HTTPException(status_code=403, detail=__("token-invalid"))
 
-    user = crud.owner.get_by_uuid(db, token_data.user_uuid)
+    user = crud.father.get_by_uuid(db, token_data.user_uuid)
 
     user_code = db.query(models.FatherActionValidation).filter(
         models.FatherActionValidation.code == input.token).filter(

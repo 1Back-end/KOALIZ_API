@@ -49,6 +49,7 @@ class FatherUpdate(BaseModel):
     uuid: str
     firstname: Optional[str]=None
     lastname: Optional[str]=None
+    email: Optional[EmailStr]= None
     avatar_uuid: Optional[str]=None
 
 
@@ -82,7 +83,7 @@ class Father(BaseModel):
     firstname: str
     lastname: str
     is_new_user: Optional[bool] = False
-    avatar: Optional[File]
+    avatar: Optional[File]= None
     date_added: datetime
     date_modified: datetime
 

@@ -34,5 +34,6 @@ translation = {
     "contract-not-found": "Contract not found",
     "folder-already-in-nursery": "The Folder already exists in the nursery",
     "nursery-transfer-successfully": "Crèche transferee avec succès",
+    "code-validated-successfully":"code has been validated with succes."
 
 }
