@@ -58,6 +58,15 @@ def transfer(
     return schemas.Msg(message=__("nursery-transfer-successfully"))
 
 
+@router.get("/{uuid}", response_model=Optional[schemas.PreregistrationDetails], status_code=200)
+def get_special_folder(
+    uuid: str,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Get a special folder """
+
+    return crud.preregistration.get_by_uuid(db, uuid)
 
 @router.get("/detail/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
 def get_special_folder(
