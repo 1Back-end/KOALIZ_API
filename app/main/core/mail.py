@@ -1,10 +1,14 @@
+from datetime import datetime
 import logging
 from pathlib import Path
 from typing import Any, Dict
 import emails
 from emails.template import JinjaTemplate
+from sqlalchemy import or_
+from app.main import models
 from app.main.core.config import Config
 from app.main.core.i18n import get_language, __
+from app.main.models.db.session import SessionLocal
 from app.main.worker import celery
 import requests
 import json
@@ -13,6 +17,10 @@ import os
 from app.main.utils.uploads import upload_file
 from urllib.parse import urlparse
 from urllib.request import urlopen
+from dateutil.relativedelta import relativedelta
+from dateutil import parser
+
+
 
 
 def create_pdf(data, endpoint):
@@ -183,4 +191,3 @@ def send_reset_password_option2_email(email_to: str, name: str, token: str, vali
     )
     print("----------------------------------------")
     logging.info(f"new send mail task with id {task}")
-

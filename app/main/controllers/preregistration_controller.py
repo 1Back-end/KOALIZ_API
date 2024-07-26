@@ -1,5 +1,7 @@
 from datetime import time, date
 
+from fastapi.encoders import jsonable_encoder
+
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
@@ -56,7 +58,7 @@ def transfer(
     return schemas.Msg(message=__("nursery-transfer-successfully"))
 
 
-@router.get("/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
+@router.get("/{uuid}", response_model=Optional[schemas.PreregistrationDetails], status_code=200)
 def get_special_folder(
     uuid: str,
     db: Session = Depends(get_db),
@@ -75,19 +77,6 @@ def get_special_folder(
 
     return crud.preregistration.get_by_uuid(db, uuid)
 
-
-# 8d54df37-9954-44a3-8733-9be1f9f5a148
-@router.delete("/{uuid}", response_model=schemas.Msg, status_code=200)
-def delete_special_folder(
-    uuid: str,
-    db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
-):
-    """ Delete a special folder """
-
-    crud.preregistration.delete_a_special_folder(db, folder_uuid=uuid, performed_by_uuid=current_user.uuid)
-
-    return {"message": __("folder-deleted")}
 
 @router.put("/status", response_model=schemas.PreregistrationDetails, status_code=200)
 def change_status_of_special_folder(
@@ -146,25 +135,64 @@ def add_document_to_special_folder(
 @router.put("/meeting", response_model=schemas.PreregistrationDetails, status_code=200)
 def add_meeting_to_special_folder(
     *,
-    obj_in: schemas.TrackingCase=Body(...),
+    obj_in: schemas.MeetingType=Body(...),
     db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Add meeting to special folder """
 
-    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="MEETING", performed_by_uuid=current_user.uuid)
+    obj_in = jsonable_encoder(obj_in)
+    meeting_type = db.query(models.MeetingType).\
+        filter(models.MeetingType.uuid == obj_in["meeting_type_uuid"]).\
+            first()
+    if not meeting_type:
+        raise HTTPException(status_code=400, detail=__("meeting-type-not-found"))
+    
+    obj_in["meeting_type"] = {
+        "uuid": meeting_type.uuid,
+        "title_fr": meeting_type.title_fr,
+        "title_en": meeting_type.title_en
+    }
+    # print("obj_in112:",obj_in["preregistration_uuid"])
 
-@router.put("/action", response_model=schemas.PreregistrationDetails, status_code=200)
-def add_action_to_special_folder(
+    obj= schemas.TrackingCase(
+        preregistration_uuid=obj_in["preregistration_uuid"],
+        details = obj_in
+    )
+    # print("obj1",obj)
+
+    return crud.preregistration.add_tracking_case(db, obj_in=obj, interaction_type="MEETING", performed_by_uuid="current_user.uuid")
+
+@router.put("/activity-reminder", response_model=schemas.PreregistrationDetails, status_code=200)
+def add_activity_reminder_to_special_folder(
     *,
-    obj_in: schemas.TrackingCase=Body(...),
+    obj_in:schemas.ActivityReminder=Body(...),
     db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
-    """ Add action to special folder """
+    """ Add activity reminder to special folder """
 
-    return crud.preregistration.add_tracking_case(db, obj_in=obj_in, interaction_type="ACTION", performed_by_uuid=current_user.uuid)
+    obj_in = jsonable_encoder(obj_in)
+    activity_reminder_type = db.query(models.ActivityReminderType).\
+        filter(models.ActivityReminderType.uuid == obj_in["activity_reminder_type_uuid"]).\
+            first()
+    if not activity_reminder_type:
+        raise HTTPException(status_code=400, detail=__("activity-reminder-type-not-found"))
+    
+    obj_in["activity_reminder_type"] = {
+        "uuid": activity_reminder_type.uuid,
+        "title_fr": activity_reminder_type.title_fr,
+        "title_en": activity_reminder_type.title_en
+    }
+    # print("obj_in11:",obj_in)
 
+    obj= schemas.TrackingCase(
+        preregistration_uuid=obj_in["preregistration_uuid"],
+        details = obj_in
+    )
+    # print("obj1",obj)
+
+    return crud.preregistration.add_tracking_case(db, obj_in=obj, interaction_type="ACTIVITY_REMINDER", performed_by_uuid="current_user.uuid")
 
 @router.put("/call", response_model=schemas.PreregistrationDetails, status_code=200)
 def add_call_to_special_folder(
@@ -208,3 +236,26 @@ def get_many(
         order_field,
         keyword
     )
+
+# 8d54df37-9954-44a3-8733-9be1f9f5a148
+@router.delete("/{uuid}", response_model=schemas.Msg, status_code=200)
+def delete_special_folder(
+    uuid: str,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Delete a special folder """
+
+    crud.preregistration.delete_a_special_folder(db, folder_uuid=uuid, performed_by_uuid=current_user.uuid)
+
+    return {"message": __("folder-deleted")}
+
+@router.get("/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
+def get_special_folder(
+    uuid: str,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Get a special folder """
+
+    return crud.preregistration.get_by_uuid(db, uuid)

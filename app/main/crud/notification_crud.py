@@ -74,21 +74,14 @@ class CRUDNotification(CRUDBase[Notification, NotificationCreate, NotificationUp
 
         notifications = db.query(Notification).filter_by(user_uuid=user_uuid).filter(
             Notification.is_read == False)
-        notifications = notifications.filter(Notification.uuid.in_(uuids)).all()
+        
+        if len(uuids):
+            notifications = notifications.filter(Notification.uuid.in_(uuids))
 
-        for notification in notifications:
+        for notification in notifications.all():
             if notification.is_read == False:
                 notification.is_read = True
-                if notification.type in ["NEW_DISPUTE", "NEW_DISPUTE_MESSAGE"]:
-                    group_notifications = db.query(Notification).filter_by(user_uuid=user_uuid).filter(
-                        Notification.transaction_uuid==notification.transaction_uuid).filter(
-                        Notification.type.in_(["NEW_DISPUTE", "NEW_DISPUTE_MESSAGE"])
-                    ).filter(Notification.is_read==False).all()
-                    if group_notifications:
-                        for group_notification in group_notifications:
-                            group_notification.is_read = True
                 db.commit()
-
 
     def get_multi_by_user(self, db: Session, user_uuid: str, uuids: list[str]) -> list[Notification]:
 

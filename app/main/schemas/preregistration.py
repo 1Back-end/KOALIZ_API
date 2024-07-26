@@ -235,6 +235,23 @@ class TrackingCase(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class ActivityReminder(BaseModel):
+    preregistration_uuid: str
+    title: str
+    activity_reminder_type_uuid: str
+    datetime:datetime
+    description:Optional[str]= None
+
+class MeetingType(BaseModel):
+    preregistration_uuid: str
+    meeting_type_uuid: str
+    meeting_date:date
+    meeting_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
+    description:Optional[str]= None
+
+
+    # model_config = ConfigDict(from_attributes=True)
+
 class ChildSlim(BaseModel):
     uuid: str
     firstname: str
@@ -261,7 +278,7 @@ class PreregistrationSlim(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class PreRegistrationList(DataList):
-    data: list[PreregistrationSlim]
+    data: list[PreregistrationSlim] = []
 
     model_config = ConfigDict(from_attributes=True)
 class TrackingCaseList(DataList):

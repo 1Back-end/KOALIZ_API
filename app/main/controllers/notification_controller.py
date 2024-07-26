@@ -67,7 +67,7 @@ def mark_as_read(
     """ Mark notifications as read """
 
     if not notification_uuids:
-        notification.read(db=db, user_uuid=current_user.uuid)
+        notification.read(db=db, user_uuid=current_user.uuid, uuids=[])
         notifications = []
     else:
         notification.read(db=db, uuids=notification_uuids, user_uuid=current_user.uuid)
