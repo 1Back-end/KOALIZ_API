@@ -5,12 +5,12 @@ from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlalchemy import or_
 from app.main.core.i18n import __
-from app.main.core.mail import send_account_creation_email, send_reset_password_email
+from app.main.core.mail import send_account_creation_email,send_account_confirmation_email
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models, crud
 import uuid
-from app.main.core.security import get_password_hash, verify_password, generate_password
+from app.main.core.security import generate_code, get_password_hash, verify_password, generate_password
 
 
 class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpdate]):
@@ -20,9 +20,7 @@ class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpda
         return db.query(models.Father).filter(models.Father.uuid == uuid).first()
 
     @classmethod
-    def create(cls, db: Session, obj_in: schemas.FatherCreate) -> models.Father:
-        # password:str = generate_password(8, 8)
-        # send_account_creation_email(email_to=obj_in.email,prefered_language="en", name=obj_in.firstname,password=password)
+    def create(cls, db: Session, obj_in: schemas.FatherCreate,code:str) -> models.Father:
 
         role = crud.role.get_by_code(db=db, code="parent")
         if not role:
@@ -35,11 +33,24 @@ class CRUDFather(CRUDBase[models.Father, schemas.FatherCreate,schemas.FatherUpda
             email = obj_in.email,
             password_hash = get_password_hash(obj_in.password),
             role_uuid = role.uuid,
-            status = models.UserStatusType.ACTIVED
+            status = models.UserStatusType.UNACTIVED
         )
         db.add(father)
+        db.flush()
+        
+        db_code = models.FatherActionValidation(
+            uuid=str(uuid.uuid4()),
+            code=code,
+            user_uuid=father.uuid,
+            value=code,
+            expired_date=datetime.now() + timedelta(minutes=30)
+        )
+
+        db.add(db_code)
         db.commit()
         db.refresh(father)
+        send_account_confirmation_email(email_to=obj_in.email, name=(obj_in.firstname+obj_in.lastname),token=code,valid_minutes=30)
+
 
         return father
 

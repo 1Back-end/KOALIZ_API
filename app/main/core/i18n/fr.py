@@ -44,5 +44,6 @@ translation = {
     "contract-not-found": "Contrat non trouvé",
     "folder-already-in-nursery": "Le dossier existe déjà dans la crèche",
     "nursery-transfer-successfully": "Nursery successfully transferred",
-    "code-validated-successfully":"code validé avec succès."
+    "code-validated-successfully":"code validé avec succès.",
+    "invalid-user":"Utilisateur invalide."
 }

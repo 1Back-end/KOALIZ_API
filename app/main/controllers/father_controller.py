@@ -34,8 +34,8 @@ def create(
     if not role:
         raise HTTPException(status_code=404, detail=__("role-not-found"))
     
-    if not crud.father.password_confirmation(db, obj_in.password, obj_in.confirm_password):
-        raise HTTPException(status_code=400, detail=__("passwords-not-match"))
+    # if not crud.father.password_confirmation(db, obj_in.password, obj_in.confirm_password):
+    #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
     
     return crud.father.create(db, obj_in)
 

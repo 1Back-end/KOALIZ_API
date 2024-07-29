@@ -361,7 +361,7 @@ async def verify_otp(
         }
     }
 
-@router.post("/father", response_model=schemas.UserAuthentication)
+@router.post("/father", response_model=schemas.FatherResponse)
 async def create_father_on_system(
     input: schemas.FatherCreate,
     db: Session = Depends(get_db),
@@ -373,10 +373,54 @@ async def create_father_on_system(
     if user:
         raise HTTPException(status_code=400, detail=__("user-email-taken"))
     
-    if not crud.father.password_confirmation(db, input.password, input.confirm_password):
-        raise HTTPException(status_code=400, detail=__("passwords-not-match"))
+    code = generate_code(length=12)
+    code= str(code[0:6])
 
-    user = crud.father.create(db=db, obj_in=input)
+    # if not crud.father.password_confirmation(db, input.password, input.confirm_password):
+    #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
+
+    # user = crud.father.create(db=db, obj_in=input)
+
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    return crud.father.create(db=db, obj_in=input,code=code)
+
+@router.post("/father/validate-account", response_model=schemas.UserAuthentication)
+def validate_account(
+        input: schemas.ValidateAccount,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    validate Account
+    """
+
+    user = crud.father.get_by_email(db, email=input.email)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    # if user.otp != input.token:
+    #     raise HTTPException(status_code=400, detail=__("otp-invalid"))
+
+    # if user.otp_expired_at < datetime.now():
+    #     raise HTTPException(status_code=400, detail=__("otp-expired"))
+    
+    user_code: models.FatherActionValidation = db.query(models.FatherActionValidation).filter(
+        models.FatherActionValidation.code == input.token).filter(
+        models.FatherActionValidation.user_uuid == user.uuid).filter(
+        models.FatherActionValidation.expired_date >= datetime.now()).first()
+    
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("invalid-user"))
+    
+    db.delete(user_code)
+    db.commit()
+
+    user.status = models.UserStatusType.ACTIVED
+    # user.otp = None
+    # user.otp_expired_at = None
+
+    db.commit()
+    db.refresh(user)
 
     access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
