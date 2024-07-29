@@ -40,8 +40,8 @@ class ConfigClass(BaseSettings):
     ONESIGNAL_APP_ID: str = get_secret("ONESIGNAL_APP_ID", "ONESIGNAL_APP_ID")
 
     # Sqlalchemy
-    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
-    # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:root@localhost:5432/bde_micro_creche_dev')
+    # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
+    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:postgres@localhost:5432/bde_micro_creche_dev')
     SQLALCHEMY_POOL_SIZE: int = 100
     SQLALCHEMY_MAX_OVERFLOW: int = 0
     SQLALCHEMY_POOL_TIMEOUT: int = 30

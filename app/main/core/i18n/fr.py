@@ -46,4 +46,6 @@ translation = {
     "nursery-transfer-successfully": "Nursery successfully transferred",
     "device-not-found": "Appareil pas trouvé",
     "conversation-not-found": "Conversation non trouvée",
+    "code-validated-successfully":"code validé avec succès.",
+    "invalid-user":"Utilisateur invalide."
 }
