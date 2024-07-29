@@ -37,7 +37,7 @@ def reminder_program():
                 activity_reminder_type_title = program.details["activity_reminder_type"]['title_fr']
                 activity_reminder_type_title_en = program.details["activity_reminder_type"]['title_en']
                 print("activity_reminder_type_title: ", activity_reminder_type_title)
-                
+
                 # Utilisation de dateutil
                 date_time_obj2 = parser.isoparse(program_date)
                 print("\nUtilisation de dateutil:")

@@ -84,9 +84,13 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 class Device(Base):
     __tablename__ = 'devices'
 
-    id = Column(Integer, primary_key=True)
+    uuid = Column(String, primary_key=True, unique=True)
     player_id = Column(String, default="", nullable=True)
-    user_uuid = Column(String)
+    token = Column(String)
+    name = Column(String)
+    code = Column(String)
+    qrcode_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
+    qrcode = relationship("Storage", foreign_keys=[qrcode_uuid], uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

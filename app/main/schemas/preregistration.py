@@ -178,7 +178,27 @@ class ChildDetails(BaseModel):
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
 
+class ParentDisplay(BaseModel):
+    uuid: str= None
+    link: models.ParentRelationship= None
+    firstname: str= None
+    lastname: str= None
+    birthplace: str= None
+    fix_phone: str = None
+    phone: str= None
+    email: EmailStr= None
+    recipient_number: str= None
+    zip_code: str= None
+    city: str= None
+    country: str= None
+    profession: str= None
+    annual_income: float= None
+    company_name: str= None
+    has_company_contract: bool= None
+    dependent_children: int= None
+    disabled_children: int= None
 
+    model_config = ConfigDict(from_attributes=True)
 class ChildMini(BaseModel):
     uuid: str
     firstname: str
@@ -188,7 +208,7 @@ class ChildMini(BaseModel):
     birthplace: str
     date_added: datetime
     date_modified: datetime
-    parents: list[ParentGuest]
+    parents: list[ParentDisplay]
     model_config = ConfigDict(from_attributes=True)
 
 

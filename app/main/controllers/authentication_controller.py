@@ -10,13 +10,46 @@ from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
 from app.main.core.mail import send_reset_password_email, send_reset_password_option2_email
-from app.main.core.security import create_access_token, get_password_hash, verify_password, is_valid_password, \
+from app.main.core.security import create_access_token, generate_code, get_password_hash, verify_password, is_valid_password, \
     decode_access_token
 from app.main.core.config import Config
 from app.main.schemas.user import UserProfileResponse
 from app.main.utils.helper import check_pass, generate_randon_key
 
 router = APIRouter(prefix="/auths", tags=["auths"])
+
+
+@router.post("/login/parent", summary="Sign in with email and password", response_model=schemas.ParentAuthentication)
+async def login_parent(
+    input: schemas.Login,
+    db: Session = Depends(get_db),
+) -> schemas.ParentAuthentication:
+    """
+    Sign in with email and password
+    """
+    user = crud.parent.authenticate(
+        db, email=input.email, password=input.password, role_group="parents"
+    )
+    if not user:
+        raise HTTPException(status_code=400, detail=__("auth-login-failed"))
+
+    if user.status in [models.UserStatusType.BLOCKED, models.UserStatusType.DELETED]:
+        raise HTTPException(status_code=400, detail=__("auth-login-failed"))
+
+    if not crud.administrator.is_active(user):
+        raise HTTPException(status_code=402, detail=__("user-not-activated"))
+
+    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    return {
+        "user": user,
+        "token": {
+            "access_token": create_access_token(
+                user.uuid, expires_delta=access_token_expires
+            ),
+            "token_type": "bearer",
+        }
+    }
 
 
 @router.post("/login/administrator", summary="Sign in with email and password", response_model=schemas.AdministratorAuthentication)
@@ -327,3 +360,152 @@ async def verify_otp(
             "token_type": "bearer",
         }
     }
+
+@router.post("/parent", response_model=schemas.ParentResponse)
+async def create_parent_on_system(
+    input: schemas.ParentCreate,
+    db: Session = Depends(get_db),
+) -> Any:
+    """
+    Create the parent in the system
+    """
+    user = crud.parent.get_by_email(db,input.email)
+    if user:
+        raise HTTPException(status_code=400, detail=__("user-email-taken"))
+    
+    code = generate_code(length=12)
+    code= str(code[0:6])
+
+    # if not crud.parent.password_confirmation(db, input.password, input.confirm_password):
+    #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
+
+    # user = crud.parent.create(db=db, obj_in=input)
+
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    return crud.parent.create(db=db, obj_in=input,code=code)
+
+@router.post("/parent/validate-account", response_model=schemas.UserAuthentication)
+def validate_account(
+        input: schemas.ValidateAccount,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    validate Account
+    """
+
+    user = crud.parent.get_by_email(db, email=input.email)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    # if user.otp != input.token:
+    #     raise HTTPException(status_code=400, detail=__("otp-invalid"))
+
+    # if user.otp_expired_at < datetime.now():
+    #     raise HTTPException(status_code=400, detail=__("otp-expired"))
+    
+    user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.user_uuid == user.uuid).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("invalid-user"))
+    
+    db.delete(user_code)
+    db.commit()
+
+    user.status = models.UserStatusType.ACTIVED
+    # user.otp = None
+    # user.otp_expired_at = None
+
+    db.commit()
+    db.refresh(user)
+
+    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    return {
+        "user": user,
+        "token": {
+            "access_token": create_access_token(
+                user.uuid, expires_delta=access_token_expires
+            ),
+            "token_type": "bearer",
+        }
+    }
+
+@router.post("/parent/start-reset-password", summary="Start reset password with email", response_model=schemas.Msg)
+def start_reset_password(
+        input: schemas.ResetPasswordOption2Step1,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Start reset password
+    """
+    user = crud.parent.get_by_email(db=db, email=input.email)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    elif not crud.parent.is_active(user):
+        raise HTTPException(status_code=400, detail=__("user-not-activated"))
+
+    
+    # Generate code for validation after
+    code = generate_code(length=12)
+    code = str(code[0:6])
+    user_code = models.ParentActionValidation(
+        uuid=str(uuid.uuid4()),
+        code=code[:6],
+        user_uuid=user.uuid,
+        expired_date=datetime.now() + timedelta(minutes=30)
+    )
+    db.add(user_code)
+    db.commit()
+
+    send_reset_password_email(
+        email_to=user.email, name=(user.firstname or "")+" "+(user.lastname or ""), token=code, valid_minutes=30
+    )
+
+    return schemas.Msg(message=__("reset-password-started"))
+
+
+@router.put("/parent/reset-password", summary="Reset password", response_model=schemas.Msg)
+def reset_password(
+        input: schemas.ResetPasswordOption2Step2,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Reset password
+    """
+
+    token_data = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    if not token_data:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+
+    user = crud.parent.get_by_uuid(db, token_data.user_uuid)
+
+    user_code = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.user_uuid == token_data.user_uuid).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+
+    elif not crud.parent.is_active(user):
+        raise HTTPException(status_code=400, detail=__("user-not-activated"))
+
+    if not is_valid_password(password=input.new_password):
+        raise HTTPException(
+            status_code=400,
+            detail=__("password-invalid")
+        )
+
+    db.delete(user_code)
+
+    user.password_hash = get_password_hash(input.new_password)
+    db.add(user)
+    db.commit()
+
+    return schemas.Msg(message=__("password-reset-successfully"))

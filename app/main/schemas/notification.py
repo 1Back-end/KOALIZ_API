@@ -25,10 +25,13 @@ class NotificationCreate(NotificationBase):
 class NotificationUpdate(NotificationBase):
     pass
 
-class Notification(NotificationBase):
+class Notification(BaseModel):
     uuid: Optional[str] = None
     is_read: Optional[bool] = False
+    payload_json: Optional[dict] = None
     date_added: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
 
 
 class NotificationList(DataList):

@@ -13,6 +13,8 @@ from sqlalchemy import Column, String, DateTime, types, Boolean
 
 class NotificationType(str, Enum):
     EVENT_NEW_NOTIFICATION = "EVENT_NEW_NOTIFICATION"
+    EVENT_NEW_CONVERSATION = "EVENT_NEW_CONVERSATION"
+    EVENT_NEW_MESSAGE_IN_CONVERSATION = "EVENT_NEW_MESSAGE_IN_CONVERSATION"
 
 
 @dataclass
