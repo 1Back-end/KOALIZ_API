@@ -12,4 +12,5 @@ from .membership import *
 from .tag import *
 from .audit_log import *
 from .notification import *
-from .father import *
+from .parent import *
+from .message import *

@@ -47,6 +47,9 @@ class UserBase(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class ValidateAccount(BaseModel):
+    token: str
+    email:EmailStr
 
 class User(UserBase):
     uuid: Optional[str] = None

@@ -35,27 +35,28 @@ class Roleslim(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class FatherBase(BaseModel):
+class ParentBase(BaseModel):
     email:EmailStr
     firstname: str
     lastname: str
     role_uuid:str
 
-class FatherCreate(FatherBase):
+class ParentCreate(ParentBase):
     avatar_uuid:Optional[str] = None
     password:str
 
-class FatherUpdate(BaseModel):
+class ParentUpdate(BaseModel):
     uuid: str
     firstname: Optional[str]=None
     lastname: Optional[str]=None
+    email: Optional[EmailStr]= None
     avatar_uuid: Optional[str]=None
 
 
-class FatherDelete(BaseModel):
+class ParentDelete(BaseModel):
     uuid:str
 
-class FatherResponse(FatherBase):
+class ParentResponse(ParentBase):
     uuid:str
     status:str
     avatar : Optional[Avatar] = None
@@ -66,30 +67,30 @@ class FatherResponse(FatherBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-class FatherResponseList(BaseModel):
+class ParentResponseList(BaseModel):
     total: int
     pages: int
     per_page: int
     current_page:int
-    data: list[FatherResponse]
+    data: list[ParentResponse]
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class Father(BaseModel):
+class Parent(BaseModel):
     uuid: Optional[str] = None
     email: EmailStr
     firstname: str
     lastname: str
     is_new_user: Optional[bool] = False
-    avatar: Optional[File]
+    avatar: Optional[File]= None
     date_added: datetime
     date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class FatherAuthentication(UserAuthentication):
-    user: Father
+class ParentAuthentication(UserAuthentication):
+    user: Parent
 
     model_config = ConfigDict(from_attributes=True)

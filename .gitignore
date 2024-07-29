@@ -136,6 +136,7 @@ lib/
 lib64/
 parts/
 sdist/
+uploads/
 var/
 wheels/
 share/python-wheels/

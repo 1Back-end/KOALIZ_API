@@ -20,6 +20,7 @@ redis-public-data/
 esdata/
 minio/
 database/
+uploads/
 
 # Distribution / packaging
 .Python

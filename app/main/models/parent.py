@@ -8,11 +8,11 @@ from .db.base_class import Base
 
 
 @dataclass
-class Father(Base):
+class Parent(Base):
     """
-     database model for storing Father related details
+     database model for storing Parent related details
     """
-    __tablename__ = 'fathers'
+    __tablename__ = 'parents'
 
     uuid: str = Column(String, primary_key=True, unique=True,index = True)
 
@@ -40,28 +40,28 @@ class Father(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     def __repr__(self):
-        return '<Father: uuid: {} email: {}>'.format(self.uuid, self.email)
+        return '<Parent: uuid: {} email: {}>'.format(self.uuid, self.email)
 
 
-@event.listens_for(Father, 'before_insert')
+@event.listens_for(Parent, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
     target.date_modified = datetime.now()
 
 
-@event.listens_for(Father, 'before_update')
+@event.listens_for(Parent, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
 
 
-class FatherActionValidation(Base):
-    __tablename__ = 'father_action_validations'
+class ParentActionValidation(Base):
+    __tablename__ = 'parent_action_validations'
 
     uuid: str = Column(String, primary_key=True)
 
-    user_uuid: str = Column(String, ForeignKey('fathers.uuid'), nullable=True)
+    user_uuid: str = Column(String, ForeignKey('parents.uuid'), nullable=True)
     code: str = Column(String, unique=False, nullable=True)
     expired_date: any = Column(DateTime, default=datetime.now())
     value: str = Column(String, default="", nullable=True)
@@ -69,7 +69,7 @@ class FatherActionValidation(Base):
     date_added: any = Column(DateTime, nullable=False, default=datetime.now())
 
 
-@event.listens_for(FatherActionValidation, 'before_insert')
+@event.listens_for(ParentActionValidation, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()

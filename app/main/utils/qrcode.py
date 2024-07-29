@@ -4,11 +4,8 @@ import uuid
 from app.main.models.storage import Storage
 from app.main.core.config import Config
 from PIL import Image
-from base64 import b64decode
 from app.main.utils.uploads import upload_file
 from sqlalchemy.orm import Session
-from fastapi import UploadFile
-from app.main.core.i18n import t, get_language
 
 def rreplace(s, old, new, occurrence):
   li = s.rsplit(old, occurrence)
@@ -42,7 +39,7 @@ class CreateQrcode(object):
     def __generate_cropped_image(self):
 
       #medium size
-      self.image_pillow.thumbnail((Config.IMAGE_MEDIUM_WIDTH, Config.IMAGE_MEDIUM_WIDTH), Image.ANTIALIAS)
+      self.image_pillow.thumbnail((Config.IMAGE_MEDIUM_WIDTH, Config.IMAGE_MEDIUM_WIDTH), Image.LANCZOS)
       self.image_pillow.save(rreplace(self.path_file, '.', '_medium.', 1))
       self.medium = {
         "width": self.image_pillow.size[0],
@@ -53,7 +50,7 @@ class CreateQrcode(object):
       }  
 
       #Thumbnail
-      self.image_pillow.thumbnail((Config.IMAGE_THUMBNAIL_WIDTH, Config.IMAGE_THUMBNAIL_WIDTH), Image.ANTIALIAS)
+      self.image_pillow.thumbnail((Config.IMAGE_THUMBNAIL_WIDTH, Config.IMAGE_THUMBNAIL_WIDTH), Image.LANCZOS)
       self.image_pillow.save(rreplace(self.path_file, '.', '_thumbnail.', 1))
       self.thumbnail = {
         "width": self.image_pillow.size[0],
@@ -74,21 +71,22 @@ class CreateQrcode(object):
         self.__get_image_info()
         self.__generate_cropped_image()
 
-      url, minio_file_name, test = upload_file(self.path_file, self.blob_name, content_type=self.mimetype)
+      url, minio_file_name, test = upload_file(self.path_file, self.blob_name, self.blob_name, content_type=self.mimetype)
       os.remove(self.path_file)
 
       if "file_name" in self.thumbnail:
-        url_thumbnail, test = upload_file(rreplace(self.path_file, '.', '_thumbnail.', 1), self.thumbnail["file_name"], content_type=self.mimetype)
+        url_thumbnail, test = upload_file(rreplace(self.path_file, '.', '_thumbnail.', 1), self.thumbnail["file_name"], self.thumbnail["file_name"], content_type=self.mimetype)
         self.thumbnail["url"] = url_thumbnail
         os.remove(rreplace(self.path_file, '.', '_thumbnail.', 1))
 
       if "file_name" in self.medium:
-        url_medium, minio_file_name, test = upload_file(rreplace(self.path_file, '.', '_medium.', 1), self.medium["file_name"], content_type=self.mimetype)
+        url_medium, minio_file_name, test = upload_file(rreplace(self.path_file, '.', '_medium.', 1), self.medium["file_name"], self.medium["file_name"], content_type=self.mimetype)
         self.medium["url"] = url_medium
         os.remove(rreplace(self.path_file, '.', '_medium.', 1))
 
       storage = Storage(
         file_name=self.blob_name,
+        minio_file_name=self.blob_name,
         url=url,
         mimetype=self.mimetype,
         width=self.width,
