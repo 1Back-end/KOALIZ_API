@@ -41,7 +41,7 @@ class ConfigClass(BaseSettings):
 
     # Sqlalchemy
     # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
-    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:2002@localhost:5432/bde_micro_creche_dev')
+    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql+psycopg2://postgres:2002@localhost:5432/bde_micro_creche_dev?client_encoding=utf8')
     SQLALCHEMY_POOL_SIZE: int = 100
     SQLALCHEMY_MAX_OVERFLOW: int = 0
     SQLALCHEMY_POOL_TIMEOUT: int = 30

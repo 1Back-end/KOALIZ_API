@@ -70,7 +70,7 @@ async def create_database_tables(
         # Get the environment system
         if platform.system() == 'Windows':
 
-            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic revision --autogenerate')
+            os.system('set PYTHONPATH=. && .\\venv\Scripts\python.exe -m alembic revision --autogenerate')
 
         else:
             os.system('PYTHONPATH=. alembic revision --autogenerate')
@@ -78,7 +78,7 @@ async def create_database_tables(
         # Get the environment system
         if platform.system() == 'Windows':
 
-            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic upgrade head')
+            os.system('set PYTHONPATH=. && .\\venv\Scripts\python.exe -m alembic upgrade head')
 
         else:
             os.system('PYTHONPATH=. alembic upgrade head')
@@ -261,14 +261,14 @@ async def create_membership(
             datas = json.load(f)
         
             for data in datas:
-                db_obj = crud.membership.get_by_uuid(db=db, uuid=data["uuid"])
+                db_obj = crud.membership.get_by_uuid(db=db, obj_uuid=data["uuid"])
                 if db_obj:
-                    db_obj.title_en = data["title_en"]
-                    db_obj.title_fr = data["title_fr"]
-                    db_obj.description = data["description"] if data["description"] else None
+                    #db_obj.title_en = data["title_en"]
+                    #db_obj.title_fr = data["title_fr"]
+                    #   db_obj.description = data["description"] if data["description"] else None
                     
                     db_obj.status = data["status"]
-                    db_obj.perido_unit = data["perido_unit"]
+                    db_obj.period_unit = data["perido_unit"]
                     db_obj.period_from = data["period_from"]
 
                     db_obj.period_to = data["period_to"]
@@ -279,14 +279,14 @@ async def create_membership(
                     
                 else:
                     # crud.administrator.create(db,schemas.AdministratorCreate(**data))
-                    db_obj = models.Membership(
+                    db_obj = models.NurseryMemberships(
                         uuid = data["uuid"],
-                        title_en = data["title_en"],
-                        title_fr = data["title_fr"],
-                        description = data["description"],
+                        #title_en = data["title_en"],
+                        #title_fr = data["title_fr"],
+                        #description = data["description"],
                         period_to = data["period_to"],
                         period_from = data["period_from"],
-                        period_unit = data["period_unit"],
+                        period_unit = data["perido_unit"],
                         duration = data["duration"],
                         status = data["status"],
                         date_added = data["date_added"],

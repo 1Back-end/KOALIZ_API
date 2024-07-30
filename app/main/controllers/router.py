@@ -13,6 +13,7 @@ from .tag_controller import router as tag
 from .audit_log_controller import router as audit_logs
 from .notification_controller import router as notification
 from .nursery_close_hours_controller import router as nursery_close_hours
+from .nursery_holidays_controller import router as nursery_holidays
 
 api_router = APIRouter()
 
@@ -29,4 +30,5 @@ api_router.include_router(storage)
 api_router.include_router(tag)
 api_router.include_router(helper)
 api_router.include_router(nursery_close_hours)
+api_router.include_router(nursery_holidays)
 

@@ -20,8 +20,7 @@ class NurseryCloseHourUpdate(BaseModel):
     end_day: Optional[int] = None
     end_month: Optional[int] = None
     is_active: Optional[bool] = None
-    nursery_uuid: Optional[str] = None
-
+    
 class NurseryCloseHour(NurseryCloseHourBase):
     uuid: str
     is_active: bool
