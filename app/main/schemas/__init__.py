@@ -14,5 +14,5 @@ from .tag import *
 from .audit_log import *
 from .notification import *
 from .parent import *
-from .device import *
+from .team_device import *
 from .conversation import *

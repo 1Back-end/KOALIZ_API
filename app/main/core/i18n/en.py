@@ -38,7 +38,11 @@ translation = {
     "conversation-not-found": "Conversation not found",
     "code-validated-successfully":"code has been validated with succes.",
     "invalid-user":"Invalid user.",
-    "account-validation-pending": "an email has been sent to you to finalize the creation of your account."
+    "account-validation-pending": "An email has been sent to you to finalize the creation of your account.",
+    "device-already-found": "Existing device",
+    "team-device-deleted": "Device successfully deleted",
+    "dependencies-token-invalid": "Token invalid",
+    "dependencies-access-unauthorized": "You do not have the right to access this feature!"
 
 
 }
