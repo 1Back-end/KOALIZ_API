@@ -274,6 +274,19 @@ class MeetingType(BaseModel):
 
     # model_config = ConfigDict(from_attributes=True)
 
+class MeetingTypeResponse(BaseModel):
+    uuid: str
+    title_en:  str
+    title_fr:str
+    model_config = ConfigDict(from_attributes=True)
+
+class ActivityReminderTypeResponse(BaseModel):
+    uuid: str
+    title_en:  str
+    title_fr:str
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ChildSlim(BaseModel):
     uuid: str
     firstname: str
