@@ -29,7 +29,7 @@ async def get_meeting_types(
     """
     return db.query(models.MeetingType).all()
 
-@router.get("/meeting-types", response_model=list[schemas.ActivityReminderTypeResponse])
+@router.get("/activity-reminder-types", response_model=list[schemas.ActivityReminderTypeResponse])
 async def get_activity_reminder_types(
     *,
     db: Session = Depends(get_db),
