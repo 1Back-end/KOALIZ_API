@@ -218,7 +218,7 @@ def get_many(
         order_field: str = "date_added",
         keyword: Optional[str] = None,
         db: Session = Depends(get_db),
-        # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """
     Get nursery details
