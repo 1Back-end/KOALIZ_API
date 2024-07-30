@@ -15,6 +15,26 @@ def get_db(request: Request) -> Generator:
 
 
 class AuthUtils():
+
+    @staticmethod
+    def verify_jwt(token: str) -> bool:
+
+        isTokenValid: bool = False
+
+        try:
+            payload = jwt.decode(
+                token, Config.SECRET_KEY, algorithms=[security.ALGORITHM]
+            )
+            token_data = schemas.TokenPayload(**payload)
+            return token_data
+        except (jwt.InvalidTokenError, ValidationError) as e:
+            print(e)
+            payload = None
+
+        if payload:
+            isTokenValid = True
+        return isTokenValid
+
     @staticmethod
     def verify_role(roles, user) -> bool:
         has_a_required_role = False
@@ -75,14 +95,14 @@ class TokenRequired(HTTPBearer):
                     elif "owners" in code_groups:
                         current_user = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
                     elif "parents" in code_groups:
-                        current_user = crud.father.get_by_uuid(db=db, uuid=token_data["sub"])
+                        current_user = crud.parent.get_by_uuid(db=db, uuid=token_data["sub"])
 
             else:
                 current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
                 if not current_user:
                     owner = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
-                    father = crud.father.get_by_uuid(db=db, uuid=token_data["sub"])  
-                    current_user = owner if owner else father
+                    parent = crud.parent.get_by_uuid(db=db, uuid=token_data["sub"])  
+                    current_user = owner if owner else parent
 
             if not current_user:
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
@@ -136,3 +156,42 @@ class TeamTokenRequired(HTTPBearer):
         else:
             raise HTTPException(status_code=403, detail=__("dependencies-access-unauthorized"))
         db.close()
+
+class SocketTokenRequired(HTTPBearer):
+
+    def __init__(self, token: str, roles: list = [], auto_error: bool = True):
+        self.roles = roles
+        self.token = token
+        super(SocketTokenRequired, self).__init__(auto_error=auto_error)
+
+    async def __call__(self, db: Session, ):
+        required_roles = self.roles
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=self.token)
+
+        if credentials:
+            if not credentials.scheme == "Bearer":
+                return False
+
+            token_data = AuthUtils.verify_jwt(credentials.credentials)
+            if not token_data:
+                return False
+
+            if models.BlacklistToken.check_blacklist(db, credentials.credentials):
+                return False
+
+            current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data.sub)
+            if not current_user:
+                owner = crud.owner.get_by_uuid(db=db, uuid=token_data.sub)
+                parent = crud.parent.get_by_uuid(db=db, uuid=token_data.sub)
+                current_user = owner if owner else parent
+
+            if not current_user:
+                return False
+
+            if required_roles:
+                if not AuthUtils.verify_role(roles=required_roles, user=current_user):
+                    return False
+            return current_user
+        else:
+
+            return False

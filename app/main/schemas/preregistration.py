@@ -291,7 +291,7 @@ class PreContractSlim(BaseModel):
 
 class PreregistrationSlim(BaseModel):
     uuid: str
-    child: ChildSlim
+    child: ChildMini
     pre_contract: PreContractSlim
     status: str = None
 
