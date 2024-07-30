@@ -1,6 +1,7 @@
 import hashlib
 import os
 import uuid
+import filetype
 from base64 import b64decode
 from mimetypes import MimeTypes
 from fastapi import UploadFile
@@ -58,8 +59,14 @@ class FileUtils(object):
             self.minio_file_name = f"{uuid_file_name}.{file_ext}"
             # self.blob_name = "{}{}".format(uuid_file_name, "-{}".format(name.replace(" ", "-")))
             self.path_file = os.path.join(Config.UPLOADED_FILE_DEST, self.minio_file_name)
-            self.mimetype = info
             byte = b64decode(base64.split(",")[1], validate=True)
+
+            # Utiliser filetype pour détecter le type de fichier
+            kind = filetype.guess(byte)
+            self.mimetype = kind.mime
+            print("kind extension: ",kind.extension)
+            print("kind mime: ",kind.mime)
+
             print(f"...................print image:{self.path_file}")
             try:
                 print(f"...................try_upload:{self.path_file}")

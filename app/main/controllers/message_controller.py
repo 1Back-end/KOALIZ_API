@@ -28,43 +28,6 @@ def unread_message_count(
 
     return notification_count
 
-@router.get("/{conversation_uuid}", response_model=List[schemas.Message], status_code=200)
-def fetch_conversation_messages(
-    *,
-    db: Session = Depends(dependencies.get_db),
-    conversation_uuid: str,
-    current_user: any = Depends(dependencies.TokenRequired(roles=None)),
-) -> Any:
-
-    ''' Recupérer la liste des messages d'une conversation '''
-
-    messages = []
-
-    conds = [models.Conversation.sender_uuid == current_user.uuid,
-            models.Conversation.receiver_uuid == current_user.uuid]
-
-    exist_conversation = db.query(models.Conversation).filter(models.Conversation.id==conversation_uuid)\
-                        .filter(or_(*conds))\
-                        .first()
-    if not exist_conversation:
-        raise HTTPException(
-            status_code=404,
-            detail=__("conversation-not-found")
-        )
-
-    if current_user.uuid != exist_conversation.last_sender_uuid:
-        exist_conversation.is_read = True
-        for message in db.query(models.Message).filter_by(conversation_uuid=exist_conversation.uuid).all():
-            message.is_read = True
-            db.add(message)
-            db.commit()
-        db.add(exist_conversation)
-        db.commit()
-
-    messages = db.query(models.Message).filter_by(conversation_uuid=exist_conversation.uuid).order_by(models.Message.sending_date.asc()).all()
-    return messages
-
-
 @router.get("/conversations", response_model=List[schemas.Conversation])
 def fetch_all_conversations(
     *,
@@ -129,7 +92,7 @@ def send_message(
         # Notification
         notification = schemas.Conversation.model_validate(exist_conversation).model_dump()
         conversation_schema = convert_dates_to_strings(notification)
-        notificationPublisher.publish(channel=receiver_uuid, type="EVENT_NEW_CONVERSATION", data= conversation_schema)
+        # notificationPublisher.publish(channel=receiver_uuid, type="EVENT_NEW_CONVERSATION", data= conversation_schema)
 
         new_message = models.Message(
             conversation_uuid=exist_conversation.uuid,
@@ -145,7 +108,7 @@ def send_message(
         new_message = models.Message(
             conversation_uuid=exist_conversation.uuid,
             content=content,
-            sender_id=current_user.uuid,
+            sender_uuid=current_user.uuid,
             uuid=str(uuid.uuid4())
         )
     db.add(new_message)
@@ -154,12 +117,13 @@ def send_message(
     # Get the messsage schema
     message = schemas.Message.model_validate(new_message).model_dump()
     message_schema = convert_dates_to_strings(message)
+    print(message_schema)
 
     # Notification
-    notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)
+    # notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)
 
 
-    return message_schema
+    return new_message
 
 
 @router.post("/file", response_model=schemas.Message)
@@ -179,7 +143,7 @@ def send_message_file(
     exist_conversation = db.query(models.Conversation)\
             .filter(
                 or_(
-                    and_(models.Conversation.sender_uuid == current_user.uui, models.Conversation.receiver_uuid == obj_in.receiver_uuid),
+                    and_(models.Conversation.sender_uuid == current_user.uuid, models.Conversation.receiver_uuid == obj_in.receiver_uuid),
                     and_(models.Conversation.sender_uuid == obj_in.receiver_uuid, models.Conversation.receiver_uuid == current_user.uuid),
                 )
             )\
@@ -200,7 +164,7 @@ def send_message_file(
         # Notification
         notification = schemas.Conversation.model_validate(exist_conversation).model_dump()
         conversation_schema = convert_dates_to_strings(notification)
-        notificationPublisher.publish(channel=obj_in.receiver_uuid, type="EVENT_NEW_CONVERSATION", data= conversation_schema)
+        # notificationPublisher.publish(channel=obj_in.receiver_uuid, type="EVENT_NEW_CONVERSATION", data= conversation_schema)
 
         new_message = models.Message(
             conversation_uuid=exist_conversation.uuid,
@@ -233,7 +197,42 @@ def send_message_file(
     message_schema = convert_dates_to_strings(message)
 
     # Notification
-    notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)
+    # notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)
 
+    return new_message
 
-    return message_schema
+@router.get("/{conversation_uuid}", response_model=List[schemas.Message], status_code=200)
+def fetch_conversation_messages(
+    *,
+    db: Session = Depends(dependencies.get_db),
+    conversation_uuid: str,
+    current_user: any = Depends(dependencies.TokenRequired(roles=None)),
+) -> Any:
+
+    ''' Recupérer la liste des messages d'une conversation '''
+
+    messages = []
+
+    conds = [models.Conversation.sender_uuid == current_user.uuid,
+            models.Conversation.receiver_uuid == current_user.uuid]
+
+    exist_conversation = db.query(models.Conversation).filter(models.Conversation.uuid==conversation_uuid)\
+                        .filter(or_(*conds))\
+                        .first()
+    if not exist_conversation:
+        raise HTTPException(
+            status_code=404,
+            detail=__("conversation-not-found")
+        )
+
+    if current_user.uuid != exist_conversation.last_sender_uuid:
+        exist_conversation.is_read = True
+        for message in db.query(models.Message).filter_by(conversation_uuid=exist_conversation.uuid).all():
+            message.is_read = True
+            db.add(message)
+            db.commit()
+        db.add(exist_conversation)
+        db.commit()
+
+    messages = db.query(models.Message).filter_by(conversation_uuid=exist_conversation.uuid).order_by(models.Message.sending_date.desc()).all()
+    return messages

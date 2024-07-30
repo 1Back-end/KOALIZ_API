@@ -385,7 +385,7 @@ async def create_parent_on_system(
 
     return schemas.Msg(message=__("account-validation-pending"))
 
-@router.post("/parent/validate-account", response_model=schemas.UserAuthentication)
+@router.post("/parent/validate-account", response_model=schemas.ParentAuthentication)
 def validate_account(
         input: schemas.ValidateAccount,
         db: Session = Depends(get_db),

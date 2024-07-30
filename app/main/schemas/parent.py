@@ -39,7 +39,7 @@ class ParentBase(BaseModel):
     email:EmailStr
     firstname: str
     lastname: str
-    role_uuid:str
+    # role_uuid:str=None
 
 class ParentCreate(ParentBase):
     avatar_uuid:Optional[str] = None
