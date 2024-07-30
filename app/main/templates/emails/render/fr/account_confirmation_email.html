@@ -18,7 +18,7 @@
 
     </style>
     <![endif]-->
-    <title>Reset your Password</title>
+    <title>Confirm your account</title>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700"
           rel="stylesheet" media="screen">
     <style>
@@ -113,12 +113,12 @@
                                         </p>
 
                                         <p style="margin: 0 0 24px;">
-                                            You have received a password reset request from your account
+                                            You have received a code to confirm  your account creation
                                             <span style="font-weight: 600;">KOALIZZ</span> -
                                             <a href="mailto:{{email}}" class="hover-underline"
                                                style="--text-opacity: 1;  text-decoration: none;">{{email}}</a>.
                                         </p>
-                                        <p style="margin: 0 0 24px;">Use this code to reset your password and log in. </p>
+                                        <p style="margin: 0 0 24px;">Use this code to confirm your account and you'll be logged in. </p>
 
                                         <p style="margin: 24px 0;">
                                             <span style="font-weight: 1000;"><b>{{ code }} </b></span>
@@ -127,13 +127,13 @@
                                           <p style="margin: 24px 0;">
                                               <span style="font-weight: 600;">Note:</span> This code is valid for 
                                               {{valid_minutes}} minutes from the time of sending and can be used only once to
-                                              change your password.
+                                              validate your account.
                                           </p>
                                         {% else %}
                                           <p style="margin: 24px 0;">
                                               <span style="font-weight: 600;">Note:</span> This code is valid for 
                                               {{valid_hours}} hours from the time of sending and can be used only once to
-                                              change your password.
+                                              validate your account.
                                           </p>
                                         {% endif %}
 <!--                                        <p style="margin: 0;">-->
