@@ -16,7 +16,7 @@ from app.main.core.security import generate_code, generate_slug
 from app.main.utils.helper import convert_dates_to_strings
 
 
-class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
+class CRUDPreRegistration(CRUDBase[models.Contract, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
@@ -62,17 +62,6 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             exist_folder.accepted_date = datetime.now()
             exist_folder.child.is_accepted = True
 
-            contract = models.Contract(
-                uuid=str(uuid.uuid4()),
-                begin_date=exist_folder.pre_contract.begin_date,
-                end_date=exist_folder.pre_contract.end_date,
-                typical_weeks=exist_folder.pre_contract.typical_weeks,
-                type="REGULAR", #"OCCASIONAL"
-                # has_company_contract=
-                # annual_income=
-            )
-            db.add(contract)
-            exist_folder.child.contract_uuid = contract.uuid
 
         db.commit()
 
