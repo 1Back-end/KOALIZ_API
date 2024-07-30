@@ -1,6 +1,8 @@
 from typing import Optional
 from pydantic import BaseModel, ConfigDict,EmailStr, model_validator, root_validator, validator
 from datetime import datetime, date
+
+from app.main.schemas.file import File
 from .tag import Tag
 from app.main.models.db.session import SessionLocal
 from app.main.models import tag
@@ -42,7 +44,6 @@ class MembershipTypeSlim(BaseModel):
     title_fr: Optional[str] =None
     title_en: Optional[str] =None
     description: Optional[str] = None
-
     model_config = ConfigDict(from_attributes=True)
 
 class Nursery2(BaseModel):
