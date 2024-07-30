@@ -361,7 +361,7 @@ async def verify_otp(
         }
     }
 
-@router.post("/parent", response_model=schemas.ParentResponse)
+@router.post("/parent", response_model=schemas.Msg)
 async def create_parent_on_system(
     input: schemas.ParentCreate,
     db: Session = Depends(get_db),
@@ -379,11 +379,11 @@ async def create_parent_on_system(
     # if not crud.parent.password_confirmation(db, input.password, input.confirm_password):
     #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
 
-    # user = crud.parent.create(db=db, obj_in=input)
+    crud.parent.create(db=db, obj_in=input,code=code)
 
     # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    return crud.parent.create(db=db, obj_in=input,code=code)
+    return schemas.Msg(message=__("account-validation-pending"))
 
 @router.post("/parent/validate-account", response_model=schemas.UserAuthentication)
 def validate_account(
