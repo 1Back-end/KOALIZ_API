@@ -34,8 +34,8 @@ class Nursery(Base):
 
     total_places: int = Column(Integer, default=0)
     phone_number: str = Column(String, nullable=False, default="")
-    memberships = relationship("Membership",secondary="nursery_memberships",back_populates="nurseries")
-
+    memberships = relationship("Membership",secondary="nursery_memberships",back_populates="nurseries",overlaps="nursery, memberships")
+    
     address_uuid: str = Column(String, ForeignKey('addresses.uuid'), nullable=False)
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
 

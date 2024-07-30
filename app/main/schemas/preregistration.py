@@ -1,6 +1,6 @@
 from typing import Optional, Any
 
-from fastapi import Body, HTTPException
+from fastapi import Body, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
 from datetime import datetime, time, date
 
@@ -266,6 +266,7 @@ class MeetingType(BaseModel):
     preregistration_uuid: str
     meeting_type_uuid: str
     meeting_date:date
+    meeting_begin_time:str = Body(..., regex=r'^\d{2}:\d{2}$')
     meeting_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
     description:Optional[str]= None
 
