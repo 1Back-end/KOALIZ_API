@@ -124,6 +124,7 @@ class ParentGuestSchema(BaseModel):
 
 class PreregistrationCreate(BaseModel):
     child: ChildSchema
+    
     nurseries: list[str]
     pre_contract: PreContractSchema
     parents: list[ParentGuestSchema]
