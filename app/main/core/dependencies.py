@@ -126,8 +126,9 @@ class TokenRequired(HTTPBearer):
 
 class TeamTokenRequired(HTTPBearer):
 
-    def __init__(self, token: Optional[str] = Query(None), auto_error: bool = True):
+    def __init__(self, roles: list = [], token: Optional[str] = Query(None), auto_error: bool = True):
         self.token = token
+        self.roles = roles
         super(TeamTokenRequired, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request, db: Session = Depends(get_db)):
@@ -142,17 +143,11 @@ class TeamTokenRequired(HTTPBearer):
             if models.BlacklistToken.check_blacklist(db, credentials.credentials):
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
-            current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
-            if not current_user:
+            current_team_device = crud.team_device.get_by_team_device_uuid(db=db, device_uuid=token_data["sub"])
+            if not current_team_device:
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
-            # if current_user.status != models.UserStatusType.ACTIVED:
-            #     raise HTTPException(status_code=405, detail=__("user-not-active"))
-
-            # if current_user.is_new_user and not self.let_new_user:
-            #     raise HTTPException(status_code=403, detail=__("change-password-required"))
-
-            return current_user
+            return current_team_device
         else:
             raise HTTPException(status_code=403, detail=__("dependencies-access-unauthorized"))
         db.close()
