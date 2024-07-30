@@ -1,13 +1,14 @@
 from enum import Enum
 
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, event, types, Date, ARRAY, Float, Boolean
+from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, date
 
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, Mapped
+from app.main.models.db.session import SessionLocal
 from .db.base_class import Base
-
 
 class PreRegistrationStatusType(str, Enum):
     ACCEPTED = "ACCEPTED"
@@ -219,8 +220,20 @@ class PreRegistration(Base):
     note: str = Column(String, default="")
     status: str = Column(types.Enum(PreRegistrationStatusType), nullable=False, default=PreRegistrationStatusType.PENDING)
 
-    # tags = relationship("Tags",back_populates="preregistrations", uselist=True)
+    @hybrid_property
+    def tags(self):
+        db = SessionLocal()
+        from app.main.models import TagElement,Tags  # Importation locale pour éviter l'importation circulaire
 
+        try:
+            record = db.query(Tags).\
+                outerjoin(TagElement,Tags.uuid == TagElement.tag_uuid).\
+                    filter(TagElement.element_uuid == self.uuid,TagElement.element_type == "PRE_ENROLLMENT").\
+                        all()
+            return record
+        finally:
+            db.close()
+    
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 

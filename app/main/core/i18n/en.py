@@ -37,7 +37,8 @@ translation = {
     "device-not-found": "Device not found",
     "conversation-not-found": "Conversation not found",
     "code-validated-successfully":"code has been validated with succes.",
-    "invalid-user":"Invalid user."
+    "invalid-user":"Invalid user.",
+    "account-validation-pending": "an email has been sent to you to finalize the creation of your account."
 
 
 }
