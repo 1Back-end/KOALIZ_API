@@ -1,6 +1,6 @@
 from typing import Optional, Any
 
-from fastapi import Body, HTTPException
+from fastapi import Body, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
 from datetime import datetime, time, date
 
