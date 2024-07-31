@@ -1,6 +1,6 @@
 from enum import Enum
 
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, event, types
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, event, types,Text,Date,Boolean
 from datetime import datetime, date
 from sqlalchemy.orm import relationship
 from .db.base_class import Base
@@ -91,6 +91,74 @@ class NurseryOpeningHour(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
+
+class NurseryCloseHour(Base):
+    """
+     database model for storing Nursery Close Hour related details
+    """
+    __tablename__ = "nursery_close_hours"
+    
+    uuid: str = Column(String, primary_key=True, index=True)
+    name: str = Column(String, nullable=False)
+    start_day: int = Column(Integer, nullable=False)
+    start_month: int = Column(Integer, nullable=False)
+    end_day: int = Column(Integer, nullable=False)
+    end_month: int = Column(Integer, nullable=False)
+    is_active: bool = Column(Boolean, default=True, nullable=False)  # Ajout de la colonne is_active
+
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)
+    nursery = relationship("Nursery", foreign_keys=[nursery_uuid], uselist=False)
+
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now)
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+
+
+class NuseryHoliday(Base):
+    __tablename__ = "nursery_holidays"
+    
+    uuid: str = Column(String, primary_key=True,index=True)
+    name: str = Column(String, nullable=False)
+    day: int = Column(Integer, nullable=False)
+    month: int = Column(Integer, nullable=False)
+    is_active: bool = Column(Boolean, default=True, nullable=False)  # Ajout de la colonne is_active
+
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)
+    nursery = relationship("Nursery", foreign_keys=[nursery_uuid], uselist=False)
+
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now)
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+
+
+
+@event.listens_for(NurseryCloseHour, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(NurseryCloseHour, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+@event.listens_for(NuseryHoliday, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(NuseryHoliday, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
 
 @event.listens_for(NurseryOpeningHour, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):

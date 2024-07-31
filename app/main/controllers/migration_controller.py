@@ -70,13 +70,18 @@ async def create_database_tables(
         # Get the environment system
         if platform.system() == 'Windows':
 
-            os.system('set PYTHONPATH=. && .\\venv\Scripts\python.exe -m alembic revision --autogenerate')
-            os.system('set PYTHONPATH=. && .\\venv\Scripts\python.exe -m alembic upgrade head')
+            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic revision --autogenerate')
 
         else:
             os.system('PYTHONPATH=. alembic revision --autogenerate')
-            os.system('PYTHONPATH=. alembic upgrade head')
 
+        # Get the environment system
+        if platform.system() == 'Windows':
+
+            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic upgrade head')
+
+        else:
+            os.system('PYTHONPATH=. alembic upgrade head')
 
         """ Try to remove previous alembic versions folder """
         try:
@@ -290,6 +295,84 @@ async def create_membership(
                     db.add(db_obj)
                     db.commit()
         return {"message": "Les abonnements ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+    
+@router.post("/create-meeting-types", response_model=schemas.Msg, status_code=201)
+async def create_meeting_types(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create meeting types.
+    """
+    check_user_access_key(admin_key)
+    
+    try:
+        with open('{}/app/main/templates/default_data/meetingtype.json'.format(os.getcwd()), encoding='utf-8') as f:        
+            datas = json.load(f)
+        
+            for data in datas:
+                db_obj = db.query(models.MeetingType).filter_by(uuid = data["uuid"]).first()
+                if db_obj:
+                    db_obj.title_en = data["title_en"]
+                    db_obj.title_fr = data["title_fr"]
+                    db.commit()
+                    
+                else:
+                    # crud.administrator.create(db,schemas.AdministratorCreate(**data))
+                    db_obj = models.MeetingType(
+                        uuid = data["uuid"],
+                        title_en = data["title_en"],
+                        title_fr = data["title_fr"]
+                    )
+                    db.add(db_obj)
+                    db.commit()
+        return {"message": "Les types de rencontre ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/create-activity-reminder-types", response_model=schemas.Msg, status_code=201)
+async def create_activity_reminder_types(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create meeting types.
+    """
+    check_user_access_key(admin_key)
+    
+    try:
+        with open('{}/app/main/templates/default_data/activityremindertype.json'.format(os.getcwd()), encoding='utf-8') as f:        
+            datas = json.load(f)
+        
+            for data in datas:
+                db_obj = db.query(models.ActivityReminderType).filter_by(uuid = data["uuid"]).first()
+                if db_obj:
+                    db_obj.title_en = data["title_en"]
+                    db_obj.title_fr = data["title_fr"]
+                    db.commit()
+                    
+                else:
+                    # crud.administrator.create(db,schemas.AdministratorCreate(**data))
+                    db_obj = models.ActivityReminderType(
+                        uuid = data["uuid"],
+                        title_en = data["title_en"],
+                        title_fr = data["title_fr"]
+                    )
+                    db.add(db_obj)
+                    db.commit()
+        return {"message": "Les types de rappel d'activité ont été créés avec succès"}
         
     except IntegrityError as e:
         logger.error(str(e))

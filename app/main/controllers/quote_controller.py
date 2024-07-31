@@ -42,16 +42,16 @@ class Quotation:
         end_first_complete_month = start_first_complete_month.replace(day=calendar.monthrange(start_first_complete_month.year, start_first_complete_month.month)[1])
 
         db = SessionLocal()
-        nursery_closed_days = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid=self.preregistration.nursery_uuid).all()
+        nursery_closed_days = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid==self.preregistration.nursery_uuid).all()
         for nursery_closed_day in nursery_closed_days:
-            
+            pass
 
         deposit_amount: float = 0
         if self.quote.has_deposit:
             if self.quote.deposit_type == models.DepositType.VALUE:
                 deposit_amount = self.quote.deposit_value
             else:
-                deposit_amount =
+                deposit_amount = 0
 
         weekdays_count = []
         current_date = first_day_of_first_month

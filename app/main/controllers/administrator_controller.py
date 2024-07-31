@@ -52,10 +52,9 @@ def update(
     if not admin:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
     
-    email = crud.administrator.get_by_email(db, obj_in.email).email
-    print(admin.email,email)
+    db_admin = crud.administrator.get_by_email(db, obj_in.email)
 
-    if email and admin.email != email:
+    if db_admin and admin.email != db_admin.email:
         raise HTTPException(status_code=409, detail=__("user-email-taken"))
     
     if obj_in.role_uuid:
@@ -80,9 +79,6 @@ def delete(
     """
     Delete administrator
     """
-    if not current_user.status.lower()=="active":
-        raise HTTPException (status_code=405,detail ="user-not-active")
-    
     admin = crud.administrator.get_by_uuid(db, uuid)
     if not admin:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
