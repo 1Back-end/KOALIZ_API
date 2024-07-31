@@ -104,7 +104,8 @@ class NurseryCloseHour(Base):
     start_month: int = Column(Integer, nullable=False)
     end_day: int = Column(Integer, nullable=False)
     end_month: int = Column(Integer, nullable=False)
-    is_active: bool = Column(Boolean, default=False, nullable=False)  # Ajout de la colonne is_active
+    is_active: bool = Column(Boolean, default=False)  # Ajout de la colonne is_active
+    is_deleted: bool = Column(Boolean, default=False)
 
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)

@@ -28,3 +28,13 @@ class NurseryCloseHour(NurseryCloseHourBase):
     date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class NurseryCloseHourResponsiveList(BaseModel):
+    total: int
+    pages: int
+    per_page: int
+    current_page:int
+    data: list[NurseryCloseHour]
+
+    model_config = ConfigDict(from_attributes=True)
+

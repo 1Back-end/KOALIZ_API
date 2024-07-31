@@ -10,5 +10,4 @@ from .membership_crud import membership
 from .tag_crud import tag
 from .audit_log_crud import audit_log
 from .notification_crud import notification
-from .nursery_close_hours import NurseryCloseHourCRUD
-from .nursery_holidays import NuseryHolidayCRUD
+from .nursery_close_hours import nursery_close_hour
