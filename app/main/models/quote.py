@@ -38,6 +38,11 @@ class DepositType(Enum):
     VALUE = "VALUE"
 
 
+class InvoiceTimeType(str, Enum):
+    BEGINNING_OF_MONTH = "BEGINNING_OF_MONTH"
+    END_OF_MONTH = "END_OF_MONTH"
+
+
 class Quote(Base):
     """
      database model for storing Nursery related details
@@ -75,6 +80,7 @@ class Quote(Base):
     adaptation_package_days: int = Column(Integer, default=5)
     adaptation_hours_number: int = Column(Integer, default=120)
     adaptation_hourly_rate: float = Column(Numeric(precision=10, scale=2), default=10)
+    adaptation_hours_number: int = Column(Integer, default=120)
 
     quote_cmg_uuid: str = Column(String, ForeignKey('quote_cmgs.uuid'), nullable=True)
     quote_cmg: Mapped[any] = relationship("QuoteCMG", foreign_keys=quote_cmg_uuid, uselist=False)
@@ -225,7 +231,7 @@ class QuoteSetting(Base):
     # Invoice
     desired_text_on_invoice_line: str = Column(String, nullable=True)
     display_calculation_details_in_invoice: bool = Column(Boolean, default=False)
-    invoicing_time: str = Column(String, nullable=True)
+    invoicing_time: str = Column(String, nullable=True) #Enum Beging of month, End of month BEGINNING_OF_MONTH = "BEGINNING_OF_MONTH", END_OF_MONTH = "END_OF_MONTH"
     invoice_payable_within: int = Column(Integer, default=0)
     terms_and_conditions_displayed_on_invoice: str = Column(String, nullable=True)
     invoice_footer: str = Column(String, nullable=True)
