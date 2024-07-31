@@ -113,20 +113,7 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,schemas.NurseryClose
         db.refresh(db_close_hour)
         return db_close_hour
 
-    def soft_delete_nursery_close_hour(db: Session, close_hour_uuid: str, owner_uuid: str):
-        db_close_hour = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.uuid == close_hour_uuid, models.NurseryCloseHour.is_deleted == False).first()
-        if not db_close_hour:
-            raise HTTPException(status_code=404, detail="Close Hour not found")
-        nursery = db.query(models.Nursery).filter(models.Nursery.uuid == db_close_hour.nursery_uuid).first()
-        if not nursery:
-            raise HTTPException(status_code=404, detail="Nursery not found")
-        if nursery.owner_uuid != owner_uuid:
-            raise HTTPException(status_code=403, detail="You are not authorized to delete this close hour") 
-        db_close_hour.is_deleted = True
-        db.commit()
-        return {"detail": "Close Hour deleted"}
-    
-    def delete_nursery_all(db: Session, close_hour_uuid: str, owner_uuid: str):
+    def delete_nursery_close_hour(db: Session, close_hour_uuid: str, owner_uuid: str):
         db_close_hour = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.uuid == close_hour_uuid).first()
         if not db_close_hour:
             raise HTTPException(status_code=404, detail="Close Hour not found")
@@ -137,6 +124,10 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,schemas.NurseryClose
             raise HTTPException(status_code=403, detail="You are not authorized to delete this close hour")
         db.delete(db_close_hour)
         db.commit()
-        return {"detail": "Close Hour deleted"}
+    
+        return {"detail": "Close Hour successfully deleted"}
+    
+    
+
     
 nursery_close_hour = NurseryCloseHourCRUD(models.NurseryCloseHour)

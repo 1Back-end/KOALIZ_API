@@ -72,26 +72,14 @@ def update_nursery_close_hour(
 def delete_nursery_close_hour(
     close_hour_uuid: str,
     db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"])),
-):
-    owner_uuid = current_user.uuid
-    try:
-        result = crud.nursery_close_hour.delete_nursery_all(db, close_hour_uuid, owner_uuid)
-    except HTTPException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-    
-    return result
-
-@router.delete("/soft_delete/{close_hour_uuid}", response_model=dict)
-def delete_nursery_close_hour(
-    close_hour_uuid: str,
-    db: Session = Depends(get_db),
     current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     owner_uuid = current_user.uuid
     try:
-        result = crud.nursery_close_hour.delete_nursery_close_hour(db, close_hour_uuid, owner_uuid)
+        result = crud.nursery_close_hour.delete_nursery_close_hour(db=db, close_hour_uuid=close_hour_uuid, owner_uuid=owner_uuid)
+        return result
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-    
-    return result
+    except Exception as e:
+        print(f"Unexpected error: {e}")  # Use logging in production
+        raise HTTPException(status_code=500, detail="Internal server error")
