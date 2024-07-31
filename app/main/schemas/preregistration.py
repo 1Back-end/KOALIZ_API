@@ -8,7 +8,7 @@ from app.main import models
 from app.main.core.i18n import __
 from app.main.schemas import DataList, NurseryMini
 from app.main.schemas.base import Items
-from app.main.schemas.file import File
+from app.main.schemas.user import Storage
 
 
 @field_validator("birthdate")
@@ -304,11 +304,14 @@ class PreContractSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class Icon(Storage):
+    pass
+
 class Tag(BaseModel):
     uuid: str
     title_fr: str
     title_en: str
-    icon: Optional[File] = None
+    icon: Optional[Storage] = None
     description: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
@@ -317,7 +320,7 @@ class PreregistrationSlim(BaseModel):
     child: ChildSlim
     pre_contract: PreContractSlim
     status: str = None
-    tags:Any
+    tags:Optional[list[Tag]] = []
 
     model_config = ConfigDict(from_attributes=True)
 

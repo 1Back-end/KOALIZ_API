@@ -81,8 +81,8 @@ class TokenRequired(HTTPBearer):
                 current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
                 if not current_user:
                     owner = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
-                    father = crud.father.get_by_uuid(db=db, uuid=token_data["sub"])  
-                    current_user = owner if owner else father
+                    parent = crud.parent.get_by_uuid(db=db, uuid=token_data["sub"])  
+                    current_user = owner if owner else parent
 
             if not current_user:
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))

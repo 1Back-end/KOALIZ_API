@@ -14,6 +14,8 @@ from .audit_log_controller import router as audit_logs
 from .notification_controller import router as notification
 from .parent_controller import router as parent
 from .device_controller import router as device
+from .team_controller import router as team
+from .employe_controller import router as employee
 # from .message_controller import router as message
 
 api_router = APIRouter()
@@ -33,4 +35,6 @@ api_router.include_router(migration)
 api_router.include_router(storage)
 api_router.include_router(tag)
 api_router.include_router(helper)
+api_router.include_router(team)
+api_router.include_router(employee)
 

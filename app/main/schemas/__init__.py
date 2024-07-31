@@ -16,3 +16,5 @@ from .notification import *
 from .parent import *
 from .device import *
 from .conversation import *
+from .employee import *
+from .team import *
