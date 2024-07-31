@@ -14,4 +14,5 @@ from .audit_log import *
 from .notification import *
 from .parent import *
 from .message import *
+from .team_device import *
 from .team import *

@@ -30,9 +30,9 @@ def create(
     if parent:
         raise HTTPException(status_code=409, detail=__("user-email-taken"))
     
-    role = crud.role.get_by_uuid(db, obj_in.role_uuid)
-    if not role:
-        raise HTTPException(status_code=404, detail=__("role-not-found"))
+    # role = crud.role.get_by_uuid(db, obj_in.role_uuid)
+    # if not role:
+    #     raise HTTPException(status_code=404, detail=__("role-not-found"))
     
     # if not crud.parent.password_confirmation(db, obj_in.password, obj_in.confirm_password):
     #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))

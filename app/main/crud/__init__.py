@@ -11,6 +11,6 @@ from .tag_crud import tag
 from .audit_log_crud import audit_log
 from .notification_crud import notification
 from .parent_crud import parent
-from .device_crud import device
+from .team_device_crud import team_device
 from .employee_crud import employe
 from .team_crud import team 

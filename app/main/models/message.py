@@ -29,12 +29,10 @@ class Message(Base):
     @hybrid_property
     def sender(self):
         db = SessionLocal()
-        if self.sender_uuid:
-            user = db.query(models.Administrator).filter(models.Administrator.uuid==self.sender_uuid).first()
-            if not user:
-                user = db.query(models.Father).filter(models.Father.uuid==self.sender_uuid)
-            return user
-        return None
+        user = db.query(models.Administrator).filter(models.Administrator.uuid==self.sender_uuid).first()
+        if not user:
+            user = db.query(models.Parent).filter(models.Parent.uuid==self.sender_uuid).first()
+        return user
 
     def __repr__(self):
         return '<Message: uuid: {} />'.format(self.uuid)
@@ -62,22 +60,18 @@ class Conversation(Base):
     @hybrid_property
     def sender(self):
         db = SessionLocal()
-        if self.sender_uuid:
-            user = db.query(models.Administrator).filter(models.Administrator.uuid==self.sender_uuid).first()
-            if not user:
-                user = db.query(models.Father).filter(models.Father.uuid==self.sender_uuid)
-            return user
-        return None
+        user = db.query(models.Administrator).filter(models.Administrator.uuid==self.sender_uuid).first()
+        if not user:
+            user = db.query(models.Parent).filter(models.Parent.uuid==self.sender_uuid).first()
+        return user
 
     @hybrid_property
     def receiver(self):
         db = SessionLocal()
-        if self.receiver_uuid:
-            user = db.query(models.Administrator).filter(models.Administrator.uuid==self.receiver_uuid).first()
-            if not user:
-                user = db.query(models.Father).filter(models.Father.uuid==self.receiver_uuid)
-            return user
-        return None
+        user = db.query(models.Administrator).filter(models.Administrator.uuid==self.receiver_uuid).first()
+        if not user:
+            user = db.query(models.Parent).filter(models.Parent.uuid==self.receiver_uuid)
+        return user
 
     def __repr__(self):
         return '<Conversation: uuid: {} />'.format(self.uuid)

@@ -15,6 +15,26 @@ def get_db(request: Request) -> Generator:
 
 
 class AuthUtils():
+
+    @staticmethod
+    def verify_jwt(token: str) -> bool:
+
+        isTokenValid: bool = False
+
+        try:
+            payload = jwt.decode(
+                token, Config.SECRET_KEY, algorithms=[security.ALGORITHM]
+            )
+            token_data = schemas.TokenPayload(**payload)
+            return token_data
+        except (jwt.InvalidTokenError, ValidationError) as e:
+            print(e)
+            payload = None
+
+        if payload:
+            isTokenValid = True
+        return isTokenValid
+
     @staticmethod
     def verify_role(roles, user) -> bool:
         has_a_required_role = False
@@ -75,7 +95,7 @@ class TokenRequired(HTTPBearer):
                     elif "owners" in code_groups:
                         current_user = crud.owner.get_by_uuid(db=db, uuid=token_data["sub"])
                     elif "parents" in code_groups:
-                        current_user = crud.father.get_by_uuid(db=db, uuid=token_data["sub"])
+                        current_user = crud.parent.get_by_uuid(db=db, uuid=token_data["sub"])
 
             else:
                 current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
@@ -106,8 +126,9 @@ class TokenRequired(HTTPBearer):
 
 class TeamTokenRequired(HTTPBearer):
 
-    def __init__(self, token: Optional[str] = Query(None), auto_error: bool = True):
+    def __init__(self, roles: list = [], token: Optional[str] = Query(None), auto_error: bool = True):
         self.token = token
+        self.roles = roles
         super(TeamTokenRequired, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request, db: Session = Depends(get_db)):
@@ -122,17 +143,50 @@ class TeamTokenRequired(HTTPBearer):
             if models.BlacklistToken.check_blacklist(db, credentials.credentials):
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
-            current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data["sub"])
-            if not current_user:
+            current_team_device = crud.team_device.get_by_team_device_uuid(db=db, device_uuid=token_data["sub"])
+            if not current_team_device:
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
-            # if current_user.status != models.UserStatusType.ACTIVED:
-            #     raise HTTPException(status_code=405, detail=__("user-not-active"))
-
-            # if current_user.is_new_user and not self.let_new_user:
-            #     raise HTTPException(status_code=403, detail=__("change-password-required"))
-
-            return current_user
+            return current_team_device
         else:
             raise HTTPException(status_code=403, detail=__("dependencies-access-unauthorized"))
         db.close()
+
+class SocketTokenRequired(HTTPBearer):
+
+    def __init__(self, token: str, roles: list = [], auto_error: bool = True):
+        self.roles = roles
+        self.token = token
+        super(SocketTokenRequired, self).__init__(auto_error=auto_error)
+
+    async def __call__(self, db: Session, ):
+        required_roles = self.roles
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=self.token)
+
+        if credentials:
+            if not credentials.scheme == "Bearer":
+                return False
+
+            token_data = AuthUtils.verify_jwt(credentials.credentials)
+            if not token_data:
+                return False
+
+            if models.BlacklistToken.check_blacklist(db, credentials.credentials):
+                return False
+
+            current_user = crud.administrator.get_by_uuid(db=db, uuid=token_data.sub)
+            if not current_user:
+                owner = crud.owner.get_by_uuid(db=db, uuid=token_data.sub)
+                parent = crud.parent.get_by_uuid(db=db, uuid=token_data.sub)
+                current_user = owner if owner else parent
+
+            if not current_user:
+                return False
+
+            if required_roles:
+                if not AuthUtils.verify_role(roles=required_roles, user=current_user):
+                    return False
+            return current_user
+        else:
+
+            return False

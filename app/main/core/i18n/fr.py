@@ -46,7 +46,11 @@ translation = {
     "nursery-transfer-successfully": "Nursery successfully transferred",
     "device-not-found": "Appareil pas trouvé",
     "conversation-not-found": "Conversation non trouvée",
-    "code-validated-successfully":"code validé avec succès.",
+    "code-validated-successfully":"Code validé avec succès.",
     "invalid-user":"Utilisateur invalide.",
-    "account-validation-pending":"un mail vous a été envoyé pour finaliser la création de votre compte."
+    "account-validation-pending":"Un mail vous a été envoyé pour finaliser la création de votre compte.",
+    "device-already-found": "Appareil déjà existant",
+    "team-device-deleted": "Appareil supprimé avec succès",
+    "dependencies-token-invalid": "Token invalide",
+    "dependencies-access-unauthorized": "Vous n'avez pas le droit d'accéder à cette fonctionnalité!",
 }

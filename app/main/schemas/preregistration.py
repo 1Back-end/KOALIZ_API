@@ -317,7 +317,7 @@ class Tag(BaseModel):
 
 class PreregistrationSlim(BaseModel):
     uuid: str
-    child: ChildSlim
+    child: ChildMini
     pre_contract: PreContractSlim
     status: str = None
     tags:Optional[list[Tag]] = []

@@ -69,7 +69,7 @@ class SocketConnectionManager:
                 logger.info(f"Client #{current_user.uuid} left the socket")
 
     async def join(self, websocket: WebSocket, db: Session, token: str):
-    
+
         current_user  = await dependencies.SocketTokenRequired(token=token, roles=None)(db=db)
         print(f"Current user {current_user}")
         if current_user ==  False:
@@ -82,6 +82,6 @@ class SocketConnectionManager:
                     await self.connector(websocket, f"user-{current_user.public_id}")
             except Exception as e:
                 logger.info(f"Client #{current_user.public_id} left the socket")
-        
-            
+
+
 socket_manager = SocketConnectionManager()
