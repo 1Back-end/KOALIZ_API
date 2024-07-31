@@ -37,9 +37,11 @@ class ConfigClass(BaseSettings):
     MINIO_BUCKET: str = get_secret("MINIO_BUCKET", "develop")
     MINIO_SECURE: bool = get_secret("MINIO_SECURE", True)
 
+    ONESIGNAL_APP_ID: str = get_secret("ONESIGNAL_APP_ID", "ONESIGNAL_APP_ID")
+
     # Sqlalchemy
     # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
-    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:root@localhost:5432/bde_micro_creche_dev')
+    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:2002@localhost:5432/bde_micro_creche_dev')
     SQLALCHEMY_POOL_SIZE: int = 100
     SQLALCHEMY_MAX_OVERFLOW: int = 0
     SQLALCHEMY_POOL_TIMEOUT: int = 30
@@ -49,9 +51,11 @@ class ConfigClass(BaseSettings):
         "pool_pre_ping": True,
         "pool_recycle": SQLALCHEMY_POOL_RECYCLE,
     }
-    
+
     # Redis
     REDIS_HOST: str = get_secret("REDIS_HOST", "localhost")  # redis_develop
+    REDIS_HOST_PROD: str = get_secret("REDIS_HOST_PROD", "redis_production")
+    IS_DEV: bool = get_secret("IS_DEV", True)
     REDIS_PORT: int = get_secret("REDIS_PORT", 6379)
     REDIS_DB: int = get_secret("REDIS_DB", 2)
     REDIS_CHARSET: str = get_secret("REDIS_CHARSET", "UTF-8")

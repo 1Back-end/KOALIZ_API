@@ -9,3 +9,5 @@ from .preregistration_crud import preregistration
 from .membership_crud import membership
 from .tag_crud import tag
 from .audit_log_crud import audit_log
+from .notification_crud import notification
+from .nursery_close_hours import NurseryCloseHourCRUD

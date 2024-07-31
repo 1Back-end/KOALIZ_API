@@ -177,7 +177,7 @@ class TrackingCase(Base):
     preregistration_uuid = Column(String, ForeignKey('preregistrations.uuid'), nullable=False)
     preregistration: Mapped[any] = relationship("PreRegistration", back_populates="tracking_cases")
 
-    interaction_type = Column(String, nullable=False)  # Type d'interaction: note, document, réunion, action, appel
+    interaction_type = Column(String, nullable=False)  # Type d'interaction: note, document, meeting, activity-reminder, call
     details = Column(JSONB, nullable=True)  # Détails spécifiques à l'interaction
 
     # logs = relationship("Log", order_by="Log.date_added", back_populates="tracking_case")
@@ -319,3 +319,56 @@ def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
 
+
+
+class ActivityReminderType(Base):
+    """
+    database model for storing Activity Reminder related details
+    """
+    __tablename__ = 'activity_reminder_types'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    title_fr: str = Column(String, nullable=False)
+    title_en: str = Column(String, nullable=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(ActivityReminderType, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(ActivityReminderType, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+class MeetingType(Base):
+    """
+    database model for storing meeting types related details
+    """
+    __tablename__ = 'meeting_types'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    title_fr: str = Column(String, nullable=False)
+    title_en: str = Column(String, nullable=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(MeetingType, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(MeetingType, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()

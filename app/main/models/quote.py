@@ -77,7 +77,8 @@ class Quote(Base):
 
     adaptation_type: str = Column(types.Enum(AdaptationType), default=AdaptationType.PACKAGE, nullable=False)
     adaptation_package_costs: float = Column(Numeric(precision=10, scale=2), default=150)
-    adaptation_package_days: float = Column(Numeric(precision=10, scale=2), default=5)
+    adaptation_package_days: int = Column(Integer, default=5)
+    adaptation_hours_number: int = Column(Integer, default=120)
     adaptation_hourly_rate: float = Column(Numeric(precision=10, scale=2), default=10)
     adaptation_hours_number: int = Column(Integer, default=120)
 

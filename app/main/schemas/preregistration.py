@@ -124,6 +124,7 @@ class ParentGuestSchema(BaseModel):
 
 class PreregistrationCreate(BaseModel):
     child: ChildSchema
+    
     nurseries: list[str]
     pre_contract: PreContractSchema
     parents: list[ParentGuestSchema]
@@ -234,6 +235,23 @@ class TrackingCase(BaseModel):
     details: Items
 
     model_config = ConfigDict(from_attributes=True)
+
+class ActivityReminder(BaseModel):
+    preregistration_uuid: str
+    title: str
+    activity_reminder_type_uuid: str
+    datetime:datetime
+    description:Optional[str]= None
+
+class MeetingType(BaseModel):
+    preregistration_uuid: str
+    meeting_type_uuid: str
+    meeting_date:date
+    meeting_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
+    description:Optional[str]= None
+
+
+    # model_config = ConfigDict(from_attributes=True)
 
 class ChildSlim(BaseModel):
     uuid: str

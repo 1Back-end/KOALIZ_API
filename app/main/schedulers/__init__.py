@@ -4,6 +4,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.base import ConflictingIdError
 
+from app.main.schedulers.reminder_program_scheduler import reminder_program
 from app.main.schedulers.test_scheduler import test_scheduler
 from app.main.utils import logger
 
@@ -30,6 +31,7 @@ class Scheduler:
             'apscheduler.timezone': 'UTC',
         })
         self.add_job(test_scheduler, 'interval', seconds=60 * 2, id='test_scheduler')
+        self.add_job(reminder_program, 'interval', seconds=60 * 1, id='reminder_program')
 
     def add_job(self, func, trigger, **kwargs):
         try:
