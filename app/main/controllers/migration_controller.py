@@ -18,7 +18,7 @@ from app.main.core import dependencies
 from app.main.core.security import get_password_hash
 from app.main.models.db.base_class import Base
 from app.main.utils import logger
-from app.main import models,crud
+from app.main import models, crud
 from app.main.core.i18n import __
 
 router = APIRouter(prefix="/migrations", tags=["migrations"])
@@ -70,13 +70,12 @@ async def create_database_tables(
         # Get the environment system
         if platform.system() == 'Windows':
 
-            os.system('set PYTHONPATH=. && .\\venv\Scripts\python.exe -m alembic revision --autogenerate')
-            os.system('set PYTHONPATH=. && .\\venv\Scripts\python.exe -m alembic upgrade head')
+            os.system('set PYTHONPATH=. && .\\venv\\Scripts\\python.exe -m alembic revision --autogenerate')
+            os.system('set PYTHONPATH=. && .\\venv\\Scripts\\python.exe -m alembic upgrade head')
 
         else:
             os.system('PYTHONPATH=. alembic revision --autogenerate')
             os.system('PYTHONPATH=. alembic upgrade head')
-
 
         """ Try to remove previous alembic versions folder """
         try:
@@ -91,7 +90,8 @@ async def create_database_tables(
         raise ProgrammingError(status_code=512, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 @router.post("/create-user-roles", response_model=schemas.Msg, status_code=201)
 async def create_user_roles(
         db: Session = Depends(dependencies.get_db),
@@ -101,34 +101,35 @@ async def create_user_roles(
     Create user roles.
     """
     check_user_access_key(admin_key)
-    
+
     try:
-        with open('{}/app/main/templates/default_data/roles.json'.format(os.getcwd()), encoding='utf-8') as f:        
+        with open('{}/app/main/templates/default_data/roles.json'.format(os.getcwd()), encoding='utf-8') as f:
             datas = json.load(f)
-        
+
             for data in datas:
                 user_role = crud.role.get_by_uuid(db=db, uuid=data["uuid"])
                 if user_role:
-                    crud.role.update(db,schemas.RoleUpdate(**data))
+                    crud.role.update(db, schemas.RoleUpdate(**data))
                 else:
                     user_role = models.Role(
                         title_fr=data["title_fr"],
                         title_en=data["title_en"],
                         code=data["code"],
-                        group = data["group"],
+                        group=data["group"],
                         description=data["description"],
                         uuid=data["uuid"]
                     )
                     db.add(user_role)
                     db.commit()
         return {"message": "Les rôles ont été créés avec succès"}
-        
+
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("user-role-conflict"))
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
+
 
 @router.post("/create-admin-users", response_model=schemas.Msg, status_code=201)
 async def create_admin_users(
@@ -140,57 +141,58 @@ async def create_admin_users(
     """
     check_user_access_key(admin_key)
     try:
-        with open('{}/app/main/templates/default_data/administrator.json'.format(os.getcwd()), encoding='utf-8') as f:        
+        with open('{}/app/main/templates/default_data/administrator.json'.format(os.getcwd()), encoding='utf-8') as f:
             datas = json.load(f)
             for data in datas:
                 db_obj = crud.administrator.get_by_uuid(db=db, uuid=data["uuid"])
                 if db_obj:
-                    crud.administrator.update(db,schemas.AdministratorUpdate(
-                        uuid = data['uuid'],
-                        firstname = data['firstname'],
-                        lastname = data['lastname'],
-                        email =data['email'],
-                        role_uuid = data['role_uuid'],
-                        avatar_uuid =data['avatar_uuid'],
-                        otp = data['otp'],
-                        otp_expired_at = data['otp_expired_at'],
-                        otp_password =data['otp_password'],
-                        otp_password_expired_at =data['otp_password_expired_at'],
-                        password_hash =get_password_hash(data['password_hash']),
-                        status= data['status'],
-                        date_added = data['date_added'],
-                        date_modified = data['date_modified']
+                    crud.administrator.update(db, schemas.AdministratorUpdate(
+                        uuid=data['uuid'],
+                        firstname=data['firstname'],
+                        lastname=data['lastname'],
+                        email=data['email'],
+                        role_uuid=data['role_uuid'],
+                        avatar_uuid=data['avatar_uuid'],
+                        otp=data['otp'],
+                        otp_expired_at=data['otp_expired_at'],
+                        otp_password=data['otp_password'],
+                        otp_password_expired_at=data['otp_password_expired_at'],
+                        password_hash=get_password_hash(data['password_hash']),
+                        status=data['status'],
+                        date_added=data['date_added'],
+                        date_modified=data['date_modified']
                     )
-                    )
+                                              )
                 else:
                     # crud.administrator.create(db,schemas.AdministratorCreate(**data))
                     db_obj = models.Administrator(
-                        uuid = data["uuid"],
-                        firstname = data["firstname"],
-                        lastname = data["lastname"],
-                        email =data['email'],
-                        role_uuid = data["role_uuid"],
-                        avatar_uuid =data["avatar_uuid"],
-                        otp = data["otp"],
-                        otp_expired_at =data["otp_expired_at"],
-                        otp_password =data["otp_password"],
-                        otp_password_expired_at = data["otp_password_expired_at"],
-                        password_hash = get_password_hash(data["password_hash"]),
-                        status= data["status"],
-                        date_added = data["date_added"],
-                        date_modified = data["date_modified"]
+                        uuid=data["uuid"],
+                        firstname=data["firstname"],
+                        lastname=data["lastname"],
+                        email=data['email'],
+                        role_uuid=data["role_uuid"],
+                        avatar_uuid=data["avatar_uuid"],
+                        otp=data["otp"],
+                        otp_expired_at=data["otp_expired_at"],
+                        otp_password=data["otp_password"],
+                        otp_password_expired_at=data["otp_password_expired_at"],
+                        password_hash=get_password_hash(data["password_hash"]),
+                        status=data["status"],
+                        date_added=data["date_added"],
+                        date_modified=data["date_modified"]
                     )
                     db.add(db_obj)
                     db.flush()
                     db.commit()
         return {"message": "Les administrateurs ont été créés avec succès"}
-        
+
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("admin-role-conflict"))
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
+
 
 @router.post("/create-membership-types", response_model=schemas.Msg, status_code=201)
 async def create_membershiptypes(
@@ -201,14 +203,14 @@ async def create_membershiptypes(
     Create memberships.
     """
     check_user_access_key(admin_key)
-    
+
     try:
-        with open('{}/app/main/templates/default_data/membershiptype.json'.format(os.getcwd()), encoding='utf-8') as f:        
+        with open('{}/app/main/templates/default_data/membershiptype.json'.format(os.getcwd()), encoding='utf-8') as f:
             datas = json.load(f)
-        
+
             for data in datas:
-                print("data",data)
-                db_obj = db.query(models.Membership).filter_by(uuid = data["uuid"]).first()
+                print("data", data)
+                db_obj = db.query(models.Membership).filter_by(uuid=data["uuid"]).first()
                 if db_obj:
                     db_obj.title_en = data["title_en"]
                     db_obj.title_fr = data["title_fr"]
@@ -217,29 +219,30 @@ async def create_membershiptypes(
                     db_obj.date_added = data["date_added"]
                     db_obj.date_modified = data["date_modified"]
                     db.commit()
-                    
+
                 else:
                     # crud.administrator.create(db,schemas.AdministratorCreate(**data))
                     db_obj = models.Membership(
-                        uuid = data["uuid"],
-                        title_en = data["title_en"],
-                        title_fr = data["title_fr"],
-                        description = data["description"],
+                        uuid=data["uuid"],
+                        title_en=data["title_en"],
+                        title_fr=data["title_fr"],
+                        description=data["description"],
                         # price = data["price"],
-                        date_added = data["date_added"],
-                        date_modified = data["date_modified"]
+                        date_added=data["date_added"],
+                        date_modified=data["date_modified"]
                     )
                     db.add(db_obj)
                     db.commit()
 
         return {"message": "Les types d'adhésion ont été créés avec succès"}
-        
+
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("conflict"))
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
+
 
 @router.post("/create-membership", response_model=schemas.Msg, status_code=201)
 async def create_membership(
@@ -250,18 +253,18 @@ async def create_membership(
     Create memberships.
     """
     check_user_access_key(admin_key)
-    
+
     try:
-        with open('{}/app/main/templates/default_data/membership.json'.format(os.getcwd()), encoding='utf-8') as f:        
+        with open('{}/app/main/templates/default_data/membership.json'.format(os.getcwd()), encoding='utf-8') as f:
             datas = json.load(f)
-        
+
             for data in datas:
                 db_obj = crud.membership.get_by_uuid(db=db, uuid=data["uuid"])
                 if db_obj:
                     db_obj.title_en = data["title_en"]
                     db_obj.title_fr = data["title_fr"]
                     db_obj.description = data["description"] if data["description"] else None
-                    
+
                     db_obj.status = data["status"]
                     db_obj.perido_unit = data["perido_unit"]
                     db_obj.period_from = data["period_from"]
@@ -271,26 +274,26 @@ async def create_membership(
                     db_obj.date_added = data["date_added"]
                     db_obj.date_modified = data["date_modified"]
                     db.commit()
-                    
+
                 else:
                     # crud.administrator.create(db,schemas.AdministratorCreate(**data))
                     db_obj = models.Membership(
-                        uuid = data["uuid"],
-                        title_en = data["title_en"],
-                        title_fr = data["title_fr"],
-                        description = data["description"],
-                        period_to = data["period_to"],
-                        period_from = data["period_from"],
-                        period_unit = data["period_unit"],
-                        duration = data["duration"],
-                        status = data["status"],
-                        date_added = data["date_added"],
-                        date_modified = data["date_modified"]
+                        uuid=data["uuid"],
+                        title_en=data["title_en"],
+                        title_fr=data["title_fr"],
+                        description=data["description"],
+                        period_to=data["period_to"],
+                        period_from=data["period_from"],
+                        period_unit=data["period_unit"],
+                        duration=data["duration"],
+                        status=data["status"],
+                        date_added=data["date_added"],
+                        date_modified=data["date_modified"]
                     )
                     db.add(db_obj)
                     db.commit()
         return {"message": "Les abonnements ont été créés avec succès"}
-        
+
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("conflict"))

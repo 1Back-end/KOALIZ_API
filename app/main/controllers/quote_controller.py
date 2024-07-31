@@ -42,7 +42,7 @@ class Quotation:
         end_first_complete_month = start_first_complete_month.replace(day=calendar.monthrange(start_first_complete_month.year, start_first_complete_month.month)[1])
 
         db = SessionLocal()
-        nursery_closed_days = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid=self.preregistration.nursery_uuid).all()
+        nursery_closed_days = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid==self.preregistration.nursery_uuid).all()
         for nursery_closed_day in nursery_closed_days:
             
 
