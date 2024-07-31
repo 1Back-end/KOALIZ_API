@@ -180,7 +180,7 @@ async def get_opening_hours(
     return nursery
 
 
-@router.get("/all", response_model=list[schemas.OtherNurseryByGuest], status_code=200)
+@router.get("/all/slim", response_model=list[schemas.OtherNurseryByGuest], status_code=200)
 def get_all_without_filter(
         db: Session = Depends(get_db),
         current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
