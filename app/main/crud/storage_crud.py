@@ -6,6 +6,7 @@ import uuid
 from app.main.schemas import FileAdd, File
 from app.main.utils.file import FileUtils
 from app.main import crud
+from app.main.utils.qrcode import CreateQrcode
 
 
 class CRUDFile(CRUDBase[File, User, FileAdd]):
@@ -13,6 +14,15 @@ class CRUDFile(CRUDBase[File, User, FileAdd]):
     def store_file(self, db: Session, *, base_64: Any, name: str = None) -> Storage:
         try:
             file_manager = FileUtils(base64=base_64, name=name)
+            storage = file_manager.save(db=db)
+            return storage
+        except Exception as e:
+            print(str(e))
+            db.rollback()
+
+    def store_qrcode(self, db: Session, *, code: str ) -> Storage:
+        try:
+            file_manager = CreateQrcode(code=code)
             storage = file_manager.save(db=db)
             return storage
         except Exception as e:

@@ -14,15 +14,21 @@ from .tag_controller import router as tag
 from .audit_log_controller import router as audit_logs
 from .notification_controller import router as notification
 from .nursery_close_hours_controller import router as nursery_close_hours
+from .parent_controller import router as parent
+from .team_device_controller import router as team_device
+from .message_controller import router as message
 
 api_router = APIRouter()
 
 api_router.include_router(audit_logs)
+api_router.include_router(team_device)
 api_router.include_router(authentication)
 api_router.include_router(administrator)
 api_router.include_router(owner)
 api_router.include_router(membership)
 api_router.include_router(nursery)
+api_router.include_router(parent)
+api_router.include_router(message)
 api_router.include_router(preregistration)
 api_router.include_router(notification)
 api_router.include_router(migration)

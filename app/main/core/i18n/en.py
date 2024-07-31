@@ -34,5 +34,15 @@ translation = {
     "contract-not-found": "Contract not found",
     "folder-already-in-nursery": "The Folder already exists in the nursery",
     "nursery-transfer-successfully": "Crèche transferee avec succès",
+    "device-not-found": "Device not found",
+    "conversation-not-found": "Conversation not found",
+    "code-validated-successfully":"code has been validated with succes.",
+    "invalid-user":"Invalid user.",
+    "account-validation-pending": "An email has been sent to you to finalize the creation of your account.",
+    "device-already-found": "Existing device",
+    "team-device-deleted": "Device successfully deleted",
+    "dependencies-token-invalid": "Token invalid",
+    "dependencies-access-unauthorized": "You do not have the right to access this feature!"
+
 
 }

@@ -15,3 +15,6 @@ from .audit_log import *
 from .notification import *
 from .nursery_close_hours import *
 from .nursery_holidays import *
+from .parent import *
+from .team_device import *
+from .conversation import *

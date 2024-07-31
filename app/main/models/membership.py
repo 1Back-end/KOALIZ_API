@@ -34,12 +34,12 @@ class NurseryMemberships(Base):
     uuid: str = Column(String, primary_key=True, unique=True,index = True)
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
     
-    nursery =relationship("Nursery",foreign_keys=[nursery_uuid],uselist=False)
+    nursery =relationship("Nursery",foreign_keys=[nursery_uuid],uselist=False,overlaps="memberships")
     # nurseries = relationship("Nursery",foreign_keys=[nursery_uuid],secondary="nurseries",backref='memberships',overlaps='memberships')
     
     membership_uuid: str = Column(String, ForeignKey('memberships.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
     
-    memberships = relationship("Membership",foreign_keys=[membership_uuid],uselist= False)
+    memberships = relationship("Membership",foreign_keys=[membership_uuid],uselist= False,overlaps="nurseries")
     
     period_from:datetime = Column(DateTime, nullable=False, default=datetime.utcnow())
     period_to: datetime = Column(DateTime, nullable=False, default=datetime.utcnow())
@@ -75,7 +75,7 @@ class Membership(Base):
     title_fr: str = Column(String(100), index=True)
     title_en: str = Column(String(100), index=True)
     description: str = Column(Text)
-    nurseries = relationship("Nursery", secondary="nursery_memberships", back_populates="memberships")
+    nurseries = relationship("Nursery", secondary="nursery_memberships", back_populates="memberships",overlaps="memberships, nursery")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.utcnow())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.utcnow())

@@ -69,7 +69,7 @@ def get_special_folder(
     return crud.preregistration.get_by_uuid(db, uuid)
 
 @router.get("/detail/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
-def get_special_folder(
+def get_special_folder_without_permission(
     uuid: str,
     db: Session = Depends(get_db),
 ):
@@ -101,7 +101,7 @@ def update_special_folder(
     return crud.preregistration.update(db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
 
 @router.put("/update", response_model=schemas.ChildDetails, status_code=200)
-def update_special_folder(
+def update_special_folder_without_permission(
     obj_in: schemas.PreregistrationUpdate,
     db: Session = Depends(get_db),
 ):
@@ -249,13 +249,3 @@ def delete_special_folder(
     crud.preregistration.delete_a_special_folder(db, folder_uuid=uuid, performed_by_uuid=current_user.uuid)
 
     return {"message": __("folder-deleted")}
-
-@router.get("/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
-def get_special_folder(
-    uuid: str,
-    db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
-):
-    """ Get a special folder """
-
-    return crud.preregistration.get_by_uuid(db, uuid)

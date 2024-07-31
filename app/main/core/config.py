@@ -30,7 +30,7 @@ class ConfigClass(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(get_secret("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 365))
 
    # Minio
-    MINIO_API_URL: str = get_secret("MINIO_API_URL", "https://api.development.koalizz.fr/v1/storages/get/")
+    MINIO_API_URL: str = get_secret("MINIO_API_URL", "https://api.development.koalizz.fr/api/v1/storages/get/")
     MINIO_URL: str = get_secret("MINIO_URL", "files.koalizz.fr")
     MINIO_ACCESS_KEY: str = get_secret("MINIO_ACCESS_KEY", "WlsCK$gS7CTqhmM@x0jshEzsCK$gTqSM@7CT3hTddcc3mxlfyBo=")
     MINIO_SECRET_KEY: str = get_secret("MINIO_SECRET_KEY", "jDe6SMqmmfCFyfGXD0n0N7r9AE2oKXyf/GXDpLRRCF4pOht0n0N7r9AEqZfHoskTn1jjogcANAkflmfDa0kpxfiw==")
@@ -41,7 +41,7 @@ class ConfigClass(BaseSettings):
 
     # Sqlalchemy
     # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
-    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:2002@localhost:5432/bde_micro_creche_dev')
+    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:root@localhost:5432/bde_micro_creche_dev')
     SQLALCHEMY_POOL_SIZE: int = 100
     SQLALCHEMY_MAX_OVERFLOW: int = 0
     SQLALCHEMY_POOL_TIMEOUT: int = 30
@@ -82,8 +82,8 @@ class ConfigClass(BaseSettings):
     RESET_PASSWORD_LINK: str = get_secret("RESET_PASSWORD_LINK", "https://app.development.koalizz.fr/{}/auth/reset-password")
 
     # Default image size
-    # IMAGE_MEDIUM_WIDTH: int = get_secret("IMAGE_MEDIUM_WIDTH", 600)
-    # IMAGE_THUMBNAIL_WIDTH: int = get_secret("IMAGE_THUMBNAIL_WIDTH", 300)
+    IMAGE_MEDIUM_WIDTH: int = get_secret("IMAGE_MEDIUM_WIDTH", 600)
+    IMAGE_THUMBNAIL_WIDTH: int = get_secret("IMAGE_THUMBNAIL_WIDTH", 300)
 
     UPLOADED_FILE_DEST: str = get_secret("UPLOADED_FILE_DEST", "uploads")
 

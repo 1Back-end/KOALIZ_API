@@ -1,6 +1,6 @@
 from typing import Optional, Any
 
-from fastapi import Body, HTTPException
+from fastapi import Body, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
 from datetime import datetime, time, date
 
@@ -8,6 +8,7 @@ from app.main import models
 from app.main.core.i18n import __
 from app.main.schemas import DataList, NurseryMini
 from app.main.schemas.base import Items
+from app.main.schemas.file import File
 
 
 @field_validator("birthdate")
@@ -179,7 +180,27 @@ class ChildDetails(BaseModel):
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
 
+class ParentDisplay(BaseModel):
+    uuid: str= None
+    link: models.ParentRelationship= None
+    firstname: str= None
+    lastname: str= None
+    birthplace: str= None
+    fix_phone: str = None
+    phone: str= None
+    email: EmailStr= None
+    recipient_number: str= None
+    zip_code: str= None
+    city: str= None
+    country: str= None
+    profession: str= None
+    annual_income: float= None
+    company_name: str= None
+    has_company_contract: bool= None
+    dependent_children: int= None
+    disabled_children: int= None
 
+    model_config = ConfigDict(from_attributes=True)
 class ChildMini(BaseModel):
     uuid: str
     firstname: str
@@ -189,7 +210,7 @@ class ChildMini(BaseModel):
     birthplace: str
     date_added: datetime
     date_modified: datetime
-    parents: list[ParentGuest]
+    parents: list[ParentDisplay]
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -247,11 +268,26 @@ class MeetingType(BaseModel):
     preregistration_uuid: str
     meeting_type_uuid: str
     meeting_date:date
+    meeting_begin_time:str = Body(..., regex=r'^\d{2}:\d{2}$')
+    meeting_end_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
     meeting_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
     description:Optional[str]= None
 
 
     # model_config = ConfigDict(from_attributes=True)
+
+class MeetingTypeResponse(BaseModel):
+    uuid: str
+    title_en:  str
+    title_fr:str
+    model_config = ConfigDict(from_attributes=True)
+
+class ActivityReminderTypeResponse(BaseModel):
+    uuid: str
+    title_en:  str
+    title_fr:str
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ChildSlim(BaseModel):
     uuid: str
@@ -269,12 +305,20 @@ class PreContractSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class Tag(BaseModel):
+    uuid: str
+    title_fr: str
+    title_en: str
+    icon: Optional[File] = None
+    description: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
 
 class PreregistrationSlim(BaseModel):
     uuid: str
-    child: ChildSlim
+    child: ChildMini
     pre_contract: PreContractSlim
     status: str = None
+    tags:Any
 
     model_config = ConfigDict(from_attributes=True)
 
