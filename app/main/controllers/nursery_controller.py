@@ -150,17 +150,6 @@ def get_by_slug_guest(
     return nursery
 
 
-@router.get("/all", response_model=list[schemas.OtherNurseryByGuest], status_code=200)
-def get_all_without_filter(
-        db: Session = Depends(get_db),
-        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
-):
-    """
-    Get all nurseries
-    """
-    return crud.nursery.get_all_uuids_of_same_owner(db, current_user.uuid)
-
-
 @router.post("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
 async def create_opening_hours(
         opening_hours: list[schemas.OpeningHoursInput],
@@ -189,4 +178,16 @@ async def get_opening_hours(
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
     return nursery
+
+
+@router.get("/all", response_model=list[schemas.OtherNurseryByGuest], status_code=200)
+def get_all_without_filter(
+        db: Session = Depends(get_db),
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Get all nurseries
+    """
+    return crud.nursery.get_all_uuids_of_same_owner(db, current_user.uuid)
+
 "c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
