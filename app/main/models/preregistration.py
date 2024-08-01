@@ -67,6 +67,12 @@ class Child(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
+    @hybrid_property
+    def paying_parent(self):
+        for parent in self.parents:
+            if parent.is_paying_parent:
+                return parent
+
 
 @event.listens_for(Child, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
@@ -139,6 +145,8 @@ class ParentGuest(Base):
     has_company_contract: bool = Column(Boolean, default=True)
     dependent_children: int = Column(Integer, default=0)
     disabled_children: int = Column(Integer, default=0)
+
+    is_paying_parent: bool = Column(Boolean, default=False)
 
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, back_populates="parents", uselist=False)

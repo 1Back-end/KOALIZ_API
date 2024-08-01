@@ -8,7 +8,7 @@ from app.main import models
 from app.main.core.i18n import __
 from app.main.schemas import DataList, NurseryMini
 from app.main.schemas.base import Items
-from app.main.schemas.file import File
+from app.main.schemas.user import Storage
 
 
 @field_validator("birthdate")
@@ -155,6 +155,13 @@ class ParentGuest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class Tag(BaseModel):
+    uuid: str
+    title_fr: str
+    title_en: str
+    icon: Optional[Storage] = None
+    description: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
 
 class PreregistrationMini(BaseModel):
     uuid: str
@@ -200,6 +207,15 @@ class ParentDisplay(BaseModel):
     disabled_children: int= None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PayingParentGuest(BaseModel):
+    uuid: str
+    annual_income: float = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ChildMini(BaseModel):
     uuid: str
     firstname: str
@@ -210,6 +226,19 @@ class ChildMini(BaseModel):
     date_added: datetime
     date_modified: datetime
     parents: list[ParentDisplay]
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChildMini2(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+    birthplace: str
+    date_added: datetime
+    date_modified: datetime
+    paying_parent: Optional[PayingParentGuest] = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -232,6 +261,7 @@ class PreregistrationDetails(BaseModel):
     tracking_cases: list[TrackingCaseMini]
     note: str = None
     status: str = None
+    tags:Optional[list[Tag]] = []
     accepted_date: Optional[datetime] = None
     refused_date: Optional[datetime] = None
     date_added: datetime
@@ -304,20 +334,15 @@ class PreContractSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class Tag(BaseModel):
-    uuid: str
-    title_fr: str
-    title_en: str
-    icon: Optional[File] = None
-    description: Optional[str] = None
-    model_config = ConfigDict(from_attributes=True)
+class Icon(Storage):
+    pass
 
 class PreregistrationSlim(BaseModel):
     uuid: str
-    child: ChildMini
+    child: ChildMini2
     pre_contract: PreContractSlim
     status: str = None
-    tags:Any
+    tags:Optional[list[Tag]] = []
 
     model_config = ConfigDict(from_attributes=True)
 
