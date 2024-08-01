@@ -26,6 +26,8 @@ class Team(Base):
     leader = relationship("Employee", foreign_keys=[leader_uuid], uselist=False)
     status:str = Column(String, index=True, nullable=False)
 
+    employees = relationship("Employee", secondary="team_employees", back_populates="teams", overlaps="employee,team")
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
@@ -57,11 +59,11 @@ class Employee(Base):
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid], uselist=False)
 
-    team_uuid: str = Column(String, ForeignKey('teams.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=True)
-    # teams = relationship("TeamEmployees", foreign_keys=[team_uuid],back_populates="team")
+    teams = relationship("Team",secondary="team_employees", back_populates="employees", overlaps="team,employee")
+    # teams = relationship("TeamEmployees", back_populates="employee")
 
-    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
-    # nurseries = relationship("NurseryEmployees", foreign_keys=[nursery_uuid])
+    nurseries = relationship("Nursery", secondary="nursery_employees", back_populates="employees",overlaps="employee,nursery")
+    # nurseries = relationship("Nursery", secondary="nursery_memberships", back_populates="memberships",overlaps="memberships, nursery")
 
     status:str = Column(String, index=True, nullable=False)
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -88,9 +90,12 @@ class NurseryEmployees(Base):
     __tablename__ = 'nursery_employees'
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
-    # nursery = relationship("Nursery", foreign_keys=[nursery_uuid], uselist=False)
+    nursery = relationship("Nursery", foreign_keys=[nursery_uuid], uselist=False, overlaps="employees")
+
     employee_uuid: str = Column(String, ForeignKey('employees.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
-    # employee = relationship("Employee", foreign_keys=[employee_uuid], uselist=False, back_populates="nurseries")
+    employee = relationship("Employee", foreign_keys=[employee_uuid], uselist=False, overlaps="nurseries")
+
+    status:str = Column(String, index=True, nullable=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -112,10 +117,12 @@ class TeamEmployees(Base):
     __tablename__ = 'team_employees'
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
     employee_uuid: str = Column(String, ForeignKey('employees.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
-    # employee = relationship("Employee", foreign_keys=[employee_uuid], uselist=False,back_populates="teams")
+    employee = relationship("Employee", foreign_keys=[employee_uuid], uselist=False, overlaps="teams")
 
     team_uuid: str = Column(String, ForeignKey('teams.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
-    # team = relationship("Team", foreign_keys=[team_uuid], uselist=False,back_populates="employees")
+    team = relationship("Team", foreign_keys=[team_uuid], uselist=False,overlaps="employees")
+
+    status:str = Column(String, index=True, nullable=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

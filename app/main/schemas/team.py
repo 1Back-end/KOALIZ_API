@@ -8,19 +8,19 @@ class TeamBase(BaseModel):
     name: str
     leader_uuid: str
     description: Optional[str] = None
-    member_uuid_tab: list[str]
     status: str = ""
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class TeamCreate(TeamBase):
-    pass
+    member_uuid_tab: list[str]
+
     
 
 class TeamUpdate(TeamBase):
     uuid:str
-    team_uuid: str
+    member_uuid_tab: list[str]
 
 
 class TeamInDB(TeamBase):
@@ -29,9 +29,19 @@ class TeamInDB(TeamBase):
     date_modified: datetime
     model_config = ConfigDict(from_attributes=True)
 
+class EmployeSlim(BaseModel):
+    uuid: str
+    email: str
+    firstname: str
+    lastname: str
+    avatar: Optional[File] = None
+    status: str
+    date_added: datetime
+    date_modified: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 class TeamResponse(TeamInDB):
-    members: list[EmployeResponse] = []
+    employees: list[EmployeSlim] = []
     leader_uuid: str
     leader: EmployeResponse
     model_config = ConfigDict(from_attributes=True)
