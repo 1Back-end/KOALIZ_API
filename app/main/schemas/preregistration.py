@@ -155,6 +155,13 @@ class ParentGuest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class Tag(BaseModel):
+    uuid: str
+    title_fr: str
+    title_en: str
+    icon: Optional[Storage] = None
+    description: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
 
 class PreregistrationMini(BaseModel):
     uuid: str
@@ -232,6 +239,7 @@ class PreregistrationDetails(BaseModel):
     tracking_cases: list[TrackingCaseMini]
     note: str = None
     status: str = None
+    tags:Optional[list[Tag]] = []
     accepted_date: Optional[datetime] = None
     refused_date: Optional[datetime] = None
     date_added: datetime
