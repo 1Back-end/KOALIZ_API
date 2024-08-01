@@ -6,7 +6,7 @@ from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
 from app.main.core.config import Config
-from fastapi import APIRouter, Depends, Body, HTTPException, Query
+from fastapi import APIRouter, Depends, Body, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -19,12 +19,13 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.PreregistrationCreate,
+    background_task: BackgroundTasks,
 ):
     """
     Create preregistration
     """
 
-    return crud.preregistration.create(db, obj_in)
+    return crud.preregistration.create(db, obj_in, background_task=background_task)
 
 
 @router.post("/create/owner", response_model=schemas.ChildDetails, status_code=201)

@@ -71,7 +71,6 @@ Total = 3 110 €
 """
 from calendar import monthrange
 from datetime import datetime, timedelta, date
-from time import sleep
 
 from dateutil import rrule
 
@@ -269,7 +268,7 @@ class QuoteEngine:
 
         mrc_remaining_contract_cost_after_first_month = nbjor_real_contract_days_after_first_month * cj_daily_cost
         nfl_smoothing_month_count = self.__months_between(ddpc_first_complete_month_start_date, last_end_date)
-        nbjfm_numbers_of_days_per_month = nbjor_real_contract_days_after_first_month / nfl_smoothing_month_count
+        nbjfm_numbers_of_days_per_month = nbjor_real_contract_days_after_first_month / nfl_smoothing_month_count if nfl_smoothing_month_count != 0 else 0
         mm_monthly_cost = nbjfm_numbers_of_days_per_month * cj_daily_cost
         print(mm_monthly_cost)
         if self.has_deposit:
@@ -299,7 +298,7 @@ class QuoteEngine:
             items=[
                 QuoteTimeTableItem(
                     amount=fpm_first_month_cost,
-                    quote_type=QuoteTimetableItemType.REGISTRATION,
+                    quote_type=QuoteTimetableItemType.INVOICE,
                     qty=nbjop_billable_first_month_days/mhj_average_duration_per_day
                 ),
                 QuoteTimeTableItem(
@@ -330,7 +329,7 @@ class QuoteEngine:
                 items=[
                     QuoteTimeTableItem(
                         amount=amount,
-                        quote_type=QuoteTimetableItemType.REGISTRATION,
+                        quote_type=QuoteTimetableItemType.INVOICE,
                         qty=nbjfm_numbers_of_days_per_month/mhj_average_duration_per_day
                     )
                 ]
@@ -343,7 +342,7 @@ class QuoteEngine:
                 items=[
                     QuoteTimeTableItem(
                         amount=last_month_amount,
-                        quote_type=QuoteTimetableItemType.REGISTRATION,
+                        quote_type=QuoteTimetableItemType.INVOICE,
                         qty=last_special_month_days/mhj_average_duration_per_day
                     )
                 ]
@@ -379,76 +378,76 @@ class QuoteEngine:
         return months.count()
 
 
-quote = QuoteEngine(
-    contract_start_date=date(2024, 8, 21),
-    contract_end_date=date(2025, 3, 7),
-    rate_per_hour=10,
-    planning_weeks=[
-        [
-            [
-                {
-                    "from_time": "08:00",
-                    "to_time": "13:30"
-                }
-            ],
-            [],
-            [],
-            [
-                {
-                    "from_time": "10:00",
-                    "to_time": "16:00"
-                }
-            ],
-            [
-                {
-                    "from_time": "08:00",
-                    "to_time": "15:00"
-                }
-            ],
-        ],
-        [
-            [
-                {
-                    "from_time": "08:00",
-                    "to_time": "12:00"
-                },
-                {
-                    "from_time": "13:00",
-                    "to_time": "18:00"
-                }
-            ],
-            [],
-            [
-                {
-                    "from_time": "10:00",
-                    "to_time": "13:00"
-                }
-            ],
-            [],
-            []
-        ]
-    ],
-    holiday_days=[
-        date(2024, 12, 25),
-        date(2025, 1, 1),
-        date(2024, 8, 15)
-    ],
-    closing_periods=[
-        (date(2024, 11, 11), date(2024, 11, 30))
-    ],
-    adaptation_type=AdaptationType.PACKAGE,
-    adaptation_package_costs=80,
-    adaptation_package_days=6,
-    adaptation_hourly_rate=0,
-    adaptation_hours_number=0,
-    has_deposit=True,
-    deposit_type=DepositType.PERCENTAGE,
-    deposit_percentage=10,
-    deposit_value=0,
-    has_registration_fee=True,
-    registration_fee=90,
-    last_special_month=True,
-    min_days_for_last_special_month=5,
-    invoice_timing=InvoiceTimeType.END_OF_MONTH
-)
-print(quote.generate_quote())
+# quote = QuoteEngine(
+#     contract_start_date=date(2024, 8, 21),
+#     contract_end_date=date(2025, 3, 7),
+#     rate_per_hour=10,
+#     planning_weeks=[
+#         [
+#             [
+#                 {
+#                     "from_time": "08:00",
+#                     "to_time": "13:30"
+#                 }
+#             ],
+#             [],
+#             [],
+#             [
+#                 {
+#                     "from_time": "10:00",
+#                     "to_time": "16:00"
+#                 }
+#             ],
+#             [
+#                 {
+#                     "from_time": "08:00",
+#                     "to_time": "15:00"
+#                 }
+#             ],
+#         ],
+#         [
+#             [
+#                 {
+#                     "from_time": "08:00",
+#                     "to_time": "12:00"
+#                 },
+#                 {
+#                     "from_time": "13:00",
+#                     "to_time": "18:00"
+#                 }
+#             ],
+#             [],
+#             [
+#                 {
+#                     "from_time": "10:00",
+#                     "to_time": "13:00"
+#                 }
+#             ],
+#             [],
+#             []
+#         ]
+#     ],
+#     holiday_days=[
+#         date(2024, 12, 25),
+#         date(2025, 1, 1),
+#         date(2024, 8, 15)
+#     ],
+#     closing_periods=[
+#         (date(2024, 11, 11), date(2024, 11, 30))
+#     ],
+#     adaptation_type=AdaptationType.PACKAGE,
+#     adaptation_package_costs=80,
+#     adaptation_package_days=6,
+#     adaptation_hourly_rate=0,
+#     adaptation_hours_number=0,
+#     has_deposit=True,
+#     deposit_type=DepositType.PERCENTAGE,
+#     deposit_percentage=10,
+#     deposit_value=0,
+#     has_registration_fee=True,
+#     registration_fee=90,
+#     last_special_month=True,
+#     min_days_for_last_special_month=5,
+#     invoice_timing=InvoiceTimeType.END_OF_MONTH
+# )
+# print(quote.generate_quote())

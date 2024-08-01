@@ -7,6 +7,7 @@ from datetime import datetime, date
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, Mapped
 from app.main.models.db.session import SessionLocal
+from app.main.models.quote import FamilyType
 from .db.base_class import Base
 
 
@@ -66,9 +67,17 @@ class Child(Base):
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)
     is_accepted: bool = Column(Boolean, default=False)
+    family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    @hybrid_property
+    def paying_parent(self):
+        for parent in self.parents:
+            if parent.is_paying_parent:
+                return parent
+        return self.parents[0]
 
 
 @event.listens_for(Child, 'before_insert')
@@ -146,7 +155,7 @@ class ParentGuest(Base):
     is_paying_parent: bool = Column(Boolean, default=False)
 
     contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
-    contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, back_populates="parent_guest", uselist=False)
+    contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
 
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, back_populates="parents", uselist=False)

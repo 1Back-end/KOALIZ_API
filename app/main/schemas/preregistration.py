@@ -201,6 +201,15 @@ class ParentDisplay(BaseModel):
     disabled_children: int= None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PayingParentGuest(BaseModel):
+    uuid: str
+    annual_income: float = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ChildMini(BaseModel):
     uuid: str
     firstname: str
@@ -214,7 +223,19 @@ class ChildMini(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChildMini2(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+    birthplace: str
+    date_added: datetime
+    date_modified: datetime
+    paying_parent: Optional[PayingParentGuest] = None
     model_config = ConfigDict(from_attributes=True)
+
+
 class TrackingCaseMini(BaseModel):
     uuid: str
     details: Any
@@ -315,10 +336,10 @@ class Tag(BaseModel):
 
 class PreregistrationSlim(BaseModel):
     uuid: str
-    child: ChildMini
+    child: ChildMini2
     pre_contract: PreContractSlim
     status: str = None
-    tags:Any
+    tags: Any
 
     model_config = ConfigDict(from_attributes=True)
 

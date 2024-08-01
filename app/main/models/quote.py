@@ -1,8 +1,8 @@
 from enum import Enum
 
 from datetime import datetime, date, time
-from sqlalchemy import ARRAY, Boolean, Column, Date, DateTime, ForeignKey, Integer, Numeric, String, event, Time, types, \
-    UniqueConstraint
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, event, types,UniqueConstraint, \
+    Float
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, Mapped
@@ -56,6 +56,9 @@ class Quote(Base):
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
+    preregistration_uuid = Column(String, ForeignKey('preregistrations.uuid'), nullable=False)
+    preregistration: Mapped[any] = relationship("PreRegistration")
+
     parent_guest_uuid: str = Column(String, ForeignKey('parent_guests.uuid'), nullable=True)
     parent_guest: Mapped[any] = relationship("ParentGuest", foreign_keys=parent_guest_uuid, uselist=False)
 
@@ -65,25 +68,23 @@ class Quote(Base):
     pre_contract_uuid: str = Column(String, ForeignKey('pre_contracts.uuid'), nullable=True)
     pre_contract: Mapped[any] = relationship("PreContract", foreign_keys=pre_contract_uuid, uselist=False)
 
-    hourly_rate: float = Column(Numeric(precision=10, scale=2), default=10)
+    hourly_rate: float = Column(Float, default=10)
 
     has_registration_fee: bool = Column(Boolean, default=True)
-    registration_fee: float = Column(Numeric(precision=10, scale=2), default=90)
+    registration_fee: float = Column(Float, default=90)
 
     has_deposit: bool = Column(Boolean, default=True)
     deposit_type: str = Column(types.Enum(DepositType), default=DepositType.PERCENTAGE, nullable=False)
-    deposit_percentage: float = Column(Numeric(precision=10, scale=4), default=0.3)
-    deposit_value: float = Column(Numeric(precision=10, scale=4), default=0.3)
+    deposit_percentage: float = Column(Float, default=30)
+    deposit_value: float = Column(Float, default=0.3)
 
     adaptation_type: str = Column(types.Enum(AdaptationType), default=AdaptationType.PACKAGE, nullable=False)
-    adaptation_package_costs: float = Column(Numeric(precision=10, scale=2), default=150)
+    adaptation_package_costs: float = Column(Float, default=150)
     adaptation_package_days: int = Column(Integer, default=5)
-    adaptation_hours_number: int = Column(Integer, default=120)
-    adaptation_hourly_rate: float = Column(Numeric(precision=10, scale=2), default=10)
+    adaptation_hourly_rate: float = Column(Float, default=10)
     adaptation_hours_number: int = Column(Integer, default=120)
 
-    quote_cmg_uuid: str = Column(String, ForeignKey('quote_cmgs.uuid'), nullable=True)
-    quote_cmg: Mapped[any] = relationship("QuoteCMG", foreign_keys=quote_cmg_uuid, uselist=False)
+    cmg: Mapped[any] = relationship("QuoteCMG", back_populates="quote", uselist=False)
 
     quote_setting_uuid: str = Column(String, ForeignKey('quote_settings.uuid'), nullable=True)
     quote_setting: Mapped[any] = relationship("QuoteSetting", foreign_keys=quote_setting_uuid, uselist=False)
@@ -92,6 +93,8 @@ class Quote(Base):
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    UniqueConstraint("nursery_uuid", "preregistration_uuid", name="nursery_uuid_preregistration_uuid_unique")
 
 
 @event.listens_for(Quote, 'before_insert')
@@ -115,9 +118,9 @@ class QuoteTimetable(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    date_to: date = Column(Numeric(precision=10, scale=2), nullable=0)
-    amount: float = Column(Numeric(precision=10, scale=2), nullable=0)
-    items: Mapped[list[any]] = relationship("QuoteTimetableItem", back_populates="quote", uselist=True)
+    date_to: date = Column(Date)
+    amount: float = Column(Float, default=0)
+    items: Mapped[list[any]] = relationship("QuoteTimetableItem", back_populates="quote_timetable", uselist=True)
 
     quote_uuid: str = Column(String, ForeignKey('quotes.uuid'), nullable=True)
     quote: Mapped[any] = relationship("Quote", foreign_keys=quote_uuid, uselist=False, back_populates="timetables")
@@ -147,11 +150,12 @@ class QuoteTimetableItem(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    title: str = Column(String, nullable=False)
+    title_fr: str = Column(String, nullable=False)
+    title_en: str = Column(String, nullable=False)
     type: str = Column(types.Enum(QuoteTimetableItemType), nullable=False)
-    amount: float = Column(Numeric(precision=10, scale=2), nullable=0)
+    amount: float = Column(Float, nullable=0)
 
-    quote_timetable_uuid: str = Column(String, ForeignKey('quote_timetables.uuid'), nullable=True)
+    quote_timetable_uuid: str = Column(String, ForeignKey('quote_timetables.uuid'), nullable=False)
     quote_timetable: Mapped[any] = relationship("QuoteTimetable", foreign_keys=quote_timetable_uuid, uselist=False, back_populates="items")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -179,11 +183,13 @@ class QuoteCMG(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    name: str = Column(String)
-    amount: float = Column(Numeric(precision=10, scale=2), nullable=0)
+    amount: float = Column(Float, nullable=0)
     family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE, nullable=False)
     number_children: int = Column(Integer, default=1)
-    annual_income: float = Column(Numeric(precision=10, scale=2), default=0)
+    annual_income: float = Column(Float, default=0)
+
+    quote_uuid: str = Column(String, ForeignKey('quotes.uuid'), nullable=True)
+    quote: Mapped[any] = relationship("Quote", foreign_keys=quote_uuid, back_populates="cmg", uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -211,37 +217,38 @@ class QuoteSetting(Base):
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     adaptation_type: str = Column(types.Enum(AdaptationType), default=AdaptationType.PACKAGE, nullable=False)
-    adaptation_package_costs: float = Column(Numeric(precision=10, scale=2), default=150)
-    adaptation_package_days: float = Column(Numeric(precision=10, scale=2), default=5)
-    adaptation_hourly_rate: float = Column(Numeric(precision=10, scale=2), default=10)
+    adaptation_package_costs: float = Column(Float, default=150)
+    adaptation_package_days: float = Column(Float, default=5)
+    adaptation_hourly_rate: float = Column(Float, default=10)
+    adaptation_hours_number: int = Column(Integer, default=120)
 
-    hourly_rate_ranges: Mapped[any] = relationship("HourlyRateRange", back_populates="quote_setting", uselist=True)
+    hourly_rate_ranges: Mapped[list[any]] = relationship("HourlyRateRange", back_populates="quote_setting", uselist=True, order_by="HourlyRateRange.number_of_hours")
 
     has_deposit: bool = Column(Boolean, default=True)
     deposit_type: str = Column(types.Enum(DepositType), default=DepositType.PERCENTAGE, nullable=False)
-    deposit_percentage: float = Column(Numeric(precision=10, scale=4), default=0.3)
-    deposit_value: float = Column(Numeric(precision=10, scale=4), default=0.3)
+    deposit_percentage: float = Column(Float, default=30)
+    deposit_value: float = Column(Float, default=0.3)
 
     has_registration_fee: bool = Column(Boolean, default=True)
-    registration_fee: float = Column(Numeric(precision=10, scale=2), default=90)
+    registration_fee: float = Column(Float, default=90)
 
     last_special_month: bool = Column(Boolean, default=True)
     min_days_for_last_special_month: int = Column(Integer, default=5)
 
     # Invoice
     desired_text_on_invoice_line: str = Column(String, nullable=True)
-    display_calculation_details_in_invoice: bool = Column(Boolean, default=False)
-    invoicing_time: str = Column(String, nullable=True) #Enum Beging of month, End of month BEGINNING_OF_MONTH = "BEGINNING_OF_MONTH", END_OF_MONTH = "END_OF_MONTH"
+    # display_calculation_details_in_invoice: bool = Column(Boolean, default=False)
+    invoicing_time: str = Column(types.Enum(InvoiceTimeType), default=InvoiceTimeType.END_OF_MONTH, nullable=False)
     invoice_payable_within: int = Column(Integer, default=0)
     terms_and_conditions_displayed_on_invoice: str = Column(String, nullable=True)
     invoice_footer: str = Column(String, nullable=True)
 
     is_overrun_billed: bool = Column(Boolean, default=True)
-    overrun_amount: float = Column(Numeric(precision=10, scale=2), default=0)
+    overrun_amount: float = Column(Float, default=0)
 
-    daily_meal_charges: float = Column(Numeric(precision=10, scale=2), default=0)
-    daily_medical_expenses: float = Column(Numeric(precision=10, scale=2), default=0)
-    daily_other_expenses: float = Column(Numeric(precision=10, scale=2), default=0)
+    daily_meal_charges: float = Column(Float, default=0)
+    daily_medical_expenses: float = Column(Float, default=0)
+    daily_other_expenses: float = Column(Float, default=0)
     # Invoice
 
     is_default: bool = Column(Boolean, default=False)
@@ -275,8 +282,8 @@ class HourlyRateRange(Base):
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     number_of_day: int = Column(Integer, default=0, unique=True)
-    number_of_hours: time = Column(Time)
-    hourly_rate: float = Column(Numeric(precision=10, scale=2), default=10)
+    number_of_hours: float = Column(Float)
+    hourly_rate: float = Column(Float, default=10)
 
     quote_setting_uuid: str = Column(String, ForeignKey('quote_settings.uuid'), nullable=True)
     quote_setting: Mapped[any] = relationship("QuoteSetting", foreign_keys=quote_setting_uuid, back_populates="hourly_rate_ranges", uselist=False)
@@ -306,8 +313,8 @@ class CMGAmountRange(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    lower: float = Column(Numeric(precision=10, scale=2), default=0)
-    upper: float = Column(Numeric(precision=10, scale=2), nullable=0)
+    lower: float = Column(Float, default=0)
+    upper: float = Column(Float, nullable=0)
     family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE, nullable=False)
     number_children: int = Column(Integer, default=1)
 
@@ -341,23 +348,23 @@ class CMGAmount(Base):
 
     child_age_lower: int = Column(Integer, nullable=0)
     child_age_upper: int = Column(Integer, nullable=0)
-    tranche_1_amount: float = Column(Numeric(precision=10, scale=2), nullable=0, unique=True)
-    tranche_2_amount: float = Column(Numeric(precision=10, scale=2), nullable=0, unique=True)
-    tranche_3_amount: float = Column(Numeric(precision=10, scale=2), nullable=0, unique=True)
-    govt_update_of: date = Column(Date, nullable=False)
+    tranche_1_amount: float = Column(Float, nullable=0, unique=True)
+    tranche_2_amount: float = Column(Float, nullable=0, unique=True)
+    tranche_3_amount: float = Column(Float, nullable=0, unique=True)
+    govt_update_of: date = Column(Date)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
 
-@event.listens_for(CMGAmountRange, 'before_insert')
+@event.listens_for(CMGAmount, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
     target.date_modified = datetime.now()
 
 
-@event.listens_for(CMGAmountRange, 'before_update')
+@event.listens_for(CMGAmount, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()

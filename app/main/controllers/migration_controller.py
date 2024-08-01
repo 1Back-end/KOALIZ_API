@@ -3,7 +3,9 @@ import os
 import shutil
 import platform
 from dataclasses import dataclass
+from datetime import date
 from typing import Any
+from uuid import uuid4
 
 from sqlalchemy.exc import ProgrammingError
 
@@ -379,3 +381,196 @@ async def create_activity_reminder_types(
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/create-nursery-holidays", response_model=schemas.Msg, status_code=201)
+async def create_user_roles(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+
+    check_user_access_key(admin_key)
+
+    for holiday_day in [
+        {"month": 12, "day":  25, "name": "Noël"},
+        {"month": 1,  "day": 1, "name": "Jour de l'an"},
+        {"month": 8,  "day": 15, "name": "Assomption"}
+    ]:
+        for nursery in db.query(models.Nursery).filter(models.Nursery.status != models.NurseryStatusType.DELETED).all():
+            nh = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.day == holiday_day["day"]).filter(
+                models.NuseryHoliday.month == holiday_day["month"]).filter(
+                models.NuseryHoliday.nursery_uuid == nursery.uuid).first()
+            if not nh:
+                nh = models.NuseryHoliday(
+                    uuid = str(uuid4()),
+                    name=holiday_day["name"],
+                    day=holiday_day["day"],
+                    month=holiday_day["month"],
+                    is_active=True,
+                    nursery_uuid=nursery.uuid
+                )
+                db.add(nh)
+            else:
+                nh.name = holiday_day["name"]
+    db.commit()
+
+    return {"message": "Nurseries holidays created successfully"}
+
+
+@router.post("/create-quote-settings", response_model=schemas.Msg, status_code=201)
+async def create_user_roles(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+
+    check_user_access_key(admin_key)
+
+    default_quote = {
+        "uuid": "2bee8286-5fe7-48bd-b93d-b7f20a32b47d",
+        "adaptation_type": models.AdaptationType.PACKAGE,
+        "adaptation_package_costs": 80,
+        "adaptation_package_days": 6,
+        "adaptation_hourly_rate": 0,
+        "adaptation_hours_number": 0,
+        "has_deposit": True,
+        "deposit_type": models.DepositType.PERCENTAGE,
+        "deposit_percentage": 30,
+        "deposit_value": 0,
+        "has_registration_fee": True,
+        "registration_fee": 90,
+        "last_special_month": True,
+        "min_days_for_last_special_month": 5,
+        "invoicing_time": models.InvoiceTimeType.END_OF_MONTH,
+        "is_default": True
+    }
+    quote = db.query(models.QuoteSetting).filter(models.QuoteSetting.uuid==default_quote["uuid"]).first()
+    if not quote:
+        quote = models.QuoteSetting(
+            uuid=default_quote["uuid"],
+            adaptation_type=default_quote["adaptation_type"],
+            adaptation_package_costs=default_quote["adaptation_package_costs"],
+            adaptation_package_days=default_quote["adaptation_package_days"],
+            adaptation_hourly_rate=default_quote["adaptation_hourly_rate"],
+            adaptation_hours_number=default_quote["adaptation_hours_number"],
+            has_deposit=default_quote["has_deposit"],
+            deposit_type=default_quote["deposit_type"],
+            deposit_percentage=default_quote["deposit_percentage"],
+            deposit_value=default_quote["deposit_value"],
+            has_registration_fee=default_quote["has_registration_fee"],
+            registration_fee=default_quote["registration_fee"],
+            last_special_month=default_quote["last_special_month"],
+            min_days_for_last_special_month=default_quote["min_days_for_last_special_month"],
+            invoicing_time=default_quote["invoicing_time"],
+            is_default=default_quote["is_default"]
+        )
+        db.add(quote)
+    else:
+        quote.adaptation_type = default_quote["adaptation_type"]
+        quote.adaptation_package_costs = default_quote["adaptation_package_costs"]
+        quote.adaptation_package_days = default_quote["adaptation_package_days"]
+        quote.adaptation_hourly_rate = default_quote["adaptation_hourly_rate"]
+        quote.adaptation_hours_number = default_quote["adaptation_hours_number"]
+        quote.has_deposit = default_quote["has_deposit"]
+        quote.deposit_type = default_quote["deposit_type"]
+        quote.deposit_percentage = default_quote["deposit_percentage"]
+        quote.deposit_value = default_quote["deposit_value"]
+        quote.has_registration_fee = default_quote["has_registration_fee"]
+        quote.registration_fee = default_quote["registration_fee"]
+        quote.last_special_month = default_quote["last_special_month"]
+        quote.min_days_for_last_special_month = default_quote["min_days_for_last_special_month"]
+        quote.invoicing_time = default_quote["invoicing_time"]
+        quote.is_default = default_quote["is_default"]
+
+    for hr in [
+        {"uuid": "65ecdd63-0d32-4ea1-8169-99427775e0b1", "nb_days": 1, "nb_hours": 10, "hourly_rate": 10},
+        {"uuid": "c6fecfcd-0857-4b6b-a755-b483cb7f57cc", "nb_days": 2, "nb_hours": 20, "hourly_rate": 10},
+        {"uuid": "ff3231ad-b428-4d8c-b461-03849f4017c4", "nb_days": 3, "nb_hours": 30, "hourly_rate": 10},
+        {"uuid": "b7e895b8-529b-416d-9afd-c29b531c9b8f", "nb_days": 4, "nb_hours": 40, "hourly_rate": 9.2},
+        {"uuid": "13461ae6-5127-45ab-b1c6-779543a12825", "nb_days": 5, "nb_hours": 50, "hourly_rate": 8.7},
+    ]:
+        hrr = db.query(models.HourlyRateRange).filter(models.HourlyRateRange.uuid == hr["uuid"]).first()
+        if not hrr:
+            hrr = models.HourlyRateRange(
+                uuid=hr["uuid"],
+                number_of_day=hr["nb_days"],
+                number_of_hours=hr["nb_hours"],
+                hourly_rate=hr["hourly_rate"],
+                quote_setting_uuid=quote.uuid
+            )
+        else:
+            hrr.number_of_day = hr["nb_days"]
+            hrr.number_of_hours = hr["nb_hours"]
+            hrr.hourly_rate = hr["hourly_rate"]
+            hrr.quote_setting_uuid = quote.uuid
+        db.add(hrr)
+    db.commit()
+
+    return {"message": "Default quote setting created successfully"}
+
+@router.post("/create-cmg-amount-range", response_model=schemas.Msg, status_code=201)
+async def create_user_roles(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    check_user_access_key(admin_key)
+
+    for cmg_a_r_item in [
+        {"uuid": "4dd3d890-b8eb-4f39-8af0-962ec6857b3c", "lower": 22809, "upper": 50686, "family_type": models.FamilyType.COUPLE, "number_children": 1},
+        {"uuid": "ab352375-0f21-4f35-bc4a-65720b6ebb6e", "lower": 26046, "upper": 57881, "family_type": models.FamilyType.COUPLE, "number_children": 2},
+        {"uuid": "8ca7701f-fa43-4532-8028-466e59c545ff", "lower": 29283, "upper": 65076, "family_type": models.FamilyType.COUPLE, "number_children": 3},
+        {"uuid": "fb0b54ae-0d67-472d-a359-4ae18f5591d3", "lower": 32520, "upper": 72271, "family_type": models.FamilyType.COUPLE, "number_children": 4},
+
+        {"uuid": "4a65b981-db60-4072-b966-0a80853bd891", "lower": 31933, "upper": 70960, "family_type": models.FamilyType.SINGLE_PARENT, "number_children": 1},
+        {"uuid": "538ab79e-d9b8-4daf-aa5c-076c424b4c3d", "lower": 36465, "upper": 81033, "family_type": models.FamilyType.SINGLE_PARENT, "number_children": 2},
+        {"uuid": "87439690-91a2-45d3-9299-0924508b4d64", "lower": 40997, "upper": 91106, "family_type": models.FamilyType.SINGLE_PARENT, "number_children": 3},
+        {"uuid": "8054fc2e-b635-4ae6-9553-7f4d0ee1071a", "lower": 45529, "upper": 101179, "family_type": models.FamilyType.SINGLE_PARENT, "number_children": 4},
+    ]:
+        cmg_a_r = db.query(models.CMGAmountRange).filter(models.CMGAmountRange.uuid == cmg_a_r_item["uuid"]).first()
+        if not cmg_a_r:
+            cmg_a_r = models.CMGAmountRange(
+                uuid=cmg_a_r_item["uuid"],
+                lower=cmg_a_r_item["lower"],
+                upper=cmg_a_r_item["upper"],
+                family_type=cmg_a_r_item["family_type"],
+                number_children=cmg_a_r_item["number_children"]
+            )
+        else:
+            cmg_a_r.lower = cmg_a_r_item["lower"]
+            cmg_a_r.upper = cmg_a_r_item["upper"]
+            cmg_a_r.family_type = cmg_a_r_item["family_type"]
+            cmg_a_r.number_children = cmg_a_r_item["number_children"]
+        db.add(cmg_a_r)
+    db.commit()
+
+    return {"message": "Default CMG amount range created successfully"}
+
+
+@router.post("/create-cmg-amount", response_model=schemas.Msg, status_code=201)
+async def create_user_roles(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    check_user_access_key(admin_key)
+
+    for cmg_a_item in [
+        {"uuid": "d6a7ece0-93c2-4898-9ce2-a5384449b518", "child_age_lower": 0, "child_age_upper": 3, "tranche_1_amount": 967.83, "tranche_2_amount": 834.30, "tranche_3_amount": 700.82},
+        {"uuid": "eccb6591-3da3-404e-914d-1e63a088da82", "child_age_lower": 3, "child_age_upper": 6, "tranche_1_amount": 483.91, "tranche_2_amount": 417.15, "tranche_3_amount": 350.42}
+    ]:
+        cmg_a = db.query(models.CMGAmount).filter(models.CMGAmount.uuid == cmg_a_item["uuid"]).first()
+        if not cmg_a:
+            cmg_a = models.CMGAmount(
+                uuid=cmg_a_item["uuid"],
+                child_age_lower=cmg_a_item["child_age_lower"],
+                child_age_upper=cmg_a_item["child_age_upper"],
+                tranche_1_amount=cmg_a_item["tranche_1_amount"],
+                tranche_2_amount=cmg_a_item["tranche_2_amount"],
+                tranche_3_amount=cmg_a_item["tranche_3_amount"]
+            )
+        else:
+            cmg_a.child_age_lower = cmg_a_item["child_age_lower"]
+            cmg_a.child_age_upper = cmg_a_item["child_age_upper"]
+            cmg_a.tranche_1_amount = cmg_a_item["tranche_1_amount"]
+            cmg_a.tranche_2_amount = cmg_a_item["tranche_2_amount"]
+            cmg_a.tranche_3_amount = cmg_a_item["tranche_3_amount"]
+        db.add(cmg_a)
+    db.commit()
+    return {"message": "Default CMG amount created successfully"}
