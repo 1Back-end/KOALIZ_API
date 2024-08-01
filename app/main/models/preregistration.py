@@ -146,6 +146,8 @@ class ParentGuest(Base):
     dependent_children: int = Column(Integer, default=0)
     disabled_children: int = Column(Integer, default=0)
 
+    is_paying_parent: bool = Column(Boolean, default=False)
+
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, back_populates="parents", uselist=False)
 
