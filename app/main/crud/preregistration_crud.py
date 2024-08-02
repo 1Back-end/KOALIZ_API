@@ -465,10 +465,13 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
                 models.CMGAmountRange.family_type == exist_preregistration.child.family_type).first()
 
             if annual_income <= cmg_amount_range.lower:
+                band_number = 1
                 tranche = "tranche_1_amount"
             elif annual_income > cmg_amount_range.lower and annual_income <= cmg_amount_range.upper:
+                band_number = 2
                 tranche = "tranche_2_amount"
             else:
+                band_number = 3
                 tranche = "tranche_3_amount"
             print(f"tranche {tranche}")
 
@@ -489,6 +492,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
                 family_type=exist_preregistration.child.family_type,
                 number_children=dependent_children,
                 annual_income=annual_income,
+                band_number=band_number,
                 quote_uuid=quote.uuid
             )
             db.add(q_cmg)
@@ -648,7 +652,6 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
     def get_many(self,
         db,
         nursery_uuid,
-        tag_uuid,
         status,
         begin_date,
         end_date,
@@ -657,6 +660,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         order: Optional[str] = None,
         order_field: Optional[str] = None,
         keyword: Optional[str] = None,
+        tag_uuid=None,
     ):
         record_query = db.query(models.PreRegistration).filter(models.PreRegistration.nursery_uuid==nursery_uuid)
         if status:
@@ -674,6 +678,9 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             )
         if tag_uuid:
             elements = self.get_elements_by_tag(db, tag_uuid)
+            print("++++++++++++++++++++++++++++++++++++++++")
+            print(elements)
+            print("++++++++++++++++++++++++++++++++++++++++")
             element_uuids = [element.get("data", {}).uuid for element in elements]
             record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
 

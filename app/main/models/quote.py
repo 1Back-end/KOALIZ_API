@@ -93,6 +93,11 @@ class Quote(Base):
     monthly_cost: float = Column(Float, default=0)
     total_cost: float = Column(Float, default=0)
     status: str = Column(types.Enum(QuoteStatusType), nullable=False, default=QuoteStatusType.PENDING)
+    monthly_billed_hours: float = Column(Float, default=0)
+    smoothing_months: float = Column(Float, default=0)
+    weeks_in_smoothing: float = Column(Float, default=0)
+    deductible_weeks: float = Column(Float, default=0) #
+    total_closing_days: int = Column(Integer, default=0)
 
     cmg: Mapped[any] = relationship("QuoteCMG", back_populates="quote", uselist=False, cascade="all, delete-orphan")
 
@@ -197,6 +202,7 @@ class QuoteCMG(Base):
     family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE, nullable=False)
     number_children: int = Column(Integer, default=1)
     annual_income: float = Column(Float, default=0)
+    band_number: int = Column(Integer, default=0)
 
     quote_uuid: str = Column(String, ForeignKey('quotes.uuid', ondelete='CASCADE'), nullable=False)
     quote: Mapped[any] = relationship("Quote", foreign_keys=quote_uuid, back_populates="cmg", uselist=False)
