@@ -57,4 +57,12 @@ translation = {
     "item-adaptation": "Frais d'adaptation",
     "item-invoice": "Mensualité",
     "item-registration": "Frais d'inscription",
+    "member-not-found": "le(s) membre(s) n'existe(nt) pas.",
+    "leader-not-found": "le(s)  leader(s) n'existe(nt) pas.",
+    "nursery-owner-not-authorized": "Vous n'êtes pas autorisé à effectuer cette action",
+    "team-not-found":"Une ou plusieurs équipe(s) n'existe(nt) pas.",
+    "duplicate-entry-email": "plusieurs entrees ont la même adresse .",
+    "team-name-already-exist": "Nom d'équipe déjà existant",
+    "duplicate-team-name-entry": "plusieurs entrées ont déja le même nom d'équipe.",
+    "team-owner-unauthorized":"vous n'êtes pas autorisé à apporter des modifications sur les teams dont vous n'êtes pas propriétaire."
 }

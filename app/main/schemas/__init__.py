@@ -19,3 +19,5 @@ from .nursery_holidays import *
 from .parent import *
 from .team_device import *
 from .conversation import *
+from .employee import *
+from .team import *

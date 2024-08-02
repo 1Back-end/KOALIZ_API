@@ -3,6 +3,7 @@ from enum import Enum
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, event, types, Date, ARRAY, Float, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, date
+from sqlalchemy.orm import joinedload
 
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, Mapped
@@ -266,8 +267,11 @@ class PreRegistration(Base):
             record = db.query(Tags).\
                 outerjoin(TagElement,Tags.uuid == TagElement.tag_uuid).\
                     filter(TagElement.element_uuid == self.uuid,TagElement.element_type == "PRE_ENROLLMENT").\
+                    options(joinedload(Tags.icon)).\
                         all()
             return record
+        except Exception as e:
+            print(f"Erreur lors de la récupération des tags : {e}")
         finally:
             db.close()
 
