@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import Any, Optional, List
+from typing import Any, Optional,List
 from pydantic import BaseModel, ConfigDict
 
 from .file import File
 from .base import DataList, Token
-
+from . employee import EmployeSlim
 
 
 class TeamDeviceBase(BaseModel):
@@ -21,10 +21,17 @@ class TeamDeviceCreate(TeamDeviceBase):
 class TeamDeviceUpdate(TeamDeviceBase):
     uuid: Optional[str] = None
 
+class Member(EmployeSlim):
+    pass
+
 class TeamDevice(TeamDeviceBase):
     uuid: Optional[str] = None
     # code: Optional[str] = None
     date_added: datetime
+
+class TeamDeviceSlim(TeamDevice):
+    members: Optional[list[Member]] = None
+
 
 
 class TeamDeviceList(DataList):
@@ -33,5 +40,5 @@ class TeamDeviceList(DataList):
 
 class TeamDeviceAuthentication(BaseModel):
     token: Optional[Token] = None
-    team_device: TeamDevice
+    team_device: Optional[TeamDeviceSlim] = None
     model_config = ConfigDict(from_attributes=True)
