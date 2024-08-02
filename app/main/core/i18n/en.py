@@ -42,7 +42,15 @@ translation = {
     "device-already-found": "Existing device",
     "team-device-deleted": "Device successfully deleted",
     "dependencies-token-invalid": "Token invalid",
-    "dependencies-access-unauthorized": "You do not have the right to access this feature!"
+    "dependencies-access-unauthorized": "You do not have the right to access this feature!",
+    "member-not-found": "Member(s) not found",
+    "leader-not-found": "There is no such member(s) as a leader",
+    "nursery-owner-not-authorized": "You are not authorized to perform this action",
+    "team-not-found": "One or more teams do not exist",
+    "duplicate-entry-email": "several entries have the same address,please check that and try again",
+    "duplicate-team-name-entry": "several entries already have the same team name",
+    "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own."
+
 
 
 }

@@ -52,16 +52,16 @@ def create(
             team = crud.team.get_by_uuid(db, team_uuid)
             if not team:
                 team_errors.append(team_uuid)
-
+        
     errors = team_errors if team_errors else email_errors if email_errors else nursery_errors if nursery_errors else exist_email if exist_email else nursery_owner_errors      
     status_code = 404 if team_errors or nursery_errors or email_errors or avatar_errors else 409 if exist_email else 400
     key_errors = "team-not-found" if team_errors \
         else "avatar-not-found" if avatar_errors \
             else "nursery-not-found" if nursery_errors else "duplicate-entry-email" \
-                if email_errors else "already-taken-email" if exist_email else "nursery-owner-not-authorized"
+                if email_errors else "user-email-taken" if exist_email else "nursery-owner-not-authorized"
     
     if errors:
-        raise HTTPException(status_code=status_code, detail=__(f"{key_errors}") + ' '.join(errors))
+        raise HTTPException(status_code=status_code, detail=f"{__(key_errors)}:" + ' '+'' .join(errors))
 
     # db_obj = crud.employe.get_by_email(db, obj_in.email)
     
@@ -93,6 +93,7 @@ def update(
 
     nursery_errors =[]
     nursery_owner_errors =[]
+    team_errors =[]
     db_obj = crud.employe.get_by_email(db, obj_in.email)
     
     employe = crud.employe.get_by_uuid(db, obj_in.uuid)
@@ -116,20 +117,23 @@ def update(
         if not nursery:
             nursery_errors.append(nursery_uuid)
         
-        if not nursery_uuid in any(nursery.uuid == current_nursery.uuid for current_nursery in current_user.nurseries):
+        if not nursery_uuid in [current_nursery.uuid for current_nursery in current_user.nurseries]:
             nursery_owner_errors.append(nursery_uuid)
     errors = nursery_errors if nursery_errors else nursery_owner_errors if nursery_owner_errors else []
 
-    status_code = 404 if nursery_errors else 400 
-    key_errors = "nursery-not-found" if nursery_errors else "nursery-owner-not-authorized" 
+    if obj_in.team_uuid_tab:
+        for team_uuid in obj_in.team_uuid_tab:
+            team = crud.team.get_by_uuid(db, team_uuid)
+            if not team:
+                team_errors.append(team_uuid)
+
+    status_code = 404 if nursery_errors or team_errors else 400 
+    key_errors = "nursery-not-found" if nursery_errors else \
+        "team-not-found" if team_errors \
+            else "nursery-owner-not-authorized" 
     
     if errors:
         raise HTTPException(status_code=status_code, detail=__(f"{key_errors}") +' '.join(errors))
-    
-    if obj_in.team_uuid_tab:
-        teams = crud.team.get_by_uuids(db, obj_in.team_uuid_tab)
-        if not teams or len(teams)!= len(obj_in.team_uuid_tab):
-            raise HTTPException(status_code=404, detail=__("team-not-found"))
     
     return crud.employe.update(db, obj_in)
 
@@ -169,7 +173,7 @@ def delete(
                 raise HTTPException(status_code=400, detail=__(f"nursery-owner-not-authorized") + ' '.join(nursery_owner_errors))
             
         if obj.team_uuid_tab:
-            for team_uuid in employe.team_uuid_tab:
+            for team_uuid in obj.team_uuid_tab:
                 team = crud.team.get_by_uuid(db, team_uuid)
                 if not team:
                     team_errors.append(team_uuid)

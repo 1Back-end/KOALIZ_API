@@ -24,7 +24,7 @@ class CRUDEmployee(CRUDBase[models.Employee,schemas.EmployeCreate,schemas.Employ
     def is_in_team_employees(cls,db:Session,employe_uuid:str,team_uuid:str):
         return db.query(models.Employee).join(models.TeamEmployees).\
             filter(models.TeamEmployees.team_uuid == team_uuid).\
-                filter(models.NurseryEmployees.employee_uuid == employe_uuid).\
+                filter(models.TeamEmployees.employee_uuid == employe_uuid).\
                     first()
     
     @classmethod
@@ -33,7 +33,7 @@ class CRUDEmployee(CRUDBase[models.Employee,schemas.EmployeCreate,schemas.Employ
     
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Union[models.Employee, None]:
-        return db.query(models.Employee).filter(models.Employee.uuid == uuid).first()
+        return db.query(models.Employee).filter(models.Employee.uuid == uuid,models.Employee.status!="DELETED").first()
     
     @classmethod
     def create(cls, db: Session, obj_in: list[schemas.EmployeCreate]) -> list[models.Employee]:
@@ -90,6 +90,7 @@ class CRUDEmployee(CRUDBase[models.Employee,schemas.EmployeCreate,schemas.Employ
         db_obj.email = obj_in.email if obj_in.email else db_obj.email
         
         db_obj.avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else db_obj.avatar_uuid
+        db_obj.status = obj_in.status if obj_in.status else db_obj.status
 
         for nursery_uuid in obj_in.nursery_uuid_tab:
                 nursery_employe = cls.is_in_nursery_employees(db, employe_uuid=db_obj.uuid, nursery_uuid=nursery_uuid)

@@ -19,20 +19,21 @@ class Team(Base):
     """ Database class for storing team information"""
     __tablename__ = 'teams'
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
-    name:str = Column(String, unique=True, index=True)
+    name:str = Column(String, index=True,nullable = False)
     description: str = Column(Text)
 
+    owner_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
     leader_uuid: str = Column(String, ForeignKey('employees.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
     leader = relationship("Employee", foreign_keys=[leader_uuid], uselist=False)
+    
     status:str = Column(String, index=True, nullable=False)
-
     employees = relationship("Employee", secondary="team_employees", back_populates="teams", overlaps="employee,team")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     def __repr__(self):
-        return '<Team: uuid: {} name: {} leader: {} members {}>'.format(self.uuid, self.name,self.leader,self.members)
+        return '<Team: uuid: {} name: {} leader: {}>'.format(self.uuid, self.name,self.leader)
 
 
 @event.listens_for(Team, 'before_insert')
@@ -70,7 +71,7 @@ class Employee(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
     
     def __repr__(self):
-        return '<Employee: uuid: {} email: {} firstname: {} lastname: {} team_uuid: {}>'.format(self.uuid,self.email, self.firstname, self.lastname,self.team_uuid)
+        return '<Employee: uuid: {} email: {} firstname: {} lastname: {}>'.format(self.uuid,self.email, self.firstname, self.lastname)
     
 @event.listens_for(Employee, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):

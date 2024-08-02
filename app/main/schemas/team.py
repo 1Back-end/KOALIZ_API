@@ -43,7 +43,7 @@ class EmployeSlim(BaseModel):
 class TeamResponse(TeamInDB):
     employees: list[EmployeSlim] = []
     leader_uuid: str
-    leader: EmployeResponse
+    leader: EmployeSlim
     model_config = ConfigDict(from_attributes=True)
 
 class TeamResponseList(BaseModel):
