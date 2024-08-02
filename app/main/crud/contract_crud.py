@@ -1,27 +1,27 @@
-from datetime import datetime, date
+from datetime import datetime
 import math
 from typing import  Optional, List
 
-from fastapi import HTTPException, BackgroundTasks
+from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
+from pydantic import EmailStr
 from sqlalchemy import or_
 
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session
 from app.main import crud, schemas, models
-from app.main.utils.quote_engine import QuoteEngine
 import uuid
 from app.main.core.security import generate_code, generate_slug
 from app.main.utils.helper import convert_dates_to_strings
 
 
-class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
+class CRUDPreRegistration(CRUDBase[models.Contract, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
     @classmethod
-    def get_by_uuid(cls, db: Session, uuid: str) -> Optional[models.PreRegistration]:
+    def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
-
+    
     @classmethod
     def delete_a_special_folder(cls, db: Session, folder_uuid: str, performed_by_uuid: str):
         folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
@@ -62,22 +62,6 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             exist_folder.accepted_date = datetime.now()
             exist_folder.child.is_accepted = True
 
-            if not exist_folder.contract_uuid:
-                contract = models.Contract(
-                    uuid=str(uuid.uuid4()),
-                    begin_date=exist_folder.pre_contract.begin_date,
-                    end_date=exist_folder.pre_contract.end_date,
-                    typical_weeks=exist_folder.pre_contract.typical_weeks,
-                    type=models.ContractType.REGULAR
-                )
-                db.add(contract)
-                exist_folder.contract_uuid = contract.uuid
-                exist_folder.child.contract_uuid = contract.uuid
-            else:
-                exist_folder.contract.begin_date = exist_folder.pre_contract.begin_date
-                exist_folder.contract.end_date = exist_folder.pre_contract.end_date
-                exist_folder.contract.typical_weeks = exist_folder.pre_contract.typical_weeks
-                exist_folder.contract.type = models.ContractType.REGULAR
 
         db.commit()
 
@@ -108,6 +92,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
 
     @classmethod
     def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str, performed_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
+
         exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == obj_in.preregistration_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
@@ -230,307 +215,13 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         )
 
         return child
-    @classmethod
-    def update_pre_registration(cls, db: Session, obj_in: schemas.PreregistrationUpdate) -> models.Child:
-
-        preregistration = db.query(models.PreRegistration).\
-            filter(models.PreRegistration.uuid==obj_in.uuid).\
-            first()
-
-        # Before update the data
-        before_changes = schemas.PreregistrationDetails.model_validate(preregistration).model_dump()
-
-        obj_in.nurseries = set(obj_in.nurseries)
-        nurseries = crud.nursery.get_by_uuids(db, obj_in.nurseries)
-        if len(obj_in.nurseries) != len(nurseries):
-            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-        # Child information update
-        child = db.query(models.Child).filter(models.Child.uuid==obj_in.child.uuid).first()
-        if not child:
-            raise HTTPException(status_code=404, detail=__("child-not-found"))
-
-        child.firstname=obj_in.child.firstname
-        child.lastname=obj_in.child.lastname
-        child.gender=obj_in.child.gender
-        child.birthdate=obj_in.child.birthdate
-        child.birthplace=obj_in.child.birthplace
-
-        # Contract information update
-        contract = db.query(models.PreContract).filter(models.PreContract.uuid == obj_in.pre_contract.uuid).first()
-        if not contract:
-            raise HTTPException(status_code=404, detail=__("contract-not-found"))
-
-        contract.begin_date=obj_in.pre_contract.begin_date,
-        contract.end_date=obj_in.pre_contract.end_date,
-        contract.typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
-
-        # Delete the old parents data
-        db.query(models.ParentGuest).\
-            filter(models.ParentGuest.child_uuid==child.uuid).\
-            delete()
-
-        db.commit()
-
-        for pg in obj_in.parents:
-
-            parent_guest = models.ParentGuest(
-                uuid=str(uuid.uuid4()),
-                link=pg.link,
-                firstname=pg.firstname,
-                lastname=pg.lastname,
-                birthplace=pg.birthplace,
-                fix_phone=pg.fix_phone,
-                phone=pg.phone,
-                email=pg.email,
-                recipient_number=pg.recipient_number,
-                zip_code=pg.zip_code,
-                city=pg.city,
-                country=pg.country,
-                profession=pg.profession,
-                annual_income=pg.annual_income,
-                company_name=pg.company_name,
-                has_company_contract=pg.has_company_contract,
-                dependent_children=pg.dependent_children,
-                disabled_children=pg.disabled_children,
-                child_uuid=child.uuid
-            )
-            db.add(parent_guest)
-
-        code = cls.code_unicity(code=generate_slug(f"{child.firstname} {child.lastname}"), db=db)
-        for nursery_uuid in obj_in.nurseries:
-            preregistration = db.query(models.PreRegistration).\
-                filter(models.PreRegistration.uuid==obj_in.uuid).\
-                filter(models.PreRegistration.nursery_uuid==nursery_uuid).\
-                first()
-            if preregistration:
-                preregistration.code = code
-                preregistration.note = obj_in.note if obj_in.note else preregistration.note
-                db.commit()
-
-        db.commit()
-        db.refresh(child)
-
-        # After update the data
-        after_changes = schemas.PreregistrationDetails.model_validate(preregistration).model_dump()
-
-        crud.audit_log.create(
-            db=db,
-            entity_type="PreRegistration",
-            entity_id=preregistration.uuid,
-            action="UPDATE",
-            before_changes=convert_dates_to_strings(before_changes),
-            after_changes=convert_dates_to_strings(after_changes)
-        )
-
-        return child
 
     @classmethod
-    def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.ChildDetails]:
+    def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Child]:
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
 
-    def generate_quote(self, db: Session, preregistration_uuid):
-        exist_preregistration = self.get_by_uuid(db, preregistration_uuid)
-        if not exist_preregistration:
-            return
-
-        nursery_holiday_days: list[models.NuseryHoliday] = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.nursery_uuid == exist_preregistration.nursery_uuid).all()
-        nursery_closing_periods: list[models.NurseryCloseHour] = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid == exist_preregistration.nursery_uuid).all()
-        holiday_days = [
-            date(year, holiday_day.month, holiday_day.day) for holiday_day in nursery_holiday_days for year in
-            range(exist_preregistration.pre_contract.begin_date.year,
-                  exist_preregistration.pre_contract.end_date.year + 1)
-        ]
-        closing_periods = [
-            (date(year, nursery_closing_period.start_month, nursery_closing_period.start_day),
-             date(year if nursery_closing_period.end_month >= nursery_closing_period.start_month else year + 1,
-                  nursery_closing_period.end_month, nursery_closing_period.end_day)) for nursery_closing_period in
-            nursery_closing_periods
-            for year in range(exist_preregistration.pre_contract.begin_date.year,
-                              exist_preregistration.pre_contract.end_date.year + 1)
-        ]
-
-        quote: models.Quote = db.query(models.Quote).filter(
-            models.Quote.preregistration_uuid == exist_preregistration.uuid).filter(
-            models.Quote.nursery_uuid == exist_preregistration.nursery_uuid).first()
-
-        quote_setting: models.QuoteSetting = db.query(models.QuoteSetting).filter(
-            models.QuoteSetting.is_default == True).first()
-
-        if quote:
-            # paying_parent: Optional[models.ParentGuest] = quote.parent_guest
-
-            quote_engine_res = QuoteEngine(
-                contract_start_date=exist_preregistration.pre_contract.begin_date,
-                contract_end_date=exist_preregistration.pre_contract.end_date,
-                rate_per_hour=quote.hourly_rate,
-                planning_weeks=exist_preregistration.pre_contract.typical_weeks,
-                holiday_days=holiday_days,
-                closing_periods=closing_periods,
-                adaptation_type=quote.adaptation_type,
-                adaptation_package_costs=quote.adaptation_package_costs,
-                adaptation_package_days=quote.adaptation_package_days,
-                adaptation_hourly_rate=quote.adaptation_hourly_rate,
-                adaptation_hours_number=quote.adaptation_hours_number,
-                has_deposit=quote.has_deposit,
-                deposit_type=quote.deposit_type,
-                deposit_percentage=quote.deposit_percentage,
-                deposit_value=quote.deposit_value,
-                has_registration_fee=quote.has_registration_fee,
-                registration_fee=quote.registration_fee,
-                last_special_month=quote_setting.last_special_month,
-                min_days_for_last_special_month=quote_setting.min_days_for_last_special_month,
-                invoice_timing=quote_setting.invoicing_time
-            )
-            db.query(models.QuoteTimetable).filter(models.QuoteTimetable.quote_uuid==quote.uuid).delete()
-        else:
-            paying_parent: Optional[
-                models.ParentGuest] = exist_preregistration.child.paying_parent if exist_preregistration.child.paying_parent else None
-
-            if not paying_parent:
-                return
-            parent_guest_uuid = paying_parent.uuid
-
-            dependent_children = paying_parent.dependent_children
-            dependent_children_req = dependent_children if dependent_children else dependent_children + 1
-            annual_income = paying_parent.annual_income
-
-            average_days_per_week = sum(
-                [
-                    1 if day else 0 for typical_week in exist_preregistration.pre_contract.typical_weeks for day in
-                    typical_week
-                ]
-            ) / len(exist_preregistration.pre_contract.typical_weeks)
-
-            hours_per_week = sum([(int(time_slot["to_time"].split(":")[0]) - int(time_slot["from_time"].split(":")[0])) + (
-                    int(time_slot["to_time"].split(":")[1]) - int(time_slot["from_time"].split(":")[1])) / 60 for
-                                  typical_week in
-                                  exist_preregistration.pre_contract.typical_weeks for day in typical_week for time_slot in
-                                  day]) / len(
-                exist_preregistration.pre_contract.typical_weeks) / average_days_per_week
-
-            hourly_rate = 0
-            for hourly_rate_range in quote_setting.hourly_rate_ranges:
-                if hours_per_week < hourly_rate_range.number_of_hours:
-                    hourly_rate = hourly_rate_range.hourly_rate
-
-            quote_engine_res = QuoteEngine(
-                contract_start_date=exist_preregistration.pre_contract.begin_date,
-                contract_end_date=exist_preregistration.pre_contract.end_date,
-                rate_per_hour=hourly_rate,
-                planning_weeks=exist_preregistration.pre_contract.typical_weeks,
-                holiday_days=holiday_days,
-                closing_periods=closing_periods,
-                adaptation_type=models.AdaptationType.PACKAGE,
-                adaptation_package_costs=quote_setting.adaptation_package_costs,
-                adaptation_package_days=quote_setting.adaptation_package_days,
-                adaptation_hourly_rate=quote_setting.adaptation_hourly_rate,
-                adaptation_hours_number=quote_setting.adaptation_hours_number,
-                has_deposit=quote_setting.has_deposit,
-                deposit_type=quote_setting.deposit_type,
-                deposit_percentage=quote_setting.deposit_percentage,
-                deposit_value=quote_setting.deposit_value,
-                has_registration_fee=quote_setting.has_registration_fee,
-                registration_fee=quote_setting.registration_fee,
-                last_special_month=quote_setting.last_special_month,
-                min_days_for_last_special_month=quote_setting.min_days_for_last_special_month,
-                invoice_timing=quote_setting.invoicing_time
-            )
-
-            quote = models.Quote(
-                uuid=str(uuid.uuid4()),
-                title="",
-                nursery_uuid=exist_preregistration.nursery_uuid,
-                preregistration_uuid=exist_preregistration.uuid,
-                parent_guest_uuid=parent_guest_uuid,
-                child_uuid=exist_preregistration.child_uuid,
-                pre_contract_uuid=exist_preregistration.pre_contract_uuid,
-                hourly_rate=hourly_rate,
-                has_registration_fee=quote_setting.has_registration_fee,
-                registration_fee=quote_setting.registration_fee,
-                has_deposit=quote_setting.has_deposit,
-                deposit_type=quote_setting.deposit_type,
-                deposit_percentage=quote_setting.deposit_percentage,
-                deposit_value=quote_setting.deposit_value,
-                adaptation_type=models.AdaptationType.PACKAGE,
-                adaptation_package_costs=quote_setting.adaptation_package_costs,
-                adaptation_package_days=quote_setting.adaptation_package_days,
-                adaptation_hourly_rate=quote_setting.adaptation_hourly_rate,
-                adaptation_hours_number=quote_setting.adaptation_hours_number,
-                quote_setting_uuid=quote_setting.uuid
-            )
-            db.add(quote)
-            cmg_amount_range: models.CMGAmountRange = db.query(models.CMGAmountRange).filter(
-                models.CMGAmountRange.number_children == dependent_children_req).filter(
-                models.CMGAmountRange.family_type == exist_preregistration.child.family_type).first()
-
-            if annual_income <= cmg_amount_range.lower:
-                tranche = "tranche_1_amount"
-            elif annual_income > cmg_amount_range.lower and annual_income <= cmg_amount_range.upper:
-                tranche = "tranche_2_amount"
-            else:
-                tranche = "tranche_3_amount"
-            print(f"tranche {tranche}")
-
-            today = date.today()
-            child_age = today.year - exist_preregistration.child.birthdate.year - ((today.month, today.day) < (
-            exist_preregistration.child.birthdate.month, exist_preregistration.child.birthdate.day))
-
-            print(f"child_age {child_age}")
-            cmg_amount_obj = db.query(models.CMGAmount).filter(models.CMGAmount.child_age_lower <= child_age).filter(
-                models.CMGAmount.child_age_upper > child_age).first()
-
-            if cmg_amount_obj:
-                cmg_amount = cmg_amount_obj.__getattribute__(tranche)
-
-            q_cmg = models.QuoteCMG(
-                uuid=str(uuid.uuid4()),
-                amount=cmg_amount,
-                family_type=exist_preregistration.child.family_type,
-                number_children=dependent_children,
-                annual_income=annual_income,
-                quote_uuid=quote.uuid
-            )
-            db.add(q_cmg)
-
-        res_generation = quote_engine_res.generate_quote()
-        quote.first_month_cost = res_generation.fpm_first_month_cost
-        quote.monthly_cost = res_generation.mm_monthly_cost
-        quote.total_cost = res_generation.total
-
-        for quote_timetable_res in res_generation.quote_timetables:
-            quote_timetable = models.QuoteTimetable(
-                uuid=str(uuid.uuid4()),
-                date_to=quote_timetable_res.billing_date,
-                amount=quote_timetable_res.amount,
-                quote_uuid=quote.uuid
-            )
-            db.add(quote_timetable)
-            for item in quote_timetable_res.items:
-                if item.quote_type == models.QuoteTimetableItemType.ADAPTATION:
-                    title = "item-adaptation"
-                elif item.quote_type == models.QuoteTimetableItemType.DEPOSIT:
-                    title = "item-deposit"
-                elif item.quote_type == models.QuoteTimetableItemType.INVOICE:
-                    title = "item-invoice"
-                elif item.quote_type == models.QuoteTimetableItemType.REGISTRATION:
-                    title = "item-registration"
-                else:
-                    title = item.quote_type.title()
-
-                quote_timetable_item = models.QuoteTimetableItem(
-                    uuid=str(uuid.uuid4()),
-                    title_fr=__(title, "fr"),
-                    title_en=__(title, "en"),
-                    type=item.quote_type,
-                    amount=item.amount,
-                    quote_timetable_uuid=quote_timetable.uuid
-                )
-                db.add(quote_timetable_item)
-        db.commit()
-
     @classmethod
-    def create(cls, db: Session, obj_in: schemas.PreregistrationCreate, background_task: BackgroundTasks, current_user_uuid: str = None) -> models.Child:
+    def create(cls, db: Session, obj_in: schemas.PreregistrationCreate, current_user_uuid: str = None) -> models.Child:
 
         obj_in.nurseries = set(obj_in.nurseries)
         nurseries = crud.nursery.get_by_uuids(db, obj_in.nurseries, current_user_uuid)
@@ -582,7 +273,6 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             )
             db.add(parent_guest)
 
-        preregistration_uuids: list[str] = []
         code = cls.code_unicity(code=generate_slug(f"{child.firstname} {child.lastname}"), db=db)
         for nursery_uuid in obj_in.nurseries:
             new_preregistration = models.PreRegistration(
@@ -595,18 +285,14 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
                 status=models.PreRegistrationStatusType.PENDING
             )
             db.add(new_preregistration)
-            preregistration_uuids.append(new_preregistration.uuid)
 
         db.commit()
         db.refresh(child)
 
-        for preregistration_uuid in preregistration_uuids:
-            background_task.add_task(cls.generate_quote, db, preregistration_uuid)
-
         return child
 
     @classmethod
-    def get_by_code(cls, db: Session, code: str) -> Optional[schemas.PreregistrationDetails]:
+    def get_by_code(cls, db: Session, code: str) -> Optional[models.PreRegistration]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
 
     def get_elements_by_tag(self, db: Session, tag: str) -> List:

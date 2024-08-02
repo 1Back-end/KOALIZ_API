@@ -242,7 +242,6 @@ class ChildMini2(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-    model_config = ConfigDict(from_attributes=True)
 class TrackingCaseMini(BaseModel):
     uuid: str
     details: Any
@@ -311,6 +310,7 @@ class MeetingTypeResponse(BaseModel):
     title_fr:str
     model_config = ConfigDict(from_attributes=True)
 
+
 class ActivityReminderTypeResponse(BaseModel):
     uuid: str
     title_en:  str
@@ -334,22 +334,27 @@ class PreContractSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class Icon(Storage):
     pass
+
 
 class PreregistrationSlim(BaseModel):
     uuid: str
     child: ChildMini2
     pre_contract: PreContractSlim
     status: str = None
-    tags:Optional[list[Tag]] = []
+    tags: Optional[list[Tag]] = []
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class PreRegistrationList(DataList):
     data: list[PreregistrationSlim] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
 class TrackingCaseList(DataList):
     data: list[TrackingCaseMini]
 

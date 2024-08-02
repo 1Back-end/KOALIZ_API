@@ -204,8 +204,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         db.commit()
         db.refresh(nursery)
         return nursery
-
-
+    
     @classmethod
     def get_by_uuids(cls, db: Session, uuids: list[str], owner_uuid: str = None) -> list[Optional[models.Nursery]]:
         res = (db.query(models.Nursery).filter(models.Nursery.uuid.in_(uuids))\
