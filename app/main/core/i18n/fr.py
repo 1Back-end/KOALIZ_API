@@ -53,4 +53,8 @@ translation = {
     "team-device-deleted": "Appareil supprimé avec succès",
     "dependencies-token-invalid": "Token invalide",
     "dependencies-access-unauthorized": "Vous n'avez pas le droit d'accéder à cette fonctionnalité!",
+    "item-deposit": "Acompte à la signature",
+    "item-adaptation": "Frais d'adaptation",
+    "item-invoice": "Mensualité",
+    "item-registration": "Frais d'inscription",
 }

@@ -42,7 +42,11 @@ translation = {
     "device-already-found": "Existing device",
     "team-device-deleted": "Device successfully deleted",
     "dependencies-token-invalid": "Token invalid",
-    "dependencies-access-unauthorized": "You do not have the right to access this feature!"
+    "dependencies-access-unauthorized": "You do not have the right to access this feature!",
+    "item-deposit": "Deposit on signature",
+    "item-adaptation": "Adaptation fee",
+    "item-invoice": "Monthly payment",
+    "item-registration": "Registration fee",
 
 
 }

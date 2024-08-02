@@ -7,11 +7,13 @@ from .migration_controller import router as migration
 from .nursery_controller import router as nursery
 from .owner_controller import router as owner
 from .preregistration_controller import router as preregistration
+from .quote_controller import router as quote
 from .storage_controller import router as storage
 from .membership_controller import router as membership
 from .tag_controller import router as tag
 from .audit_log_controller import router as audit_logs
 from .notification_controller import router as notification
+from .nursery_close_hours_controller import router as nursery_close_hours
 from .parent_controller import router as parent
 from .team_device_controller import router as team_device
 from .message_controller import router as message
@@ -28,9 +30,11 @@ api_router.include_router(nursery)
 api_router.include_router(parent)
 api_router.include_router(message)
 api_router.include_router(preregistration)
+api_router.include_router(quote)
 api_router.include_router(notification)
 api_router.include_router(migration)
 api_router.include_router(storage)
 api_router.include_router(tag)
 api_router.include_router(helper)
+api_router.include_router(nursery_close_hours)
 

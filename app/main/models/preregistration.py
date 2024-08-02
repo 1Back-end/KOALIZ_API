@@ -5,11 +5,13 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, date
 
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, Mapped
 from app.main.models.db.session import SessionLocal
+from app.main.models.quote import FamilyType
 from .db.base_class import Base
 from .planning import children_media
+
+
 class PreRegistrationStatusType(str, Enum):
     ACCEPTED = "ACCEPTED"
     PENDING = "PENDING"
@@ -39,6 +41,11 @@ class ParentRelationship(str, Enum):
     OTHER = "OTHER"
 
 
+class ContractType(str, Enum):
+    REGULAR = "REGULAR"
+    OCCASIONAL = "OCCASIONAL"
+
+
 class Child(Base):
     """
          database model for storing Nursery related details
@@ -56,6 +63,9 @@ class Child(Base):
     pre_contract_uuid: str = Column(String, ForeignKey('pre_contracts.uuid'), nullable=True)
     pre_contract: Mapped[any] = relationship("PreContract", foreign_keys=pre_contract_uuid, back_populates="child", uselist=False)
 
+    contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
+    contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, back_populates="child", uselist=False)
+
     parents: Mapped[list[any]] = relationship("ParentGuest", back_populates="child", uselist=True)
 
     preregistrations: Mapped[list[any]] = relationship("PreRegistration", back_populates="child", uselist=True)
@@ -69,8 +79,9 @@ class Child(Base):
     observations: Mapped[list[any]] = relationship("Observation", back_populates="child", uselist=True) # Observations
 
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
-    added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)
     is_accepted: bool = Column(Boolean, default=False)
+    family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE, nullable=True)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -80,6 +91,7 @@ class Child(Base):
         for parent in self.parents:
             if parent.is_paying_parent:
                 return parent
+        return self.parents[0]
 
 
 @event.listens_for(Child, 'before_insert')
@@ -108,7 +120,7 @@ class PreContract(Base):
     # typical_weeks: list = relationship("TypicalWeek", backref="pre_contract")
     # typical_weeks: Mapped[list[any]] = relationship("TypicalWeek", back_populates="pre_contract", uselist=True)
     # typical_weeks: list[any] = Column(MutableList.as_mutable(ARRAY(JSONB)), nullable=False)
-    typical_weeks: list[any] = Column(MutableList.as_mutable(JSONB), nullable=False)
+    typical_weeks: list[any] = Column(JSONB, nullable=False)
     child: Mapped[any] = relationship("Child", back_populates="pre_contract", uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -156,11 +168,15 @@ class ParentGuest(Base):
 
     is_paying_parent: bool = Column(Boolean, default=False)
 
+    # contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
+    # contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
+
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, back_populates="parents", uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
 
 @event.listens_for(ParentGuest, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
@@ -197,11 +213,13 @@ class TrackingCase(Base):
     def __repr__(self):
         return '<TrackingCase: uuid: {} interaction_type: {}>'.format(self.uuid, self.interaction_type)
 
+
 @event.listens_for(TrackingCase, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
     target.date_modified = datetime.now()
+
 
 @event.listens_for(TrackingCase, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
@@ -227,6 +245,9 @@ class PreRegistration(Base):
     pre_contract_uuid: str = Column(String, ForeignKey('pre_contracts.uuid'), nullable=True)
     pre_contract: Mapped[any] = relationship("PreContract", foreign_keys=pre_contract_uuid, uselist=False)
 
+    contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
+    contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False)
+
     tracking_cases = relationship("TrackingCase", order_by="TrackingCase.date_added", back_populates="preregistration")
     # logs = relationship("Log", order_by="Log.date_added", back_populates="preregistration")
 
@@ -249,7 +270,7 @@ class PreRegistration(Base):
             return record
         finally:
             db.close()
-    
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
@@ -268,6 +289,74 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
+
+
+class Contract(Base):
+    """
+         database model for storing Contract related details
+    """
+    __tablename__ = "contracts"
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+
+    begin_date: date = Column(Date, nullable=False)
+    end_date: date = Column(Date, nullable=False)
+    typical_weeks: list[any] = Column(JSONB, nullable=False)
+    child: Mapped[any] = relationship("Child", back_populates="contract", uselist=False)
+    type: str = Column(String, nullable=False)
+    # type: str = Column(types.Enum(ContractType), nullable=False, default=ContractType.REGULAR)
+    # has_company_contract: bool = Column(Boolean, default=True)
+    # annual_income: float = Column(Float, default=0)
+
+    # parent_guest_uuid: str = Column(String, ForeignKey('parent_guests.uuid'), nullable=True)
+    # parent_guest: Mapped[any] = relationship("ParentGuest", foreign_keys=parent_guest_uuid, back_populates="contract", uselist=False)
+
+    sepa_direct_debit_uuid: str = Column(String, ForeignKey('sepa_direct_debits.uuid'))
+    sepa_direct_debit: Mapped[any] = relationship("SEPADirectDebit", foreign_keys=sepa_direct_debit_uuid, uselist=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(Contract, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(Contract, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
+class SEPADirectDebit(Base):
+    __tablename__ = 'sepa_direct_debits'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    name = Column(String(100), nullable=False)
+    iban = Column(String(34), nullable=False, unique=True)
+    bic = Column(String(11), nullable=False)
+    rum = Column(String(100), nullable=False, unique=True)
+    signed_date = Column(Date, nullable=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(SEPADirectDebit, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(SEPADirectDebit, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
 
 
 class ActivityReminderType(Base):
