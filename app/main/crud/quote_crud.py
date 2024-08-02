@@ -27,8 +27,8 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
         db.commit()
         return quote_obj
 
-    @staticmethod
     def get_many(
+            self,
             db: Session,
             nursery_uuid: str,
             owner_uuid: str,
@@ -37,7 +37,8 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             order: Optional[str] = None,
             order_filed: Optional[str] = None,
             keyword: Optional[str] = None,
-            status: Optional[str] = None
+            status: Optional[str] = None,
+            tag_uuid: str = None
     ):
         record_query = db.query(models.Quote).filter(models.Quote.nursery_uuid==nursery_uuid).filter(models.Quote.nursery.has(models.Nursery.owner_uuid==owner_uuid))
         if status:
@@ -50,6 +51,12 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
                     models.Child.lastname.ilike('%' + str(keyword) + '%'),
                 ))
             )
+
+        if tag_uuid:
+            pass
+            # elements = self.get_elements_by_tag(db, tag_uuid)
+            # element_uuids = [element.get("data", {}).uuid for element in elements]
+            # record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
 
         if order == "asc":
             record_query = record_query.order_by(getattr(models.Quote, order_filed).asc())

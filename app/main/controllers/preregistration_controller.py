@@ -227,7 +227,6 @@ def get_many(
     return crud.preregistration.get_many(
         db,
         nursery_uuid,
-        tag_uuid,
         status,
         begin_date,
         end_date,
@@ -235,7 +234,8 @@ def get_many(
         per_page,
         order,
         order_field,
-        keyword
+        keyword,
+        tag_uuid
     )
 
 # 8d54df37-9954-44a3-8733-9be1f9f5a148

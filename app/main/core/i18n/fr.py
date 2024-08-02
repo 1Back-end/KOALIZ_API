@@ -57,4 +57,5 @@ translation = {
     "item-adaptation": "Frais d'adaptation",
     "item-invoice": "Mensualité",
     "item-registration": "Frais d'inscription",
+    "quote-not-found": "Le devis n'existe pas",
 }

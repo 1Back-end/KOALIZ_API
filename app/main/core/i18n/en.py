@@ -47,6 +47,7 @@ translation = {
     "item-adaptation": "Adaptation fee",
     "item-invoice": "Monthly payment",
     "item-registration": "Registration fee",
+    "quote-not-found": "Quote not found",
 
 
 }
