@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Optional, List
 from pydantic import BaseModel, ConfigDict
 
-from .file import File
+from .nursery import NurserySlim
 from .base import DataList, Token
 
 
@@ -24,6 +24,7 @@ class TeamDeviceUpdate(TeamDeviceBase):
 class TeamDevice(TeamDeviceBase):
     uuid: Optional[str] = None
     # code: Optional[str] = None
+    nursery: Optional[NurserySlim]=None
     date_added: datetime
 
 

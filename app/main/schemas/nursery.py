@@ -51,6 +51,13 @@ class Nursery(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class NurserySlim(BaseModel):
+    uuid: str
+    name: str
+    memberships:Optional[list[Membership1]]=[]
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class NurseryCreateBase(BaseModel):
     email: EmailStr
