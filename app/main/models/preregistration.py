@@ -72,7 +72,7 @@ class Child(Base):
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)
     is_accepted: bool = Column(Boolean, default=False)
-    family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE, nullable=False)
+    family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE, nullable=True)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
