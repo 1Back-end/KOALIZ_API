@@ -99,7 +99,8 @@ class NurseryCloseHour(Base):
     __tablename__ = "nursery_close_hours"
     
     uuid: str = Column(String, primary_key=True, index=True)
-    name: str = Column(String, nullable=False)
+    name_fr: str = Column(String, nullable=False)
+    name_en: str = Column(String, nullable=True)
     start_day: int = Column(Integer, nullable=False)
     start_month: int = Column(Integer, nullable=False)
     end_day: int = Column(Integer, nullable=False)
@@ -121,7 +122,8 @@ class NuseryHoliday(Base):
     __tablename__ = "nursery_holidays"
     
     uuid: str = Column(String, primary_key=True,index=True)
-    name: str = Column(String, nullable=False)
+    name_fr: str = Column(String, nullable=False)
+    name_en: str = Column(String, nullable=False)
     day: int = Column(Integer, nullable=False)
     month: int = Column(Integer, nullable=False)
     is_active: bool = Column(Boolean, default=False, nullable=False)  # Ajout de la colonne is_active

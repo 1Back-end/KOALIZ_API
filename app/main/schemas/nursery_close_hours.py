@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import Optional
 
 class NurseryCloseHourBase(BaseModel):
-    name: str
+    name_fr: str
+    name_en: str 
     start_day: int
     start_month: int
     end_day: int
@@ -14,7 +15,8 @@ class NurseryCloseHourCreate(NurseryCloseHourBase):
     pass
 
 class NurseryCloseHourUpdate(BaseModel):
-    name: Optional[str] = None
+    name_fr: Optional[str] = None
+    name_en: Optional[str] = None
     start_day: Optional[int] = None
     start_month: Optional[int] = None
     end_day: Optional[int] = None
@@ -38,3 +40,13 @@ class NurseryCloseHourResponsiveList(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class NurseryCloseHourDetails(BaseModel):
+    uuid : str
+    name_fr: str
+    name_en: str 
+    start_day: int
+    start_month: int
+    end_day: int
+    end_month: int
+
+    model_config = ConfigDict(from_attributes=True)

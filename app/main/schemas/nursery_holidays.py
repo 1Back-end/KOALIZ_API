@@ -1,8 +1,11 @@
 from pydantic import BaseModel,ConfigDict
 from datetime import datetime
 from typing import Optional
+
+from app.main.schemas.base import DataList
 class NurseryHolidayBase(BaseModel):
-    name: str
+    name_fr: str
+    name_en: str
     day: int
     month: int
     nursery_uuid: str
@@ -11,11 +14,11 @@ class NurseryHolidayCreate(NurseryHolidayBase):
     pass
 
 class NurseryHolidayUpdate(BaseModel):
-    name: Optional[str]
-    day: Optional[int]
-    month: Optional[int]
-    is_active: Optional[bool]
-    nursery_uuid: Optional[str]
+    name_fr: Optional[str]=None
+    name_en: Optional[str]=None
+    day: Optional[int]=None
+    month: Optional[int]=None
+    is_active: Optional[bool]=None
 
 class NurseryHoliday(NurseryHolidayBase):
     uuid: str
@@ -23,5 +26,20 @@ class NurseryHoliday(NurseryHolidayBase):
     date_added: datetime
     date_modified: datetime
 
-    class Config:
-        orm_mode: True
+    model_config = ConfigDict(from_attributes=True)
+    
+
+
+class NurseryHolidayList(DataList):
+    data: list[Optional[NurseryHoliday]]
+
+    model_config = ConfigDict(from_attributes=True)
+
+class NurseryHolidaysDetails(BaseModel):
+        uuid : str
+        name_fr: str
+        name_en: str 
+
+        model_config = ConfigDict(from_attributes=True)
+
+    

@@ -11,3 +11,4 @@ from .tag_crud import tag
 from .audit_log_crud import audit_log
 from .notification_crud import notification
 from .nursery_close_hours import nursery_close_hour
+from .nursery_holidays import nursery_holiday
