@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship, Mapped
 from app.main.models.db.session import SessionLocal
 from app.main.models.quote import FamilyType
 from .db.base_class import Base
-from .planning import children_media
+from .backup import children_media
 
 
 class PreRegistrationStatusType(str, Enum):

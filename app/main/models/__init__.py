@@ -16,5 +16,6 @@ from .notification import *
 from .parent import *
 from .message import *
 from .team_device import *
-from .planning import *
+from .backup import *
 from .team import *
+from .backup import *

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
+from enum import Enum
 from datetime import date, datetime
-import enum
 from sqlalchemy.sql import func
-from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, String, Integer, DateTime, Table, Text, Time
+from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, String, Integer, DateTime, Table, Text, types
 from sqlalchemy import event
 from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -87,11 +87,11 @@ class Day(Base):
     date_modified: any = Column(DateTime, server_default=func.now())
 
 
-# class MealQuality(enum.Enum):
-#     Pas = "Pas"
-#     Peu = "Peu"
-#     Bien = "Bien"
-#     Très = "Très"
+class MealQuality(str, Enum):
+    NONE = "NONE" # Pas
+    LITTLE = "LITTLE" # Peu
+    GOOD = "GOOD" # Bien
+    VERY_GOOD = "VERY_GOOD" # Très
 
 # Repas
 @dataclass
@@ -106,7 +106,7 @@ class Meal(Base):
     meal_time = Column(DateTime, nullable=False, default=datetime.now()) # Heure
     bottle_milk_ml = Column(Integer, nullable=True) # Biberon
     breastfeeding_duration_minutes = Column(Integer, nullable=True) # Allaitement
-    meal_quality = Column(String, nullable=False) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
+    meal_quality = Column(types.Enum(MealQuality), nullable=False) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     observation = Column(Text, nullable=True) # Observation
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
@@ -115,8 +115,8 @@ class Meal(Base):
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False, back_populates="meals")
 
-    # added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True) TODO change this with kind model link
-    # added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
 
     date_added: any = Column(DateTime, server_default=func.now())
     date_modified: any = Column(DateTime, server_default=func.now())
@@ -131,8 +131,6 @@ class Activity(Base):
     uuid = Column(String, primary_key=True, unique=True)
     activity_name = Column(String, nullable=False)
     activity_time = Column(DateTime, nullable=False, default=datetime.now())
-    # added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True) TODO change this with kind model link
-    # added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
     
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
@@ -152,14 +150,21 @@ class ChildActivity(Base):
     child = relationship("Child", back_populates="activities")
     activity = relationship("Activity", back_populates="children")
 
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
+
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
-# class NapQuality(enum.Enum):
-#     Repos_seulement = "Repos seulement"
-#     Peu_dormi = "Peu dormi"
-#     Bien_dormi = "Bien dormi"
-#     Très_bien_dormi = "Très bien dormi"
+    date_added = Column(DateTime, server_default=func.now())
+    date_modified = Column(DateTime, server_default=func.now())
+
+
+class NapQuality(str, Enum):
+    REST_ONLY = "REST_ONLY" # Repos seulement
+    LITTLE_SLEEP = "LITTLE_SLEEP" # Peu dormi
+    WELL_SLEEP = "WELL_SLEEP" # Bien dormi
+    VERY_WELL_SLEEP = "VERY_WELL_SLEEP" # Très bien dormi
 
 # Sieste
 @dataclass
@@ -176,14 +181,14 @@ class Nap(Base):
     
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=True)
-    quality = Column(String, nullable=False) #  Qualité (Repos seulement, peu dormi, bien dormi, très bien dormi)
+    quality = Column(types.Enum(NapQuality), nullable=False) #  Qualité (Repos seulement, peu dormi, bien dormi, très bien dormi)
     observation = Column(Text, nullable=True)
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
-    # added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True) TODO change this with kind model link
-    # added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
     
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
@@ -197,24 +202,23 @@ class Nap(Base):
         return 0
 
 
-# class CareType(enum.Enum):
-#     Poids = "Poids"
-#     Température = "Température"
-#     Médicament = "Médicament"
+class CareType(str, Enum):
+    WEIGHT = "WEIGHT" # Poids
+    TEMPERATURE = "TEMPERATURE" # Température
+    MEDICATION = "MEDICATION" # Médicament
 
-# class Route(enum.Enum):
-#     Axilliaire = "Axilliaire"
-#     Orale = "Orale"
-#     Front = "Front"
-#     Rectale = "Rectale"
-#     Tempe = "Tempe"
+class Route(str, Enum):
+    AXILLARY = "AXILLARY" # Axilliaire
+    ORAL = "ORAL" # Orale
+    FOREHEAD = "FOREHEAD" # Front
+    RECTAL = "RECTAL" # Rectale
+    TEMPLE = "TEMPLE" # Tempe
 
-# class MedicationType(enum.Enum):
-#     Suppositoire = "Suppositoire"
-#     Sirop = "Sirop"
-#     Comprimé = "Comprimé"
-#     Autre = "Autre"
-
+class MedicationType(str, Enum):
+    SUPPOSITORY = "SUPPOSITORY" # Suppositoire
+    SYRUP = "SYRUP" # Sirop
+    TABLET = "TABLET" # Comprimé
+    OTHER = "OTHER" # Autre
 
 @dataclass
 class HealthRecord(Base):
@@ -228,42 +232,42 @@ class HealthRecord(Base):
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False, back_populates="health_records")
 
-    care_type = Column(String, nullable=False) # Types de soins (poids, température, médicament)
+    care_type = Column(types.Enum(CareType), nullable=False) # Types de soins (poids, température, médicament)
     time = Column(DateTime, nullable=False, default=datetime.now())
     weight = Column(Float, nullable=True)
     temperature = Column(Float, nullable=True)
-    route = Column(String, nullable=True) # voie (Axilliaire, Orale, Front, Rectale, Tempe)
-    medication_type = Column(String, nullable=True) # Type (suppositoire, Sirop, Comprimé, Autre)
+    route = Column(types.Enum(Route), nullable=True) # voie (Axilliaire, Orale, Front, Rectale, Tempe)
+    medication_type = Column(types.Enum(MedicationType), nullable=True) # Type (suppositoire, Sirop, Comprimé, Autre)
     medication_name = Column(String, nullable=True)
     observation = Column(Text, nullable=True)
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
-    # added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True) TODO change this with kind model link
-    # added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
 
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
 
 
-# class Cleanliness(enum.Enum):
-#     Rien_a_signaler = "Rien a signaler"
-#     Couche = "Couche"
-#     Sur_le_pot = "Sur le pot"
-#     Aux_toilettes = "Aux toilettes"
+class Cleanliness(str, Enum):
+    NOTHING_TO_REPORT = "NOTHING_TO_REPORT" # Rien a signaler
+    DIAPER = "DIAPER" # Couche
+    POTTY = "POTTY" # Sur le pot
+    TOILET = "TOILET" # Aux toilettes
 
-# class StoolType(enum.Enum):
-#     Dures = "Dures"
-#     Normales = "Normales"
-#     Molles = "Molles"
-#     Liquides = "Liquides"
+class StoolType(str, Enum):
+    HARD = "HARD" # Dures
+    NORMAL = "NORMAL" # Normales
+    SOFT = "SOFT" # Molles
+    LIQUID = "LIQUID" # Liquides
 
-# class AdditionalCare(enum.Enum):
-#     Nez = "Nez"
-#     Yeux = "Yeux"
-#     Oreilles = "Oreilles"
-#     Crème = "Crème"
+class AdditionalCare(str, Enum):
+    NOSE = "NOSE" # Nez
+    EYES = "EYES" # Yeux
+    EARS = "EARS" # Oreilles
+    CREAM = "CREAM" # Crème
 
 
 @dataclass
@@ -282,28 +286,27 @@ class HygieneChange(Base):
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
     
     time = Column(DateTime, nullable=False, default=datetime.now())
-    cleanliness = Column(String, nullable=False) # Propreté (Rien a signaler, Couche, Sur le pot, Aux toilettes)
+    cleanliness = Column(types.Enum(Cleanliness), nullable=False) # Propreté (Rien a signaler, Couche, Sur le pot, Aux toilettes)
     pipi = Column(Boolean, nullable=False, default=False)
-    stool_type = Column(String, nullable=True) # (Dures, normales, molles, liquides)
-    additional_care = Column(String, nullable=True) # Soins complémentaires (Nez, yeux, Oreilles, Crème
+    stool_type = Column(types.Enum(StoolType), nullable=True) # (Dures, normales, molles, liquides)
+    additional_care = Column(types.Enum(AdditionalCare), nullable=True) # Soins complémentaires (Nez, yeux, Oreilles, Crème
     observation = Column(Text, nullable=True)
 
-    # added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True) TODO change this with kind model link
-    # added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
     
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
 
 
-# class MediaType(enum.Enum):
-#     Photo = "Photo"
-#     Video = "Video"
+class MediaType(str, Enum):
+    PHOTO = "PHOTO"
+    VIDEO = "VIDEO"
 
 children_media = Table('children_media', Base.metadata,
     Column('child_uuid', String, ForeignKey('children.uuid')),
     Column('media_uuid', String, ForeignKey('media.uuid'))
 )
-
 
 @dataclass
 class Media(Base):
@@ -320,12 +323,12 @@ class Media(Base):
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
     
-    media_type = Column(String, nullable=False) # media type (photos, vidéo)
+    media_type = Column(types.Enum(MediaType), nullable=False) # media type (photos, vidéo)
     time = Column(DateTime, nullable=False, default=datetime.now())
     observation = Column(Text, nullable=True)
 
-    # added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True) TODO change this with kind model link
-    # added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
     
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
@@ -339,7 +342,7 @@ class Observation(Base):
     """ Observation model representing observations of children """
 
     __tablename__ = "observations"
-    
+
     uuid = Column(String, primary_key=True, unique=True)
 
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
@@ -347,13 +350,13 @@ class Observation(Base):
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
-    
+
     time = Column(DateTime, nullable=False, default=datetime.now())
     observation = Column(Text, nullable=False)
 
-    # added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True) TODO change this with kind model link
-    # added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
-    
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
+
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
 

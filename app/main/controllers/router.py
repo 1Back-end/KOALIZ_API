@@ -19,6 +19,7 @@ from .team_device_controller import router as team_device
 from .team_controller import router as team
 from .employe_controller import router as employee
 from .message_controller import router as message
+from .backup_controller import router as backup
 
 api_router = APIRouter()
 
@@ -32,6 +33,7 @@ api_router.include_router(nursery)
 api_router.include_router(parent)
 api_router.include_router(message)
 api_router.include_router(preregistration)
+api_router.include_router(backup)
 api_router.include_router(quote)
 api_router.include_router(notification)
 api_router.include_router(migration)
