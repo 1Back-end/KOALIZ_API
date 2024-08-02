@@ -260,8 +260,7 @@ class PreRegistration(Base):
                         all()
             return record
         finally:
-            pass
-            # db.close()
+            db.close()
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

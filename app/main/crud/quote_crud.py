@@ -53,9 +53,10 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             )
 
         if tag_uuid:
-            elements = self.get_elements_by_tag(db, tag_uuid)
-            element_uuids = [element.get("data", {}).uuid for element in elements]
-            record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
+            pass
+            # elements = self.get_elements_by_tag(db, tag_uuid)
+            # element_uuids = [element.get("data", {}).uuid for element in elements]
+            # record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
 
         if order == "asc":
             record_query = record_query.order_by(getattr(models.Quote, order_filed).asc())

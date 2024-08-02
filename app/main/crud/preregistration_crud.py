@@ -678,9 +678,6 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
             )
         if tag_uuid:
             elements = self.get_elements_by_tag(db, tag_uuid)
-            print("++++++++++++++++++++++++++++++++++++++++")
-            print(elements)
-            print("++++++++++++++++++++++++++++++++++++++++")
             element_uuids = [element.get("data", {}).uuid for element in elements]
             record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
 
