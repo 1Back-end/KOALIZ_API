@@ -31,18 +31,20 @@ class Response:
     quote_timetables: list[QuoteTimetable]
     acp_deposit_amount: Decimal
     fpm_first_month_cost: Decimal
+    mm_monthly_cost: Decimal
     mfa_adaptation_package_cost: Decimal
     mfi_registration_fee: Decimal
     mrc_remaining_contract_cost_after_first_month: Decimal
     last_month_amount: Decimal
 
     def __init__(self, total: float, quote_timetables: list[QuoteTimetable], acp_deposit_amount: float,
-                 fpm_first_month_cost: float, mfa_adaptation_package_cost: float, mfi_registration_fee: float,
+                 fpm_first_month_cost: float, mm_monthly_cost: float, mfa_adaptation_package_cost: float, mfi_registration_fee: float,
                  mrc_remaining_contract_cost_after_first_month: float, last_month_amount: float):
         self.total = Decimal("%.2f" % total)
         self.quote_timetables = quote_timetables
         self.acp_deposit_amount = Decimal("%.2f" % acp_deposit_amount)
         self.fpm_first_month_cost = Decimal("%.2f" % fpm_first_month_cost)
+        self.mm_monthly_cost = Decimal("%.2f" % mm_monthly_cost)
         self.mfa_adaptation_package_cost = Decimal("%.2f" % mfa_adaptation_package_cost)
         self.mfi_registration_fee = Decimal("%.2f" % mfi_registration_fee)
         self.mrc_remaining_contract_cost_after_first_month = Decimal("%.2f" % mrc_remaining_contract_cost_after_first_month)

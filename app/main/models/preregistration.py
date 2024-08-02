@@ -40,6 +40,11 @@ class ParentRelationship(str, Enum):
     OTHER = "OTHER"
 
 
+class ContractType(str, Enum):
+    REGULAR = "REGULAR"
+    OCCASIONAL = "OCCASIONAL"
+
+
 class Child(Base):
     """
          database model for storing Nursery related details
@@ -67,7 +72,7 @@ class Child(Base):
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)
     is_accepted: bool = Column(Boolean, default=False)
-    family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE)
+    family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE, nullable=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -154,8 +159,8 @@ class ParentGuest(Base):
 
     is_paying_parent: bool = Column(Boolean, default=False)
 
-    contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
-    contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
+    # contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
+    # contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
 
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, back_populates="parents", uselist=False)
@@ -290,6 +295,7 @@ class Contract(Base):
     typical_weeks: list[any] = Column(JSONB, nullable=False)
     child: Mapped[any] = relationship("Child", back_populates="contract", uselist=False)
     type: str = Column(String, nullable=False)
+    # type: str = Column(types.Enum(ContractType), nullable=False, default=ContractType.REGULAR)
     # has_company_contract: bool = Column(Boolean, default=True)
     # annual_income: float = Column(Float, default=0)
 

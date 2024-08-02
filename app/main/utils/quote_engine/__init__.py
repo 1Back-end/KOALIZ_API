@@ -355,6 +355,7 @@ class QuoteEngine:
             ),
             acp_deposit_amount=acp_deposit_amount,
             fpm_first_month_cost=fpm_first_month_cost,
+            mm_monthly_cost=mm_monthly_cost,
             mfa_adaptation_package_cost=mfa_adaptation_package_cost,
             mfi_registration_fee=mfi_registration_fee,
             mrc_remaining_contract_cost_after_first_month=mrc_remaining_contract_cost_after_first_month,

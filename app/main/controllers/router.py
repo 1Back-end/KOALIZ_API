@@ -7,7 +7,7 @@ from .migration_controller import router as migration
 from .nursery_controller import router as nursery
 from .owner_controller import router as owner
 from .preregistration_controller import router as preregistration
-from .quote_controller import *
+from .quote_controller import router as quote
 from .storage_controller import router as storage
 from .membership_controller import router as membership
 from .tag_controller import router as tag
@@ -30,6 +30,7 @@ api_router.include_router(nursery)
 api_router.include_router(parent)
 api_router.include_router(message)
 api_router.include_router(preregistration)
+api_router.include_router(quote)
 api_router.include_router(notification)
 api_router.include_router(migration)
 api_router.include_router(storage)

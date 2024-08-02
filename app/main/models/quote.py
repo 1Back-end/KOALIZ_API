@@ -43,6 +43,12 @@ class InvoiceTimeType(str, Enum):
     END_OF_MONTH = "END_OF_MONTH"
 
 
+class QuoteStatusType(str, Enum):
+    ACCEPTED = "ACCEPTED"
+    PENDING = "PENDING"
+    REFUSED = "REFUSED"
+
+
 class Quote(Base):
     """
      database model for storing Nursery related details
@@ -83,13 +89,17 @@ class Quote(Base):
     adaptation_package_days: int = Column(Integer, default=5)
     adaptation_hourly_rate: float = Column(Float, default=10)
     adaptation_hours_number: int = Column(Integer, default=120)
+    first_month_cost: float = Column(Float, default=0)
+    monthly_cost: float = Column(Float, default=0)
+    total_cost: float = Column(Float, default=0)
+    status: str = Column(types.Enum(QuoteStatusType), nullable=False, default=QuoteStatusType.PENDING)
 
-    cmg: Mapped[any] = relationship("QuoteCMG", back_populates="quote", uselist=False)
+    cmg: Mapped[any] = relationship("QuoteCMG", back_populates="quote", uselist=False, cascade="all, delete-orphan")
 
     quote_setting_uuid: str = Column(String, ForeignKey('quote_settings.uuid'), nullable=True)
     quote_setting: Mapped[any] = relationship("QuoteSetting", foreign_keys=quote_setting_uuid, uselist=False)
 
-    timetables: Mapped[list[any]] = relationship("QuoteTimetable", back_populates="quote", uselist=True) #Echeancier
+    timetables: Mapped[list[any]] = relationship("QuoteTimetable", back_populates="quote", uselist=True, cascade="all, delete-orphan") #Echeancier
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -120,9 +130,9 @@ class QuoteTimetable(Base):
 
     date_to: date = Column(Date)
     amount: float = Column(Float, default=0)
-    items: Mapped[list[any]] = relationship("QuoteTimetableItem", back_populates="quote_timetable", uselist=True)
+    items: Mapped[list[any]] = relationship("QuoteTimetableItem", back_populates="quote_timetable", uselist=True, cascade="all, delete-orphan")
 
-    quote_uuid: str = Column(String, ForeignKey('quotes.uuid'), nullable=True)
+    quote_uuid: str = Column(String, ForeignKey('quotes.uuid', ondelete='CASCADE'), nullable=False)
     quote: Mapped[any] = relationship("Quote", foreign_keys=quote_uuid, uselist=False, back_populates="timetables")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -155,7 +165,7 @@ class QuoteTimetableItem(Base):
     type: str = Column(types.Enum(QuoteTimetableItemType), nullable=False)
     amount: float = Column(Float, nullable=0)
 
-    quote_timetable_uuid: str = Column(String, ForeignKey('quote_timetables.uuid'), nullable=False)
+    quote_timetable_uuid: str = Column(String, ForeignKey('quote_timetables.uuid', ondelete='CASCADE'), nullable=False)
     quote_timetable: Mapped[any] = relationship("QuoteTimetable", foreign_keys=quote_timetable_uuid, uselist=False, back_populates="items")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -188,7 +198,7 @@ class QuoteCMG(Base):
     number_children: int = Column(Integer, default=1)
     annual_income: float = Column(Float, default=0)
 
-    quote_uuid: str = Column(String, ForeignKey('quotes.uuid'), nullable=True)
+    quote_uuid: str = Column(String, ForeignKey('quotes.uuid', ondelete='CASCADE'), nullable=False)
     quote: Mapped[any] = relationship("Quote", foreign_keys=quote_uuid, back_populates="cmg", uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())

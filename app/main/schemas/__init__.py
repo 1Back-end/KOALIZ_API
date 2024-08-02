@@ -8,6 +8,7 @@ from .msg import Msg, BoolStatus, DataDisplay
 from .nursery import *
 from .owner import *
 from .preregistration import *
+from .quote import *
 from .user import *
 from .role import *
 from .tag import *
