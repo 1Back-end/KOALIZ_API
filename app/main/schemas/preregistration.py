@@ -207,6 +207,15 @@ class ParentDisplay(BaseModel):
     disabled_children: int= None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PayingParentGuest(BaseModel):
+    uuid: str
+    annual_income: float = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ChildMini(BaseModel):
     uuid: str
     firstname: str
@@ -220,7 +229,19 @@ class ChildMini(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChildMini2(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+    birthplace: str
+    date_added: datetime
+    date_modified: datetime
+    paying_parent: Optional[PayingParentGuest] = None
     model_config = ConfigDict(from_attributes=True)
+
+
 class TrackingCaseMini(BaseModel):
     uuid: str
     details: Any
@@ -289,6 +310,7 @@ class MeetingTypeResponse(BaseModel):
     title_fr:str
     model_config = ConfigDict(from_attributes=True)
 
+
 class ActivityReminderTypeResponse(BaseModel):
     uuid: str
     title_en:  str
@@ -312,8 +334,10 @@ class PreContractSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class Icon(Storage):
     pass
+
 
 class Tag(BaseModel):
     uuid: str
@@ -325,17 +349,20 @@ class Tag(BaseModel):
 
 class PreregistrationSlim(BaseModel):
     uuid: str
-    child: ChildMini
+    child: ChildMini2
     pre_contract: PreContractSlim
     status: str = None
-    tags:Optional[list[Tag]] = []
+    tags: Optional[list[Tag]] = []
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class PreRegistrationList(DataList):
     data: list[PreregistrationSlim] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
 class TrackingCaseList(DataList):
     data: list[TrackingCaseMini]
 

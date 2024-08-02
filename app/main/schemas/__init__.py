@@ -8,11 +8,14 @@ from .msg import Msg, BoolStatus, DataDisplay
 from .nursery import *
 from .owner import *
 from .preregistration import *
+from .quote import *
 from .user import *
 from .role import *
 from .tag import *
 from .audit_log import *
 from .notification import *
+from .nursery_close_hours import *
+from .nursery_holidays import *
 from .parent import *
 from .team_device import *
 from .conversation import *

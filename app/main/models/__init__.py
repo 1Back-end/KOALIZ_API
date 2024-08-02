@@ -7,6 +7,7 @@ from .backlist_token import BlacklistToken
 from .nursery import *
 from .owner import *
 from .preregistration import *
+from .quote import *
 from .storage import *
 from .membership import *
 from .tag import *
@@ -15,4 +16,5 @@ from .notification import *
 from .parent import *
 from .message import *
 from .team_device import *
+from .planning import *
 from .team import *
