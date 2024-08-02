@@ -100,20 +100,20 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
     
     @classmethod
     def get_multi(
-        *,
         cls,
         db:Session,
+        owner_uuid: str,
         page:int = 1,
         per_page:int = 30,
         order:Optional[str] = None,
         status:Optional[str] = None,
         user_uuid:Optional[str] = None,
         keyword:Optional[str]= None,
-        owner_uuid: str
         # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Team).\
-            filter(models.Team.owner_uuid == owner_uuid)
+            filter(models.Team.owner_uuid == owner_uuid).\
+            filter(models.Team.status != models.TeamStatusEnum.DELETED)
 
         # if order_filed:
         #     record_query = record_query.order_by(getattr(models.Team, order_filed))

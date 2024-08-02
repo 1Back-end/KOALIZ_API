@@ -168,6 +168,7 @@ class CRUDEmployee(CRUDBase[models.Employee,schemas.EmployeCreate,schemas.Employ
         # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Employee).\
+        filter(models.Employee.status != models.EmployeStatusEnum.DELETED).\
             options(
                 joinedload(models.Employee.avatar),
                 joinedload(models.Employee.teams),

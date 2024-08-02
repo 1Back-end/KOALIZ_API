@@ -196,13 +196,13 @@ def get(
     
     return crud.team.get_multi(
         db, 
+        current_user.uuid,
         page, 
         per_page, 
         order,
         status,
         user_uuid,
         # order_filed
-        keyword,
-        current_user.uuid
+        keyword
     )
     

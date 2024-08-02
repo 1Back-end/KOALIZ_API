@@ -14,6 +14,12 @@ class EmployeStatusEnum(str,Enum):
     RETIRED = "RETIRED" # L'employé a pris sa retraite.
     PROBATION = "PROBATION" #L'employé est en période d'essai.
 
+class TeamStatusEnum(str,Enum):
+    ACTIVED = "ACTIVED" # L'employé est actuellement actif et en service.
+    UNACTIVED = "UNACTIVED" # L'employé est inactif, peut-être en congé ou en pause.
+    DELETED = "DELETED" # L'employé a quitté l'entreprise de manière permanente.
+
+
 @dataclass
 class Team(Base):
     """ Database class for storing team information"""
@@ -27,7 +33,7 @@ class Team(Base):
     leader = relationship("Employee", foreign_keys=[leader_uuid], uselist=False)
     
     status:str = Column(String, index=True, nullable=False)
-    employees = relationship("Employee", secondary="team_employees", back_populates="teams", overlaps="employee,team")
+    employees = relationship("Employee", secondary="team_employees", back_populates="teams",primaryjoin="and_(Team.uuid == team_employees.c.team_uuid, Employee.status != 'DELETED')",overlaps="employee,team")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -60,8 +66,7 @@ class Employee(Base):
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid], uselist=False)
 
-    teams = relationship("Team",secondary="team_employees", back_populates="employees", overlaps="team,employee")
-    # teams = relationship("TeamEmployees", back_populates="employee")
+    teams = relationship("Team",secondary="team_employees", back_populates="employees",primaryjoin="and_(Employee.uuid == team_employees.c.employee_uuid, Team.status != 'DELETED')",overlaps="team,employee")
 
     nurseries = relationship("Nursery", secondary="nursery_employees", back_populates="employees",overlaps="employee,nursery")
     # nurseries = relationship("Nursery", secondary="nursery_memberships", back_populates="memberships",overlaps="memberships, nursery")
