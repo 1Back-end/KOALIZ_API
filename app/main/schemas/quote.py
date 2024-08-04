@@ -125,3 +125,27 @@ class QuoteList(DataList):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class CMGUpdate(BaseModel):
+    family_type: models.FamilyType = None
+    number_children: int = 0
+    annual_income: float = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class QuoteSettingsUpdate(BaseModel):
+    hourly_rate: float = 0
+    registration_fee: float = 0
+
+    deposit_type: models.DepositType
+    deposit_percentage: float = 0
+    deposit_value: float = 0
+
+    adaptation_type: models.AdaptationType
+    adaptation_hourly_rate: float = 0
+    adaptation_hours_number: int = 0
+    adaptation_package_costs: float = 0
+    adaptation_package_days: int = 0
+
+    model_config = ConfigDict(from_attributes=True)
