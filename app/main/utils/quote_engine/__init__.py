@@ -361,9 +361,10 @@ class QuoteEngine:
             mrc_remaining_contract_cost_after_first_month=mrc_remaining_contract_cost_after_first_month,
             last_month_amount=last_month_amount,
             nfl_smoothing_month_count=nfl_smoothing_month_count,
-            sjfd_closing_days=sjfd_closing_days + ndjf_holiday_days,
-            weeks_in_smoothing=nbjfm_numbers_of_days_per_month / 4,
-            monthly_billed_hours=nbhs_total_hours_per_week * 4,
+            sjfd_closing_days=sjfd_closing_days,
+            weeks_in_smoothing=nbjo_remaining_contract_days / nbjs_total_days_per_week,
+            monthly_billed_hours=nbjfm_numbers_of_days_per_month * mhj_average_duration_per_day,
+            deductible_weeks=sjfd_closing_days/nbjs_total_days_per_week,
             quote_timetables=quote_timetables
         )
         end_datetime = datetime.now()

@@ -58,4 +58,7 @@ translation = {
     "item-invoice": "Mensualité",
     "item-registration": "Frais d'inscription",
     "quote-not-found": "Le devis n'existe pas",
+    "quote-status-updated": "Statut du de devis changé avec succès",
+    "quote-settings-updated": "Paramètres du devis changés avec succès",
+    "quote-cmg-updated": "Paramètres de la CMG changés avec succès",
 }

@@ -48,6 +48,9 @@ translation = {
     "item-invoice": "Monthly payment",
     "item-registration": "Registration fee",
     "quote-not-found": "Quote not found",
+    "quote-status-updated": "Quote status successfully changed",
+    "quote-settings-updated": "Quote parameters successfully changed",
+    "quote-cmg-updated": "CMG parameters successfully changed",
 
 
 }

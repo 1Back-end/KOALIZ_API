@@ -63,7 +63,7 @@ class Quote(Base):
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
     preregistration_uuid = Column(String, ForeignKey('preregistrations.uuid'), nullable=False)
-    preregistration: Mapped[any] = relationship("PreRegistration")
+    preregistration: Mapped[any] = relationship("PreRegistration", back_populates="quote", uselist=False)
 
     parent_guest_uuid: str = Column(String, ForeignKey('parent_guests.uuid'), nullable=True)
     parent_guest: Mapped[any] = relationship("ParentGuest", foreign_keys=parent_guest_uuid, uselist=False)
