@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship, Mapped
 from app.main.models.db.session import SessionLocal
 from app.main.models.quote import FamilyType
 from .db.base_class import Base
-from .backup import children_media
+from .children import children_media
 
 
 class PreRegistrationStatusType(str, Enum):
@@ -49,7 +49,7 @@ class ContractType(str, Enum):
 
 class Child(Base):
     """
-         database model for storing Nursery related details
+    database model for storing Nursery related details
     """
     __tablename__ = 'children'
 

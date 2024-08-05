@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Optional, List
 from pydantic import BaseModel, ConfigDict
 
-from app.main.models.backup import NapQuality
+from app.main.models.children import NapQuality
 from app.main.schemas.preregistration import ChildMini2
 
 from .nursery import NurserySlim
