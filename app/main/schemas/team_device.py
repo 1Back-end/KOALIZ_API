@@ -26,7 +26,7 @@ class Member(EmployeSlim):
 
 class TeamDevice(TeamDeviceBase):
     uuid: Optional[str] = None
-    # code: Optional[str] = None
+    code: Optional[str] = None
     nursery: Optional[NurserySlim]=None
     date_added: datetime
 
