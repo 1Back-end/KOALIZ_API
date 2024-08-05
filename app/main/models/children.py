@@ -129,7 +129,8 @@ class Activity(Base):
     __tablename__ = "activities"
     
     uuid = Column(String, primary_key=True, unique=True)
-    activity_name = Column(String, nullable=False)
+    activity_name_fr = Column(String, nullable=False)
+    activity_name_en = Column(String, nullable=False)
     activity_time = Column(DateTime, nullable=False, default=datetime.now())
     
     date_added = Column(DateTime, server_default=func.now())
