@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, Body, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional,List
 
+from app.main.models.team import EmployeStatusEnum
+
 router = APIRouter(prefix="/employees", tags=["employees"])
 
 
@@ -189,8 +191,8 @@ def get(
     page: int = 1,
     per_page: int = 30,
     order:str = Query(None, enum =["ASC","DESC"]),
-    user_uuid:Optional[str] = None,
-    status: str = Query(None, enum =["ACTIVED","UNACTIVED"]),
+    employee_uuid:Optional[str] = None,
+    status: str = Query(..., enum=[st.value for st in EmployeStatusEnum if st.value != EmployeStatusEnum.DELETED]),
     keyword:Optional[str] = None,
     # order_filed: Optional[str] = None
     current_user: models.Owner = Depends(TokenRequired(roles =["owner"] ))
@@ -205,7 +207,7 @@ def get(
         per_page, 
         order,
         status,
-        user_uuid,
+        employee_uuid,
         # order_filed
         keyword
     )

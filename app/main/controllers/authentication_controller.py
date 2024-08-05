@@ -9,7 +9,7 @@ from starlette.requests import Request
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
-from app.main.core.mail import send_reset_password_email, send_reset_password_option2_email
+from app.main.core.mail import send_account_confirmation_email, send_reset_password_email, send_reset_password_option2_email
 from app.main.core.security import create_access_token, generate_code, get_password_hash, verify_password, is_valid_password, \
     decode_access_token
 from app.main.core.config import Config
@@ -370,16 +370,62 @@ async def create_parent_on_system(
     Create the parent in the system
     """
     user = crud.parent.get_by_email(db,input.email)
-    if user:
-        raise HTTPException(status_code=400, detail=__("user-email-taken"))
-    
-    code = generate_code(length=12)
-    code= str(code[0:6])
+    if input.avatar_uuid:
+        avatar = crud.storage.get(db,input.avatar_uuid)
+        if not avatar:
+            raise HTTPException(status_code=404, detail=__("avatar-not-found"))
 
+    code = generate_code(length=12)
+    code= str(code[0:6]) 
+
+    if user:
+        if crud.parent.is_active(user):
+            raise HTTPException(status_code=400, detail=__("user-email-taken"))
+
+        crud.parent.update(
+            db,
+            schemas.ParentUpdate(
+                uuid=user.uuid,
+                firstname=input.firstname,
+                lastname=input.lastname,
+                email=input.email,
+                avatar_uuid=input.avatar_uuid
+            )
+        )
+        user.password_hash = get_password_hash(input.password)
+
+        user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.user_uuid == user.uuid)
+
+        if user_code.count()>0:
+            user_code1 = user_code.filter(models.ParentActionValidation.expired_date >= datetime.now()).first()
+            print("user-code1",user_code1)
+            if not user_code1:
+                user_code.delete()
+                send_account_confirmation_email(email_to=input.email, name=(input.firstname+input.lastname),token=code,valid_minutes=30)
+        else:
+            print("user_code1:")
+            db_code = models.ParentActionValidation(
+                uuid=str(uuid.uuid4()),
+                code=code,
+                user_uuid=user.uuid,
+                value=code,
+                expired_date=datetime.now() + timedelta(minutes=30)
+            )
+
+            db.add(db_code)
+            db.commit()
+            send_account_confirmation_email(email_to=input.email, name=(input.firstname+input.lastname),token=code,valid_minutes=30)
+
+    else:
+        crud.parent.create(db=db, obj_in=input,code=code)
+
+    
+
+    
     # if not crud.parent.password_confirmation(db, input.password, input.confirm_password):
     #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
 
-    crud.parent.create(db=db, obj_in=input,code=code)
 
     # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
