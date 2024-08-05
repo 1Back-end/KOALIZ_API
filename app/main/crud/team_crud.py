@@ -4,7 +4,7 @@ from typing import Optional, Union
 from sqlalchemy import or_
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
-from sqlalchemy.orm import Session,joinedload 
+from sqlalchemy.orm import Session,joinedload,contains_eager 
 from app.main import schemas, models,crud
 import uuid as py_uuid
 
@@ -111,8 +111,12 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
         # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Team).\
-            filter(models.Team.status != models.TeamStatusEnum.DELETED)
-
+            filter(models.Team.status !="DELETED").\
+                outerjoin(models.TeamEmployees,models.Team.uuid == models.TeamEmployees.team_uuid).\
+                outerjoin(models.Employee, models.TeamEmployees.employee_uuid == models.Employee.uuid).\
+                    filter(models.Employee.status!="DELETED").\
+                        options(contains_eager(models.Team.employees))
+        
         # if order_filed:
         #     record_query = record_query.order_by(getattr(models.Team, order_filed))
         if keyword:
@@ -136,6 +140,9 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
             record_query = record_query.filter(models.Team.uuid == user_uuid)
 
         total = record_query.count()
+
+        print("2len(all):",len(record_query.all()))
+        print("3len(all):",total)
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
         return schemas.TeamResponseList(
