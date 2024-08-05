@@ -29,6 +29,8 @@ class Team(Base):
     description: str = Column(Text)
 
     owner_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
+    owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False)
+
     leader_uuid: str = Column(String, ForeignKey('employees.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
     leader = relationship("Employee", foreign_keys=[leader_uuid], uselist=False)
     

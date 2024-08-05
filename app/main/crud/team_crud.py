@@ -25,7 +25,7 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
         return db.query(models.Team).filter(models.Team.uuid == uuid,models.Team.status!="DELETED").first()
     
     @classmethod
-    def create(cls, db: Session, obj_in: list[schemas.TeamCreate],owner_uuid:str) -> models.Team:
+    def create(cls, db: Session, obj_in: list[schemas.TeamCreate]) -> models.Team:
 
         for obj in obj_in: 
             db_obj = models.Team(
@@ -34,7 +34,7 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
                 leader_uuid = obj.leader_uuid,
                 description = obj.description,
                 status = obj.status,
-                owner_uuid = owner_uuid
+                # owner_uuid = owner_uuid
             )
             db.add(db_obj)
             db.flush()
@@ -102,7 +102,6 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
     def get_multi(
         cls,
         db:Session,
-        owner_uuid: str,
         page:int = 1,
         per_page:int = 30,
         order:Optional[str] = None,
@@ -112,12 +111,10 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
         # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Team).\
-            filter(models.Team.owner_uuid == owner_uuid).\
             filter(models.Team.status != models.TeamStatusEnum.DELETED)
 
         # if order_filed:
         #     record_query = record_query.order_by(getattr(models.Team, order_filed))
-        
         if keyword:
             record_query = record_query.filter(
                 or_(
