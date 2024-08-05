@@ -15,7 +15,7 @@ class HealthRecordBase(BaseModel):
     child_uuid: Optional[str]
     employee_uuid: Optional[str]
     medication_name: Optional[str]
-    observation: Optional[str]
+    observation: Optional[str]= None
     medication_type: Optional[str]= None
     care_type: Optional[CareType]= None
     route: Optional[Route]= None

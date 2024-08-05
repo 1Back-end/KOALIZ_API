@@ -18,6 +18,7 @@ class CRUDHealthRecord(CRUDBase[HealthRecord, HealthRecordCreate, HealthRecordUp
 
         obj_in_data = jsonable_encoder(obj_in)
         obj_in_data["uuid"] = str(uuid.uuid4())
+        obj_in_data["added_by_uuid"] = obj_in.employee_uuid
         db_obj = HealthRecord(**obj_in_data)
         db.add(db_obj)
         db.commit()
@@ -58,7 +59,7 @@ class CRUDHealthRecord(CRUDBase[HealthRecord, HealthRecordCreate, HealthRecordUp
         employee_uuid:Optional[str] = None,
         nursery_uuid:Optional[str] = None,
         child_uuid:Optional[str] = None,
-        order_field:Optional[str] = None,
+        order_field:Optional[str] = 'date_added',
         keyword:Optional[str]= None,
         route:Optional[str]= None,
         care_type:Optional[str]= None,

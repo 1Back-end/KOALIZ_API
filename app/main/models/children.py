@@ -282,7 +282,7 @@ class HygieneChange(Base):
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False, back_populates="hygiene_changes")
 
-    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
     
     time = Column(DateTime, nullable=False, default=datetime.now())
@@ -292,7 +292,7 @@ class HygieneChange(Base):
     additional_care = Column(types.Enum(AdditionalCare), nullable=True) # Soins complémentaires (Nez, yeux, Oreilles, Crème
     observation = Column(Text, nullable=True)
 
-    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=False)
     added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
     
     date_added = Column(DateTime, server_default=func.now())

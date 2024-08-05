@@ -18,3 +18,4 @@ from .employee_crud import employe
 from .team_crud import team
 from .nap_crud import nap
 from .health_record_crud import health_record
+from .hygiene_change_crud import hygiene_change

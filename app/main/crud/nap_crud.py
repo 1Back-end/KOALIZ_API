@@ -18,6 +18,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
 
         obj_in_data = jsonable_encoder(obj_in)
         obj_in_data["uuid"] = str(uuid.uuid4())
+        obj_in_data["added_by_uuid"] = obj_in.employee_uuid
         db_obj = Nap(**obj_in_data)
         db.add(db_obj)
         db.commit()
@@ -54,7 +55,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
         employee_uuid:Optional[str] = None,
         nursery_uuid:Optional[str] = None,
         child_uuid:Optional[str] = None,
-        order_field:Optional[str] = None,
+        order_field:Optional[str] = 'date_added',
         keyword:Optional[str]= None,
         quality:Optional[str]= None
     ):
