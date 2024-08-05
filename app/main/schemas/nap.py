@@ -10,7 +10,7 @@ from .base import DataList
 
 
 class NapBase(BaseModel):
-    # nursery_uuid: Optional[str] = None
+    nursery_uuid: Optional[str] = None
     child_uuid: Optional[str] = None
     employee_uuid: Optional[str] = None
     observation: Optional[str] = None
@@ -35,6 +35,17 @@ class Nap(BaseModel):
     observation: Optional[str] = None
     duration: Optional[int] = 0
     nursery: Optional[NurserySlim]=None
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+class NapMini(BaseModel):
+    uuid: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    quality: Optional[NapQuality] = None
+    observation: Optional[str] = None
+    duration: Optional[int] = 0
     date_added: datetime
     date_modified: datetime
 

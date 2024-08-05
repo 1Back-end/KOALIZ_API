@@ -18,11 +18,15 @@ def create_nap(
 ):
     """ Create nap for children """
 
+    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
     child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
     if not child:
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
-    employe = crud.employe.get_by_uuid(db, obj_in.nursery_uuid)
+    employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
     if not employe:
         raise HTTPException(status_code=404, detail=__("member-not-found"))
 
@@ -33,9 +37,13 @@ def create_nap(
 def update_nap(
     obj_in: schemas.NapUpdate,
     db: Session = Depends(get_db),
-    current_user: models.Parent = Depends(TeamTokenRequired(roles=[]))
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
     """ Update nap for children """
+
+    nap = crud.nap.get_nap_by_uuid(db, obj_in.uuid)
+    if not nap:
+        raise HTTPException(status_code=404, detail=__("nap-not-found"))
 
     child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
     if not child:
@@ -44,5 +52,68 @@ def update_nap(
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    
+    employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
+    if not employe:
+        raise HTTPException(status_code=404, detail=__("member-not-found"))
 
-    return crud.parent.update(db ,obj_in)
+    return crud.nap.update(db ,obj_in)
+
+
+@router.get("/nap/{uuid}", response_model=schemas.Nap, status_code=201)
+def get_nap_details(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+):
+    """ Get nap details """
+
+    nap = crud.nap.get_nap_by_uuid(db, uuid)
+    if not nap:
+        raise HTTPException(status_code=404, detail=__("nap-not-found"))
+
+    return nap
+
+@router.delete("/nap", response_model=schemas.Msg)
+def delete_nap(
+    *,
+    db: Session = Depends(get_db),
+    uuids: list[str],
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles =[]))
+):
+    """ Delete many(or one) """
+
+    crud.nap.delete(db, uuids)
+    return {"message": __("nap-deleted")}
+
+
+@router.get("/nap", response_model=None)
+def get_naps(
+    *,
+    db: Session = Depends(get_db),
+    page: int = 1,
+    per_page: int = 30,
+    order: str = Query("desc", enum =["asc", "desc"]),
+    order_field: str = "date_added",
+    employee_uuid: Optional[str] = None,
+    nursery_uuid: Optional[str] = None,
+    child_uuid: Optional[str] = None,
+    keyword: Optional[str] = None,
+    quality: str = Query(None, enum=[st.value for st in models.NapQuality]),
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+):
+    """
+    get all with filters
+    """
+    return crud.nap.get_multi(
+        db,
+        page,
+        per_page,
+        order,
+        employee_uuid,
+        nursery_uuid,
+        child_uuid,
+        order_field,
+        keyword,
+        quality
+    )
