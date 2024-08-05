@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from .db.base_class import Base
 from app.main.models.db.session import SessionLocal
-from . import PreRegistration,Membership,Child,ParentGuest,Storage,Administrator
+from app.main.models import PreRegistration,Membership,ParentGuest,Storage,Child
 
 class TagTypeEnum(str, Enum):
     CHILDREN = "CHILDREN"
