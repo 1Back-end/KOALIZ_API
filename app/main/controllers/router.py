@@ -21,6 +21,7 @@ from .employe_controller import router as employee
 from .message_controller import router as message
 from .nap_controller import router as nap
 from .nursery_holidays_controller import router as nursery_holidays
+from .meal_controller import router as meal_controller
 
 api_router = APIRouter()
 
@@ -42,3 +43,5 @@ api_router.include_router(storage)
 api_router.include_router(tag)
 api_router.include_router(helper)
 api_router.include_router(nursery_close_hours)
+api_router.include_router(meal_controller)
+api_router.include_router(employee)

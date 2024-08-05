@@ -11,7 +11,7 @@ class ActivityBase(BaseModel):
 class ActivityCreate(ActivityBase):
     pass
 
-class ActivityUpdateSchema(BaseModel):
+class ActivityUpdate(BaseModel):
     activity_name_fr: Optional[str] = None
     activity_name_en: Optional[str] = None
     activity_time: Optional[datetime] = None
@@ -27,5 +27,4 @@ class ActivitySchema(BaseModel):
     date_added: datetime
     date_modified: datetime
 
-    class Config:
-        orm_mode: True
+    model_config = ConfigDict(from_attributes=True)

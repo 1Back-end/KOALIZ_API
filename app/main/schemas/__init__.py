@@ -22,3 +22,5 @@ from .conversation import *
 from .employee import *
 from .team import *
 from .nap import *
+from .activity import *
+from .meal import *
