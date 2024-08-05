@@ -1,6 +1,6 @@
 from typing import Optional, Any
 
-from fastapi import Body, HTTPException
+from fastapi import Body, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
 from datetime import datetime, time, date
 
@@ -8,6 +8,7 @@ from app.main import models
 from app.main.core.i18n import __
 from app.main.schemas import DataList, NurseryMini
 from app.main.schemas.base import Items
+from app.main.schemas.user import Storage
 
 
 @field_validator("birthdate")
@@ -124,7 +125,6 @@ class ParentGuestSchema(BaseModel):
 
 class PreregistrationCreate(BaseModel):
     child: ChildSchema
-    
     nurseries: list[str]
     pre_contract: PreContractSchema
     parents: list[ParentGuestSchema]
@@ -155,6 +155,13 @@ class ParentGuest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class Tag(BaseModel):
+    uuid: str
+    title_fr: str
+    title_en: str
+    icon: Optional[Storage] = None
+    description: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
 
 class PreregistrationMini(BaseModel):
     uuid: str
@@ -179,6 +186,35 @@ class ChildDetails(BaseModel):
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
 
+class ParentDisplay(BaseModel):
+    uuid: str= None
+    link: models.ParentRelationship= None
+    firstname: str= None
+    lastname: str= None
+    birthplace: str= None
+    fix_phone: str = None
+    phone: str= None
+    email: EmailStr= None
+    recipient_number: str= None
+    zip_code: str= None
+    city: str= None
+    country: str= None
+    profession: str= None
+    annual_income: float= None
+    company_name: str= None
+    has_company_contract: bool= None
+    dependent_children: int= None
+    disabled_children: int= None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PayingParentGuest(BaseModel):
+    uuid: str
+    annual_income: float = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ChildMini(BaseModel):
     uuid: str
@@ -189,11 +225,23 @@ class ChildMini(BaseModel):
     birthplace: str
     date_added: datetime
     date_modified: datetime
-    parents: list[ParentGuest]
+    parents: list[ParentDisplay]
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChildMini2(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    birthdate: date
+    birthplace: str
+    date_added: datetime
+    date_modified: datetime
+    paying_parent: Optional[PayingParentGuest] = None
     model_config = ConfigDict(from_attributes=True)
+
+
 class TrackingCaseMini(BaseModel):
     uuid: str
     details: Any
@@ -212,6 +260,7 @@ class PreregistrationDetails(BaseModel):
     tracking_cases: list[TrackingCaseMini]
     note: str = None
     status: str = None
+    tags:Optional[list[Tag]] = []
     accepted_date: Optional[datetime] = None
     refused_date: Optional[datetime] = None
     date_added: datetime
@@ -247,11 +296,27 @@ class MeetingType(BaseModel):
     preregistration_uuid: str
     meeting_type_uuid: str
     meeting_date:date
+    meeting_begin_time:str = Body(..., regex=r'^\d{2}:\d{2}$')
+    meeting_end_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
     meeting_time: str = Body(..., regex=r'^\d{2}:\d{2}$')
     description:Optional[str]= None
 
 
     # model_config = ConfigDict(from_attributes=True)
+
+class MeetingTypeResponse(BaseModel):
+    uuid: str
+    title_en:  str
+    title_fr:str
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ActivityReminderTypeResponse(BaseModel):
+    uuid: str
+    title_en:  str
+    title_fr:str
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ChildSlim(BaseModel):
     uuid: str
@@ -270,18 +335,33 @@ class PreContractSlim(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class Icon(Storage):
+    pass
+
+class Tag(BaseModel):
+    uuid: str
+    title_fr: str
+    title_en: str
+    icon: Optional[Storage] = None
+    description: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
 class PreregistrationSlim(BaseModel):
     uuid: str
-    child: ChildSlim
+    child: ChildMini2
     pre_contract: PreContractSlim
     status: str = None
+    tags: Optional[list[Tag]] = []
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class PreRegistrationList(DataList):
     data: list[PreregistrationSlim] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
 class TrackingCaseList(DataList):
     data: list[TrackingCaseMini]
 

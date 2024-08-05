@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/helper", tags=["helpers"])
 
-
 @router.get("/roles", response_model=list[schemas.RoleSchema])
 async def get_roles(
     *,
@@ -18,6 +17,28 @@ async def get_roles(
     Roles
     """
     return crud.role.get_all(db, group)
+
+@router.get("/meeting-types", response_model=list[schemas.MeetingTypeResponse])
+async def get_meeting_types(
+    *,
+    db: Session = Depends(get_db),
+    # current_user=Depends(TokenRequired())
+) -> list:
+    """
+    meeting types
+    """
+    return db.query(models.MeetingType).all()
+
+@router.get("/activity-reminder-types", response_model=list[schemas.ActivityReminderTypeResponse])
+async def get_activity_reminder_types(
+    *,
+    db: Session = Depends(get_db),
+    # current_user=Depends(TokenRequired())
+) -> list:
+    """
+    activity reminder types
+    """
+    return db.query(models.ActivityReminderType).all()
 
 @router.get("/membership-types", response_model=list[schemas.MembershipTypeSlim])
 async def get_membership_types(

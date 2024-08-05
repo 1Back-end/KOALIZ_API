@@ -21,4 +21,4 @@ class NotificationPublisher:
             print(str(e))
 
 
-notificationPublisher = NotificationPublisher(host=Config.REDIS_HOST if Config.IS_DEV else Config.REDIS_HOST_PROD, port=Config.REDIS_PORT, db=Config.REDIS_SOCKET_DB)
+notificationPublisher = NotificationPublisher(host=Config.REDIS_HOST if Config.IS_DEV else Config.REDIS_HOST_PROD, port=Config.REDIS_PORT, db=Config.REDIS_DB)

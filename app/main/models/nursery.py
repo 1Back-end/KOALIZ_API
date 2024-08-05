@@ -34,8 +34,8 @@ class Nursery(Base):
 
     total_places: int = Column(Integer, default=0)
     phone_number: str = Column(String, nullable=False, default="")
-    memberships = relationship("Membership",secondary="nursery_memberships",back_populates="nurseries")
-
+    memberships = relationship("Membership",secondary="nursery_memberships",back_populates="nurseries",overlaps="nursery, memberships")
+    
     address_uuid: str = Column(String, ForeignKey('addresses.uuid'), nullable=False)
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
 
@@ -44,9 +44,9 @@ class Nursery(Base):
     website: str = Column(String, default="")
 
     owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=False)
-    owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False)
+    owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False,back_populates="nurseries")
 
-    # memberships= relationship("NurseryMemberships",secondary="nursery_memberships",back_populates="nursery",overlaps="memberships")
+    employees = relationship("Employee",secondary="nursery_employees", back_populates="nurseries", overlaps="nursery,employee")
 
     added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
     added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
