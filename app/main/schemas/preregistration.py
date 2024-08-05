@@ -338,7 +338,6 @@ class PreContractSlim(BaseModel):
 class Icon(Storage):
     pass
 
-
 class Tag(BaseModel):
     uuid: str
     title_fr: str
