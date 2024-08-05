@@ -248,6 +248,7 @@ class PreRegistration(Base):
 
     note: str = Column(String, default="")
     status: str = Column(types.Enum(PreRegistrationStatusType), nullable=False, default=PreRegistrationStatusType.PENDING)
+    quote: Mapped[any] = relationship("Quote", back_populates="preregistration", uselist=False)
 
     @hybrid_property
     def tags(self):

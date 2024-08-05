@@ -27,8 +27,9 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
         db.commit()
         return quote_obj
 
-    @staticmethod
+
     def get_many(
+            self,
             db: Session,
             nursery_uuid: str,
             owner_uuid: str,
@@ -37,7 +38,8 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             order: Optional[str] = None,
             order_filed: Optional[str] = None,
             keyword: Optional[str] = None,
-            status: Optional[str] = None
+            status: Optional[str] = None,
+            tag_uuid: str = None
     ):
         record_query = db.query(models.Quote).filter(models.Quote.nursery_uuid==nursery_uuid).filter(models.Quote.nursery.has(models.Nursery.owner_uuid==owner_uuid))
         if status:
@@ -50,6 +52,12 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
                     models.Child.lastname.ilike('%' + str(keyword) + '%'),
                 ))
             )
+
+        if tag_uuid:
+            pass
+            # elements = self.get_elements_by_tag(db, tag_uuid)
+            # element_uuids = [element.get("data", {}).uuid for element in elements]
+            # record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
 
         if order == "asc":
             record_query = record_query.order_by(getattr(models.Quote, order_filed).asc())
@@ -66,6 +74,42 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             current_page=page,
             data=record_query
         )
+
+
+    @classmethod
+    def update_settings(cls, db: Session, quote_obj: models.Quote, obj_in: schemas.QuoteSettingsUpdate) -> models.Quote:
+        quote_obj.hourly_rate = obj_in.hourly_rate
+        quote_obj.registration_fee = obj_in.registration_fee
+
+        quote_obj.deposit_type = obj_in.deposit_type
+        quote_obj.deposit_percentage = obj_in.deposit_percentage
+        quote_obj.deposit_value = obj_in.deposit_value
+
+        quote_obj.adaptation_type = obj_in.adaptation_type
+        quote_obj.adaptation_hourly_rate = obj_in.adaptation_hourly_rate
+        quote_obj.adaptation_hours_number = obj_in.adaptation_hours_number
+        quote_obj.adaptation_package_costs = obj_in.adaptation_package_costs
+        quote_obj.adaptation_package_days = obj_in.adaptation_package_days
+
+        crud.preregistration.generate_quote(db, quote_obj.preregistration_uuid)
+
+        db.commit()
+        return quote_obj
+
+
+    @classmethod
+    def update_cmg(cls, db: Session, quote_obj: models.Quote, obj_in: schemas.CMGUpdate) -> models.Quote:
+
+        quote_obj.cmg.family_type = obj_in.family_type
+        quote_obj.cmg.number_children = obj_in.number_children
+        quote_obj.cmg.annual_income = obj_in.annual_income
+
+        crud.preregistration.determine_cmg(db=db, dependent_children=obj_in.number_children,
+                                           family_type=obj_in.family_type, annual_income=obj_in.annual_income,
+                                           birthdate=quote_obj.child.birthdate, quote_uuid=quote_obj.uuid)
+
+        db.commit()
+        return quote_obj
 
 
 quote = CRUDQuote(models.Quote)

@@ -79,6 +79,10 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
                 exist_folder.contract.typical_weeks = exist_folder.pre_contract.typical_weeks
                 exist_folder.contract.type = models.ContractType.REGULAR
 
+            if exist_folder.quote and exist_folder.quote.status != models.QuoteStatusType.ACCEPTED:
+                exist_folder.quote.status = models.QuoteStatusType.ACCEPTED
+                crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
+
         db.commit()
 
         after_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
@@ -329,6 +333,62 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
     def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.ChildDetails]:
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
 
+    @staticmethod
+    def determine_cmg(db: Session, dependent_children: int, family_type: models.FamilyType,
+                      annual_income: float, birthdate: date, quote_uuid: str) -> Optional[models.QuoteCMG]:
+
+        if dependent_children < 1:
+            dependent_children = 1
+        if dependent_children > 4:
+            dependent_children = 4
+
+        cmg_amount_range: models.CMGAmountRange = db.query(models.CMGAmountRange).filter(
+            models.CMGAmountRange.number_children == dependent_children).filter(
+            models.CMGAmountRange.family_type == family_type).first()
+        if not cmg_amount_range:
+            return None
+
+        today = date.today()
+        child_age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+
+        print(f"child_age {child_age}")
+
+        cmg_amount_obj = db.query(models.CMGAmount).filter(models.CMGAmount.child_age_lower <= child_age).filter(
+            models.CMGAmount.child_age_upper > child_age).first()
+
+        cmg_amount = 0
+        band_number = 0
+        if annual_income <= cmg_amount_range.lower:
+            band_number = 1
+            cmg_amount = cmg_amount_obj.tranche_1_amount
+        elif annual_income > cmg_amount_range.lower and annual_income <= cmg_amount_range.upper:
+            band_number = 2
+            cmg_amount = cmg_amount_obj.tranche_2_amount
+        elif annual_income > cmg_amount_range.upper:
+            band_number = 3
+            cmg_amount = cmg_amount_obj.tranche_3_amount
+
+        q_cmg: models.QuoteCMG = db.query(models.QuoteCMG).filter(models.QuoteCMG.quote_uuid == quote_uuid).first()
+        if q_cmg:
+            q_cmg.amount = cmg_amount
+            q_cmg.family_type = family_type
+            q_cmg.number_children = dependent_children
+            q_cmg.annual_income = annual_income
+            q_cmg.band_number = band_number
+        else:
+            q_cmg = models.QuoteCMG(
+                uuid=str(uuid.uuid4()),
+                amount=cmg_amount,
+                family_type=family_type,
+                number_children=dependent_children,
+                annual_income=annual_income,
+                band_number=band_number,
+                quote_uuid=quote_uuid
+            )
+            db.add(q_cmg)
+        return q_cmg
+
+
     def generate_quote(self, db: Session, preregistration_uuid):
         exist_preregistration = self.get_by_uuid(db, preregistration_uuid)
         if not exist_preregistration:
@@ -460,43 +520,22 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
                 quote_setting_uuid=quote_setting.uuid
             )
             db.add(quote)
-            cmg_amount_range: models.CMGAmountRange = db.query(models.CMGAmountRange).filter(
-                models.CMGAmountRange.number_children == dependent_children_req).filter(
-                models.CMGAmountRange.family_type == exist_preregistration.child.family_type).first()
 
-            if annual_income <= cmg_amount_range.lower:
-                tranche = "tranche_1_amount"
-            elif annual_income > cmg_amount_range.lower and annual_income <= cmg_amount_range.upper:
-                tranche = "tranche_2_amount"
-            else:
-                tranche = "tranche_3_amount"
-            print(f"tranche {tranche}")
-
-            today = date.today()
-            child_age = today.year - exist_preregistration.child.birthdate.year - ((today.month, today.day) < (
-            exist_preregistration.child.birthdate.month, exist_preregistration.child.birthdate.day))
-
-            print(f"child_age {child_age}")
-            cmg_amount_obj = db.query(models.CMGAmount).filter(models.CMGAmount.child_age_lower <= child_age).filter(
-                models.CMGAmount.child_age_upper > child_age).first()
-
-            if cmg_amount_obj:
-                cmg_amount = cmg_amount_obj.__getattribute__(tranche)
-
-            q_cmg = models.QuoteCMG(
-                uuid=str(uuid.uuid4()),
-                amount=cmg_amount,
-                family_type=exist_preregistration.child.family_type,
-                number_children=dependent_children,
-                annual_income=annual_income,
-                quote_uuid=quote.uuid
-            )
-            db.add(q_cmg)
+            determine_cmgs = self.determine_cmg(db, dependent_children_req, models.FamilyType.SINGLE_PARENT,
+                                                annual_income, exist_preregistration.child.birthdate, quote.uuid)
+            print(f"determine_cmgs {determine_cmgs}")
 
         res_generation = quote_engine_res.generate_quote()
         quote.first_month_cost = res_generation.fpm_first_month_cost
         quote.monthly_cost = res_generation.mm_monthly_cost
         quote.total_cost = res_generation.total
+
+        quote.monthly_billed_hours = res_generation.monthly_billed_hours
+        quote.smoothing_months = res_generation.nfl_smoothing_month_count
+        quote.weeks_in_smoothing = res_generation.weeks_in_smoothing
+        quote.deductible_weeks = res_generation.deductible_weeks
+        quote.monthly_cost = res_generation.mm_monthly_cost
+        quote.total_closing_days = res_generation.sjfd_closing_days
 
         for quote_timetable_res in res_generation.quote_timetables:
             quote_timetable = models.QuoteTimetable(
@@ -648,7 +687,6 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
     def get_many(self,
         db,
         nursery_uuid,
-        tag_uuid,
         status,
         begin_date,
         end_date,
@@ -657,6 +695,7 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
         order: Optional[str] = None,
         order_field: Optional[str] = None,
         keyword: Optional[str] = None,
+        tag_uuid=None,
     ):
         record_query = db.query(models.PreRegistration).filter(models.PreRegistration.nursery_uuid==nursery_uuid)
         if status:

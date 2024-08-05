@@ -35,11 +35,19 @@ class Response:
     mfa_adaptation_package_cost: Decimal
     mfi_registration_fee: Decimal
     mrc_remaining_contract_cost_after_first_month: Decimal
+    monthly_billed_hours: Decimal
+    nfl_smoothing_month_count: Decimal
+    weeks_in_smoothing: Decimal
+    deductible_weeks: Decimal
+    sjfd_closing_days: int
     last_month_amount: Decimal
 
     def __init__(self, total: float, quote_timetables: list[QuoteTimetable], acp_deposit_amount: float,
-                 fpm_first_month_cost: float, mm_monthly_cost: float, mfa_adaptation_package_cost: float, mfi_registration_fee: float,
-                 mrc_remaining_contract_cost_after_first_month: float, last_month_amount: float):
+                 fpm_first_month_cost: float, mm_monthly_cost: float, mfa_adaptation_package_cost: float,
+                 mfi_registration_fee: float, mrc_remaining_contract_cost_after_first_month: float,
+                 last_month_amount: float, monthly_billed_hours: float, nfl_smoothing_month_count: float,
+                 weeks_in_smoothing: float, deductible_weeks: float, sjfd_closing_days: int):
+
         self.total = Decimal("%.2f" % total)
         self.quote_timetables = quote_timetables
         self.acp_deposit_amount = Decimal("%.2f" % acp_deposit_amount)
@@ -49,6 +57,11 @@ class Response:
         self.mfi_registration_fee = Decimal("%.2f" % mfi_registration_fee)
         self.mrc_remaining_contract_cost_after_first_month = Decimal("%.2f" % mrc_remaining_contract_cost_after_first_month)
         self.last_month_amount = Decimal("%.2f" % last_month_amount)
+        self.monthly_billed_hours = monthly_billed_hours
+        self.nfl_smoothing_month_count = nfl_smoothing_month_count
+        self.weeks_in_smoothing = weeks_in_smoothing
+        self.deductible_weeks = deductible_weeks
+        self.sjfd_closing_days = sjfd_closing_days
 
     def __str__(self):
         str_response = f"Total: {self.total}\n"
