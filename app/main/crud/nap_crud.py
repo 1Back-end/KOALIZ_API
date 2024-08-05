@@ -1,15 +1,14 @@
 import math
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 import uuid
 from fastapi.encoders import jsonable_encoder
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from app.main import crud
 from app.main.crud.base import CRUDBase
 from app.main.models import Nap
-from app.main.schemas import NapCreate, NapUpdate, DataList, NapList, NapMini
+from app.main.schemas import NapCreate, NapUpdate, NapList, NapMini
 
 
 class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):

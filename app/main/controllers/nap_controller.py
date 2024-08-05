@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 
-router = APIRouter(prefix="/children", tags=["children"])
+router = APIRouter(prefix="/naps", tags=["naps"])
 
-@router.post("/nap",response_model =schemas.Nap ,status_code=201)
+@router.post("",response_model =schemas.Nap ,status_code=201)
 def create_nap(
     *,
     db: Session = Depends(get_db),
@@ -33,7 +33,7 @@ def create_nap(
     return crud.nap.create(db, obj_in)
 
 
-@router.put("/nap", response_model=schemas.Nap, status_code=200)
+@router.put("", response_model=schemas.Nap, status_code=200)
 def update_nap(
     obj_in: schemas.NapUpdate,
     db: Session = Depends(get_db),
@@ -60,21 +60,7 @@ def update_nap(
     return crud.nap.update(db ,obj_in)
 
 
-@router.get("/nap/{uuid}", response_model=schemas.Nap, status_code=201)
-def get_nap_details(
-        uuid: str,
-        db: Session = Depends(get_db),
-        current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
-):
-    """ Get nap details """
-
-    nap = crud.nap.get_nap_by_uuid(db, uuid)
-    if not nap:
-        raise HTTPException(status_code=404, detail=__("nap-not-found"))
-
-    return nap
-
-@router.delete("/nap", response_model=schemas.Msg)
+@router.delete("", response_model=schemas.Msg)
 def delete_nap(
     *,
     db: Session = Depends(get_db),
@@ -87,7 +73,7 @@ def delete_nap(
     return {"message": __("nap-deleted")}
 
 
-@router.get("/nap", response_model=None)
+@router.get("", response_model=None)
 def get_naps(
     *,
     db: Session = Depends(get_db),
@@ -117,3 +103,17 @@ def get_naps(
         keyword,
         quality
     )
+
+@router.get("/{uuid}", response_model=schemas.Nap, status_code=201)
+def get_nap_details(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+):
+    """ Get nap details """
+
+    nap = crud.nap.get_nap_by_uuid(db, uuid)
+    if not nap:
+        raise HTTPException(status_code=404, detail=__("nap-not-found"))
+
+    return nap
