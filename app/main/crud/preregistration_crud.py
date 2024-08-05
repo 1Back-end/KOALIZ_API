@@ -16,10 +16,10 @@ from app.main.core.security import generate_code, generate_slug
 from app.main.utils.helper import convert_dates_to_strings
 
 
-class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
+class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.PreregistrationCreate, schemas.PreregistrationUpdate]):
 
     @classmethod
-    def get_by_uuid(cls, db: Session, uuid: str) -> Optional[models.PreRegistration]:
+    def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
 
     @classmethod

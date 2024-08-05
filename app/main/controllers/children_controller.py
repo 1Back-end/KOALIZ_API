@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 
-router = APIRouter(prefix="/backups", tags=["backups"])
+router = APIRouter(prefix="/children", tags=["children"])
 
 @router.post("/nap",response_model =schemas.Nap ,status_code=201)
 def create_nap(
