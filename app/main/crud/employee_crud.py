@@ -163,7 +163,7 @@ class CRUDEmployee(CRUDBase[models.Employee,schemas.EmployeCreate,schemas.Employ
         per_page:int = 30,
         order:Optional[str] = None,
         status:Optional[str] = None,
-        user_uuid:Optional[str] = None,
+        employee_uuid:Optional[str] = None,
         keyword:Optional[str]= None
         # order_filed:Optional[str] = None   
     ):
@@ -196,8 +196,8 @@ class CRUDEmployee(CRUDBase[models.Employee,schemas.EmployeCreate,schemas.Employ
         elif order and order.lower() == "desc":
             record_query = record_query.order_by(models.Employee.date_added.desc())
 
-        if user_uuid:
-            record_query = record_query.filter(models.Employee.uuid == user_uuid)
+        if employee_uuid:
+            record_query = record_query.filter(models.Employee.uuid == employee_uuid)
 
         total = record_query.count()
         print("total:",len(record_query.all()))

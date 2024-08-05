@@ -12,6 +12,12 @@ import uuid as py_uuid
 
 class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
     
+    # @classmethod
+    # def get_members(db,nursery_uuid):
+    #     return db.query(models.Employee).join(models.NurseryEmployees).\
+    #         filter(models.NurseryEmployees.nursery_uuid == nursery_uuid).\
+    #             filter(models.Employee.status!="DELETED").\
+    #                 all()
     @classmethod
     def get_by_name(cls, db:Session, name:str)->models.Team:
         return db.query(models.Team).filter(models.Team.name == name).first()
@@ -106,7 +112,7 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
         per_page:int = 30,
         order:Optional[str] = None,
         status:Optional[str] = None,
-        user_uuid:Optional[str] = None,
+        team_uuid:Optional[str] = None,
         keyword:Optional[str]= None,
         # order_filed:Optional[str] = None   
     ):
@@ -136,13 +142,11 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
         elif order and order.lower() == "desc":
             record_query = record_query.order_by(models.Team.date_added.desc())
 
-        if user_uuid:
-            record_query = record_query.filter(models.Team.uuid == user_uuid)
+        if team_uuid:
+            record_query = record_query.filter(models.Team.uuid == team_uuid)
 
-        total = record_query.count()
+        total = len(record_query.all())
 
-        print("2len(all):",len(record_query.all()))
-        print("3len(all):",total)
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
         return schemas.TeamResponseList(
