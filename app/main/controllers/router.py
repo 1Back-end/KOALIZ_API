@@ -20,6 +20,7 @@ from .team_controller import router as team
 from .employe_controller import router as employee
 from .message_controller import router as message
 from .nap_controller import router as nap
+from .health_record_controller import router as health_record
 
 api_router = APIRouter()
 
@@ -31,6 +32,7 @@ api_router.include_router(owner)
 api_router.include_router(membership)
 api_router.include_router(nursery)
 api_router.include_router(parent)
+api_router.include_router(health_record)
 api_router.include_router(message)
 api_router.include_router(preregistration)
 api_router.include_router(nap)

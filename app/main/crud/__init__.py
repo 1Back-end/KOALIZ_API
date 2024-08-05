@@ -15,5 +15,6 @@ from .nursery_close_hours import NurseryCloseHourCRUD
 from .parent_crud import parent
 from .team_device_crud import team_device
 from .employee_crud import employe
-from .team_crud import team 
+from .team_crud import team
 from .nap_crud import nap
+from .health_record_crud import health_record

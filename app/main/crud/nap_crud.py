@@ -54,7 +54,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
         employee_uuid:Optional[str] = None,
         nursery_uuid:Optional[str] = None,
         child_uuid:Optional[str] = None,
-        order_field:Optional[str] = None,  
+        order_field:Optional[str] = None,
         keyword:Optional[str]= None,
         quality:Optional[str]= None
     ):
