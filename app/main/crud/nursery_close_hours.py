@@ -134,11 +134,14 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
         db.commit()
 
     
-    def get_nursery_details(self, *, db: Session, nursery_uuid: str):
+    def get_nursery_details(self, *, db: Session, nursery_uuid: str,owner_uuid: str):
         # Vérifier si la pépinière existe
         nursery = db.query(models.Nursery).filter(models.Nursery.uuid == nursery_uuid).first()
         if not nursery:
             raise HTTPException(status_code=404, detail="Nursery not found")
+        # Vérifier si la pépinière appartient au propriétaire
+        if nursery.owner_uuid != owner_uuid:
+            raise HTTPException(status_code=403, detail="You are not authorized to view this nursery details")
 
         # Récupérer les heures d'ouverture
         opening_hours = db.query(models.NurseryOpeningHour).filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid).all()

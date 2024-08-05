@@ -94,11 +94,11 @@ def read_nursery_close_hour(
 def get_nursery_close_hours_by_nursery(
     nursery_uuid: str,
     db: Session = Depends(get_db),
-    #current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
     ):
     nursery_details = crud.nursery_close_hour.get_nursery_details(
         db=db,
         nursery_uuid=nursery_uuid,
-        #owner_uuid=current_user.uuid
+        owner_uuid=current_user.uuid
     )
     return nursery_details
