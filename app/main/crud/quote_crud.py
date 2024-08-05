@@ -1,17 +1,11 @@
-from datetime import datetime, timedelta
 import math
-from typing import Union, Optional, List
 
-from fastapi import HTTPException
-from pydantic import EmailStr
+from typing import Optional
 from sqlalchemy import or_
+from sqlalchemy.orm import Session, aliased
 
-from app.main.core.i18n import __
-from app.main.crud.base import CRUDBase
-from sqlalchemy.orm import Session,joinedload
 from app.main import crud, schemas, models
-import uuid
-from app.main.core.security import get_password_hash, verify_password, generate_code, generate_slug
+from app.main.crud.base import CRUDBase
 
 
 class CRUDQuote(CRUDBase[models.Quote, None, None]):
@@ -54,10 +48,16 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             )
 
         if tag_uuid:
-            pass
-            # elements = self.get_elements_by_tag(db, tag_uuid)
-            # element_uuids = [element.get("data", {}).uuid for element in elements]
-            # record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
+            TagAlias = aliased(models.Tags)
+            TagElementAlias = aliased(models.TagElement)
+            record_query = record_query.join(
+                TagElementAlias, models.PreRegistration.uuid == TagElementAlias.element_uuid
+            ).join(
+                TagAlias, TagElementAlias.tag_uuid == TagAlias.uuid
+            ).filter(
+                TagAlias.type == models.TagTypeEnum.QUOTE,
+                TagAlias.uuid == tag_uuid,
+            )
 
         if order == "asc":
             record_query = record_query.order_by(getattr(models.Quote, order_filed).asc())

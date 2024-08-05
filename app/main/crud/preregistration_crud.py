@@ -8,7 +8,7 @@ from sqlalchemy import or_
 
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from app.main import crud, schemas, models
 from app.main.utils.quote_engine import QuoteEngine
 import uuid
@@ -648,41 +648,6 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
     def get_by_code(cls, db: Session, code: str) -> Optional[schemas.PreregistrationDetails]:
         return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
 
-    def get_elements_by_tag(self, db: Session, tag: str) -> List:
-
-        query = db.query(models.TagElement).join(models.Tags, models.Tags.uuid==models.TagElement.tag_uuid)
-        query = query.filter(or_(
-            # models.Tags.title_en.ilike("%"+tag_type+"%"),
-            # models.Tags.title_fr.ilike("%"+tag_type+"%")
-            models.Tags.title_en==tag,
-            models.Tags.title_fr==tag
-        ))
-
-        tag_elements = query.all()
-
-        elements = []
-        for tag_element in tag_elements:
-            element = tag_element.element
-            if element is None:
-                continue  # Skip elements with no associated element
-
-            # Dynamic element type handling (replace with your actual model mapping)
-            element_type_mapping = {
-                "PRE_ENROLLMENT": "PreRegistration",
-                "CHILDREN": "Membership",
-                "PARENTS": "ParentGuest",
-                "PICTURE": "Storage",
-            }
-            model_name = element_type_mapping.get(tag_element.element_type)
-            # if not model_name:
-            #     raise ValueError(f"Unsupported element type: {tag_element.element_type}")
-
-            # Assuming your models have a `__repr__` method for human-readable output
-            element_data = element
-            elements.append({"model": model_name, "data": element_data})
-
-        return elements
-
 
     def get_many(self,
         db,
@@ -712,9 +677,16 @@ class CRUDPreRegistration(CRUDBase[models.PreRegistration, schemas.Preregistrati
                 ))
             )
         if tag_uuid:
-            elements = self.get_elements_by_tag(db, tag_uuid)
-            element_uuids = [element.get("data", {}).uuid for element in elements]
-            record_query = record_query.filter(models.PreRegistration.uuid.in_(element_uuids))
+            TagAlias = aliased(models.Tags)
+            TagElementAlias = aliased(models.TagElement)
+            record_query = record_query.join(
+                TagElementAlias, models.PreRegistration.uuid == TagElementAlias.element_uuid
+            ).join(
+                TagAlias, TagElementAlias.tag_uuid == TagAlias.uuid
+            ).filter(
+                TagAlias.type == models.TagTypeEnum.PRE_ENROLLMENT,
+                TagAlias.uuid == tag_uuid,
+            )
 
         if order == "asc":
             record_query = record_query.order_by(getattr(models.PreRegistration, order_field).asc())

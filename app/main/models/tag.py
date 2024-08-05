@@ -17,6 +17,7 @@ class TagTypeEnum(str, Enum):
     PRE_ENROLLMENT = "PRE_ENROLLMENT"
     PICTURE = "PICTURE"
     BILL = "BILL"
+    QUOTE = "QUOTE"
 
 
 @dataclass
