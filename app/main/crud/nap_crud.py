@@ -15,11 +15,16 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
 
     @classmethod
     def create(self, db: Session, obj_in: NapCreate) -> Nap:
-
-        obj_in_data = jsonable_encoder(obj_in)
-        obj_in_data["uuid"] = str(uuid.uuid4())
-        obj_in_data["added_by_uuid"] = obj_in.employee_uuid
-        db_obj = Nap(**obj_in_data)
+        db_obj = Nap(
+            uuid=str(uuid.uuid4()),
+            start_time=obj_in.start_time,
+            end_time=obj_in.end_time,
+            quality=obj_in.quality,
+            observation=obj_in.observation,
+            added_by_uuid=obj_in.employee_uuid,
+            child_uuid=obj_in.child_uuid,
+            nursery_uuid=obj_in.nursery_uuid,
+        )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
@@ -32,7 +37,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
     @classmethod
     def update(cls, db: Session,obj_in: NapUpdate) -> NapMini:
         nap = cls.get_nap_by_uuid(db, obj_in.uuid)
-        nap.start_time = obj_in.start_time if obj_in.start_time else nap.firstname
+        nap.start_time = obj_in.start_time if obj_in.start_time else nap.start_time
         nap.end_time = obj_in.end_time if obj_in.end_time else nap.end_time
         nap.quality = obj_in.quality if obj_in.quality else nap.quality
         nap.observation = obj_in.observation if obj_in.observation else nap.observation

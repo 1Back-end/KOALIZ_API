@@ -58,7 +58,9 @@ translation = {
     "team-not-found": "One or more teams do not exist",
     "duplicate-entry-email": "several entries have the same address,please check that and try again",
     "duplicate-team-name-entry": "several entries already have the same team name",
-    "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own."
+    "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own.",
+    "nap-not-found":"There's no such thing as a nap",
+
 
 
 

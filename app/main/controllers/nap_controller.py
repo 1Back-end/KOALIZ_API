@@ -42,6 +42,7 @@ def update_nap(
     """ Update nap for children """
 
     nap = crud.nap.get_nap_by_uuid(db, obj_in.uuid)
+    print("nap-updated",nap)
     if not nap:
         raise HTTPException(status_code=404, detail=__("nap-not-found"))
 

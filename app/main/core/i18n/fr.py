@@ -68,5 +68,6 @@ translation = {
     "duplicate-entry-email": "plusieurs entrees ont la même adresse .",
     "team-name-already-exist": "Nom d'équipe déjà existant",
     "duplicate-team-name-entry": "plusieurs entrées ont déja le même nom d'équipe.",
-    "team-owner-unauthorized":"vous n'êtes pas autorisé à apporter des modifications sur les teams dont vous n'êtes pas propriétaire."
+    "team-owner-unauthorized":"vous n'êtes pas autorisé à apporter des modifications sur les teams dont vous n'êtes pas propriétaire.",
+    "nap-not-found":"La sieste n'existe pas",
 }

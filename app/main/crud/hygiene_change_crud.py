@@ -35,7 +35,7 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
         hygiene_change.time = obj_in.time if obj_in.time else hygiene_change.time
         hygiene_change.cleanliness = obj_in.cleanliness if obj_in.cleanliness else hygiene_change.cleanliness
         if obj_in.pipi == False:
-             .pipi = False
+             hygiene_change.pipi = False
         if obj_in.pipi == True:
             hygiene_change.pipi = True
         hygiene_change.stool_type = obj_in.stool_type if obj_in.stool_type else hygiene_change.stool_type
