@@ -339,6 +339,14 @@ class Icon(Storage):
     pass
 
 
+class Tag(BaseModel):
+    uuid: str
+    title_fr: str
+    title_en: str
+    icon: Optional[Storage] = None
+    description: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
 class PreregistrationSlim(BaseModel):
     uuid: str
     child: ChildMini2

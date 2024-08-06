@@ -25,11 +25,10 @@ class Owner(Base):
     added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
     added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
 
+    nurseries = relationship("Nursery",back_populates="owner")
+
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid], uselist=False)
-    
-    # membership_uuid:str = Column(String, ForeignKey('memberships.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
-
     password_hash: str = Column(String(100), nullable=True, default="")
     # status = Column(types.Enum(UserStatusType), index=True, nullable=False, default=UserStatusType.UNACTIVED)
     status = Column(String, index=True, nullable=False)
