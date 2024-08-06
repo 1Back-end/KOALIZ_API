@@ -156,7 +156,7 @@ class Activity(Base):
     name_en = Column(String, nullable=False)
 
     children = relationship("ChildActivity", back_populates="activity")
-    categories = relationship("Category", secondary=activity_category_table, back_populates="activities")
+    activity_categories = relationship("ActivityCategory", secondary=activity_category_table, back_populates="activities")
 
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
