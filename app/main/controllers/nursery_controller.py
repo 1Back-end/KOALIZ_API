@@ -1,6 +1,6 @@
 from datetime import time
 
-from app.main.core.dependencies import get_db, TokenRequired
+from app.main.core.dependencies import TeamTokenRequired, get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
 from app.main.core.config import Config
@@ -189,5 +189,18 @@ def get_all_without_filter(
     Get all nurseries
     """
     return crud.nursery.get_all_uuids_of_same_owner(db, current_user.uuid)
+
+
+@router.get("/employee/{nursery_uuid}/home")
+def get_employee_home_page(
+    nursery_uuid: str,
+    db: Session = Depends(get_db),
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+):
+    nursery_details = crud.nursery.get_employee_home_page(
+        db=db,
+        nursery_uuid=nursery_uuid
+    )
+    return nursery_details
 
 "c0a1fba8-7015-4fff-955b-8ec95df3fdaf"

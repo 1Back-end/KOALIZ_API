@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship, Mapped
 from app.main.models.db.session import SessionLocal
 from app.main.models.quote import FamilyType
 from .db.base_class import Base
+from .children import children_media
 
 
 class PreRegistrationStatusType(str, Enum):
@@ -48,7 +49,7 @@ class ContractType(str, Enum):
 
 class Child(Base):
     """
-         database model for storing Nursery related details
+    database model for storing Nursery related details
     """
     __tablename__ = 'children'
 
@@ -69,6 +70,14 @@ class Child(Base):
     parents: Mapped[list[any]] = relationship("ParentGuest", back_populates="child", uselist=True)
 
     preregistrations: Mapped[list[any]] = relationship("PreRegistration", back_populates="child", uselist=True)
+
+    meals: Mapped[list[any]] = relationship("Meal", back_populates="child", uselist=True) # Repas
+    activities: Mapped[list[any]] = relationship("ChildActivity", back_populates="child", uselist=True) # Activités
+    naps: Mapped[list[any]] = relationship("Nap", back_populates="child", uselist=True) # Siestes
+    health_records: Mapped[list[any]] = relationship("HealthRecord", back_populates="child", uselist=True) # Santés
+    hygiene_changes: Mapped[list[any]] = relationship("HygieneChange", back_populates="child", uselist=True) # Hygienes
+    media: Mapped[list[any]] = relationship("Media", secondary=children_media, back_populates="children", uselist=True) # Media
+    observations: Mapped[list[any]] = relationship("Observation", back_populates="child", uselist=True) # Observations
 
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)

@@ -20,6 +20,12 @@ from .team_device_controller import router as team_device
 from .team_controller import router as team
 from .employe_controller import router as employee
 from .message_controller import router as message
+from .nap_controller import router as nap
+from .health_record_controller import router as health_record
+from .hygiene_change_controller import router as hygiene_change
+from .nursery_holidays_controller import router as nursery_holidays
+from .observation_controller import router as observation
+from .meal_controller import router as meal_controller
 
 api_router = APIRouter()
 
@@ -31,6 +37,10 @@ api_router.include_router(owner)
 api_router.include_router(membership)
 api_router.include_router(nursery)
 api_router.include_router(parent)
+api_router.include_router(health_record)
+api_router.include_router(hygiene_change)
+api_router.include_router(nap)
+api_router.include_router(observation)
 api_router.include_router(message)
 api_router.include_router(preregistration)
 api_router.include_router(quote)
@@ -41,6 +51,5 @@ api_router.include_router(storage)
 api_router.include_router(tag)
 api_router.include_router(helper)
 api_router.include_router(nursery_close_hours)
-api_router.include_router(team)
+api_router.include_router(meal_controller)
 api_router.include_router(employee)
-
