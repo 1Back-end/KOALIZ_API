@@ -19,7 +19,7 @@ def get(
         order: str = Query("desc", enum=["asc", "desc"]),
         order_filed: str = "date_to",
         keyword: Optional[str] = None,
-        status: Optional[str] = Query(None, enum=models.InvoiceStatusType),
+        status: Optional[str] = Query(None, enum=[st.value for st in models.InvoiceStatusType]),
         month: Optional[int] = None,
         year: Optional[int] = None,
         reference: Optional[str] = None,
