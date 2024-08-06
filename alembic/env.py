@@ -35,8 +35,8 @@ target_metadata = Base.metadata
 # ... etc.
 
 def get_url():
-    # return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://postgres:postgres@localhost:5432/bde_micro_creche_dev')
-    return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
+    return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://postgres:postgres@localhost:5432/bde_micro_creche_dev')
+    # return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
@@ -56,6 +56,7 @@ def run_migrations_offline():
     )
     with context.begin_transaction():
         context.run_migrations()
+        
 def run_migrations_online():
     """Run migrations in 'online' mode.
     In this scenario we need to create an Engine
@@ -74,6 +75,7 @@ def run_migrations_online():
         )
         with context.begin_transaction():
             context.run_migrations()
+
 if context.is_offline_mode():
     run_migrations_offline()
 else:

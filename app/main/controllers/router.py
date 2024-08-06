@@ -23,6 +23,7 @@ from .nap_controller import router as nap
 from .health_record_controller import router as health_record
 from .hygiene_change_controller import router as hygiene_change
 from .nursery_holidays_controller import router as nursery_holidays
+from .observation_controller import router as observation
 
 api_router = APIRouter()
 
@@ -37,6 +38,7 @@ api_router.include_router(parent)
 api_router.include_router(health_record)
 api_router.include_router(hygiene_change)
 api_router.include_router(nap)
+api_router.include_router(observation)
 api_router.include_router(message)
 api_router.include_router(preregistration)
 api_router.include_router(quote)
