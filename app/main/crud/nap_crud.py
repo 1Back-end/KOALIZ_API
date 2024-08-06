@@ -80,7 +80,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
         if nursery_uuid:
             record_query = record_query.filter(Nap.nursery_uuid == nursery_uuid)
         if employee_uuid:
-            record_query = record_query.filter(Nap.employee_uuid == employee_uuid)
+            record_query = record_query.filter(Nap.added_by_uuid == employee_uuid)
 
         if order == "asc":
             record_query = record_query.order_by(getattr(Nap, order_field).asc())

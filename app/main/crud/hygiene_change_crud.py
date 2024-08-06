@@ -16,10 +16,18 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
     @classmethod
     def create(self, db: Session, obj_in: HygieneChangeCreate) -> HygieneChange:
 
-        obj_in_data = jsonable_encoder(obj_in)
-        obj_in_data["uuid"] = str(uuid.uuid4())
-        obj_in_data["added_by_uuid"] = obj_in.employee_uuid
-        db_obj = HygieneChange(**obj_in_data)
+        db_obj = HygieneChange(
+            uuid=str(uuid.uuid4()),
+            time=obj_in.time,
+            cleanliness=obj_in.cleanliness,
+            pipi=obj_in.pipi,
+            stool_type=obj_in.stool_type,
+            additional_care=obj_in.additional_care,
+            observation=obj_in.observation,
+            child_uuid=obj_in.child_uuid,
+            nursery_uuid=obj_in.nursery_uuid,
+            added_by_uuid=obj_in.employee_uuid
+        )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
@@ -72,7 +80,6 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
             record_query = record_query.filter(
                 or_(
                     HygieneChange.observation.ilike('%' + str(keyword) + '%'),
-                    HygieneChange.medication_name.ilike('%' + str(keyword) + '%')
                 )
             )
 
@@ -87,7 +94,7 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
         if nursery_uuid:
             record_query = record_query.filter(HygieneChange.nursery_uuid == nursery_uuid)
         if employee_uuid:
-            record_query = record_query.filter(HygieneChange.employee_uuid == employee_uuid)
+            record_query = record_query.filter(HygieneChange.added_by_uuid == employee_uuid)
 
         if order == "asc":
             record_query = record_query.order_by(getattr(HygieneChange, order_field).asc())

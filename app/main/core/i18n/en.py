@@ -60,6 +60,11 @@ translation = {
     "duplicate-team-name-entry": "several entries already have the same team name",
     "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own.",
     "nap-not-found":"There's no such thing as a nap",
+    "hygiene-change-not-found":"There's no such thing as a hygiene change",
+    "hygiene-change-deleted": "hygiene change deleted successfully.",
+    "health-record-not-found": "Medical record not found",
+    "health-record-deleted": "Medical record successfully deleted",
+
 
 
 

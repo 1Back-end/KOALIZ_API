@@ -70,4 +70,8 @@ translation = {
     "duplicate-team-name-entry": "plusieurs entrées ont déja le même nom d'équipe.",
     "team-owner-unauthorized":"vous n'êtes pas autorisé à apporter des modifications sur les teams dont vous n'êtes pas propriétaire.",
     "nap-not-found":"La sieste n'existe pas",
+    "hygiene-change-not-found":"Le changement d'hygiène n'existe pas",
+    "hygiene-change-deleted": "Changement d'hygiène supprimé avec succès",
+    "health-record-not-found": "Dossier médical non trouvé",
+    "health-record-deleted": "Dossier médical supprimé avec succès",
 }

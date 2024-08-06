@@ -96,7 +96,7 @@ class CRUDHealthRecord(CRUDBase[HealthRecord, HealthRecordCreate, HealthRecordUp
         if nursery_uuid:
             record_query = record_query.filter(HealthRecord.nursery_uuid == nursery_uuid)
         if employee_uuid:
-            record_query = record_query.filter(HealthRecord.employee_uuid == employee_uuid)
+            record_query = record_query.filter(HealthRecord.added_by_uuid == employee_uuid)
 
         if order == "asc":
             record_query = record_query.order_by(getattr(HealthRecord, order_field).asc())

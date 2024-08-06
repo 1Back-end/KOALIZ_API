@@ -33,7 +33,7 @@ class HygieneChange(BaseModel):
     uuid: Optional[str] = None
     child: Optional[ChildMini2] = None
     nursery: Optional[NurserySlim]=None
-    employee: Optional[EmployeSlim]
+    added_by: Optional[EmployeSlim]
     time: Optional[datetime]= None
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
