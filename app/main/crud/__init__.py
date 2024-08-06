@@ -24,3 +24,4 @@ from .nursery_close_hours_crud import nursery_close_hour
 from .observation_crud import observation
 from .nursery_holidays_crud import nursery_holiday
 from .meal_crud import meal
+from .invoice_crud import invoice

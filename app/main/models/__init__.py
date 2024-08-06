@@ -18,3 +18,4 @@ from .message import *
 from .team_device import *
 from .children import *
 from .team import *
+from .invoice import *

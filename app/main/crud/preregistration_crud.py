@@ -82,6 +82,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             if exist_folder.quote and exist_folder.quote.status != models.QuoteStatusType.ACCEPTED:
                 exist_folder.quote.status = models.QuoteStatusType.ACCEPTED
                 crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
+            crud.invoice.generate_invoice(db, exist_folder.quote.uuid)
 
         db.commit()
 
