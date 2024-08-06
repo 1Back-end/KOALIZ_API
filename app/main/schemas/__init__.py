@@ -3,6 +3,7 @@ from .admin_key import AdminKey
 from .administrator import *
 from .base import *
 from .file import *
+from .invoice import *
 from .membership import *
 from .msg import Msg, BoolStatus, DataDisplay
 from .nursery import *

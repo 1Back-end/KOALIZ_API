@@ -17,3 +17,4 @@ from .parent import *
 from .message import *
 from .team_device import *
 from .planning import *
+from .invoice import *

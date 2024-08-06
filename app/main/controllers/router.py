@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from .administrator_controller import router as administrator
 from .authentication_controller import router as authentication
 from .helper_controller import router as helper
+from .invoice_controller import router as invoice
 from .migration_controller import router as migration
 from .nursery_controller import router as nursery
 from .owner_controller import router as owner
@@ -31,6 +32,7 @@ api_router.include_router(parent)
 api_router.include_router(message)
 api_router.include_router(preregistration)
 api_router.include_router(quote)
+api_router.include_router(invoice)
 api_router.include_router(notification)
 api_router.include_router(migration)
 api_router.include_router(storage)

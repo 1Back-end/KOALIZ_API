@@ -1,10 +1,8 @@
 from enum import Enum
 
-from datetime import datetime, date, time
+from datetime import datetime, date
 from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, event, types,UniqueConstraint, \
     Float
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, Mapped
 from .db.base_class import Base
 
