@@ -33,7 +33,8 @@ class EmployeUpdate(EmployeBase):
 
 
 class EmployeSlim(EmployeBase):
-    pass
+    uuid:str
+    avatar: Optional[File] = None
 
 class EmployeeInDB(EmployeBase):
     uuid: str
