@@ -53,8 +53,28 @@ translation = {
     "team-not-found": "One or more teams do not exist",
     "duplicate-entry-email": "several entries have the same address,please check that and try again",
     "duplicate-team-name-entry": "several entries already have the same team name",
-    "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own."
-
-
+    "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own.",
+    "Close-Hour-not-found":"Heure de fermeture introuvable",
+    "Close-Hour-not-found-or-not-authorized":"Heure de fermeture introuvable ou non autorisée",
+    "Nurseries-not-found":"Crèches introuvables",
+    "Not-authorized-to-create-close-hour-for-this-nursery":"Non autorisé à créer une heure de fermeture pour cette crèche",
+    "Not-authorized-to-update-this-close-hour":"Non autorisé à mettre à jour cette heure de fermeture",
+    "You-are-not-authorized-to-delete-this-close-hour":"Vous n'êtes pas autorisé à supprimer cette heure de fermeture",
+    "No-details-available":"Aucun détail disponible",
+    "opening_hours_message":"message_heures_d'ouverture",
+    "These-are-the-opening-hours-of-the-nursery":"Voici les horaires d'ouverture de la crèche",
+    "These-are-the-periods-when-the-nursery is-closed":"Ce sont les périodes où la crèche est fermée",
+    "message-vacances":"Ce sont les vacances de la crèche",
+    "holidays":"vacances",
+    "opening-hours":"Horaires d'ouvertures",
+    "You-are-not-authorized-to-view-this-nursery-details":"Vous n'êtes pas autorisé à consulter les détails de cette crèche",
+    "Close-Hour-deleted-successfully":"Heure de fermeture supprimée avec succès",
+    "Nursery-not-found-or-not-authorized":"Crèche introuvable ou non autorisée",
+    "Not-authorized-to-create-close-hour-for-this-nursery":"Non autorisé à créer une heure de fermeture pour cette crèche",
+    "Holiday-not-found":"Vacances introuvables",
+    "Not-authorized-to-update-this-holiday":"Non autorisé à mettre à jour ce jour férié",
+    "Not-authorized-to-delete-this-holiday":"Non autorisé à supprimer ce jour férié",
+    "Nursery-holiday-not-found":"Vacances à la crèche introuvables",
+    "Holiday-deleted-successfully":"Jours fériés supprimés avec succès"
 
 }

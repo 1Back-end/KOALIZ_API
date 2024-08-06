@@ -178,3 +178,10 @@ class NurseryByGuest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class OpeningHoursDetails(BaseModel):
+    uuid : str
+    day_of_week: int
+    from_time: str
+    to_time: str
+
+    model_config = ConfigDict(from_attributes=True)

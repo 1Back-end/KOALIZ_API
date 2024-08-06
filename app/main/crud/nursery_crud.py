@@ -240,6 +240,28 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
     def is_active(self, user: models.Administrator) -> bool:
         return user.status == models.UserStatusType.ACTIVED
 
+    def get_employee_home_page(self, *, db: Session, nursery_uuid: str):
+
+        nursery = db.query(models.Nursery).filter(models.Nursery.uuid == nursery_uuid).first()
+        if not nursery:
+            raise HTTPException(status_code=404, detail="Nursery not found")
+
+        opening_hours = db.query(models.NurseryOpeningHour).filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid).all()
+        opening_hours_data = [schemas.OpeningHoursDetails.from_orm(hour) for hour in opening_hours]
+
+        close_hours = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid == nursery_uuid).all()
+        close_hours_data = [schemas.NurseryCloseHourDetails.from_orm(hour) for hour in close_hours]
+
+        holidays = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.nursery_uuid == nursery_uuid).all()
+        holidays_data = [schemas.NurseryHolidaysDetails.from_orm(holiday) for holiday in holidays]
+
+        return {
+            "opening_hours": opening_hours_data,
+            "close_hours": close_hours_data,
+            "holidays": holidays_data
+        }
+
+
 
 nursery = CRUDNursery(models.Nursery)
 

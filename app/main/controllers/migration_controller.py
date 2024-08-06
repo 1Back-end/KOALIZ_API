@@ -79,6 +79,12 @@ async def create_database_tables(
 
         else:
             os.system('PYTHONPATH=. alembic revision --autogenerate')
+        # Get the environment system
+        if platform.system() == 'Windows':
+
+            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic upgrade head')
+
+        else:
             os.system('PYTHONPATH=. alembic upgrade head')
 
         """ Try to remove previous alembic versions folder """
@@ -263,14 +269,14 @@ async def create_membership(
             datas = json.load(f)
         
             for data in datas:
-                db_obj = crud.membership.get_by_uuid(db=db, uuid=data["uuid"])
+                db_obj = crud.membership.get_by_uuid(db=db, obj_uuid=data["uuid"])
                 if db_obj:
-                    db_obj.title_en = data["title_en"]
-                    db_obj.title_fr = data["title_fr"]
-                    db_obj.description = data["description"] if data["description"] else None
+                    #db_obj.title_en = data["title_en"]
+                    #db_obj.title_fr = data["title_fr"]
+                    #   db_obj.description = data["description"] if data["description"] else None
                     
                     db_obj.status = data["status"]
-                    db_obj.perido_unit = data["perido_unit"]
+                    db_obj.period_unit = data["perido_unit"]
                     db_obj.period_from = data["period_from"]
 
                     db_obj.period_to = data["period_to"]

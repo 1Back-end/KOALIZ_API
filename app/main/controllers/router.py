@@ -22,6 +22,7 @@ from .message_controller import router as message
 from .nap_controller import router as nap
 from .health_record_controller import router as health_record
 from .hygiene_change_controller import router as hygiene_change
+from .nursery_holidays_controller import router as nursery_holidays
 
 api_router = APIRouter()
 
@@ -45,6 +46,3 @@ api_router.include_router(storage)
 api_router.include_router(tag)
 api_router.include_router(helper)
 api_router.include_router(nursery_close_hours)
-api_router.include_router(team)
-api_router.include_router(employee)
-
