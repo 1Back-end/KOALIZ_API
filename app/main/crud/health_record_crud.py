@@ -16,10 +16,20 @@ class CRUDHealthRecord(CRUDBase[HealthRecord, HealthRecordCreate, HealthRecordUp
     @classmethod
     def create(self, db: Session, obj_in: HealthRecordCreate) -> HealthRecord:
 
-        obj_in_data = jsonable_encoder(obj_in)
-        obj_in_data["uuid"] = str(uuid.uuid4())
-        obj_in_data["added_by_uuid"] = obj_in.employee_uuid
-        db_obj = HealthRecord(**obj_in_data)
+        db_obj = HealthRecord(
+            uuid=str(uuid.uuid4()),
+            child_uuid=obj_in.child_uuid,
+            care_type=obj_in.care_type,
+            route = obj_in.route,
+            medication_type=obj_in.medication_type,
+            medication_name=obj_in.medication_name,
+            observation=obj_in.observation,
+            weight=obj_in.weight,
+            nursery_uuid=obj_in.nursery_uuid,
+            time=obj_in.time,
+            temperature=obj_in.temperature,
+            added_by_uuid=obj_in.employee_uuid
+        )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
@@ -86,7 +96,7 @@ class CRUDHealthRecord(CRUDBase[HealthRecord, HealthRecordCreate, HealthRecordUp
         if nursery_uuid:
             record_query = record_query.filter(HealthRecord.nursery_uuid == nursery_uuid)
         if employee_uuid:
-            record_query = record_query.filter(HealthRecord.employee_uuid == employee_uuid)
+            record_query = record_query.filter(HealthRecord.added_by_uuid == employee_uuid)
 
         if order == "asc":
             record_query = record_query.order_by(getattr(HealthRecord, order_field).asc())

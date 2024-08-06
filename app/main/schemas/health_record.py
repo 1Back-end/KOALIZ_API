@@ -35,7 +35,7 @@ class HealthRecord(BaseModel):
     uuid: Optional[str] = None
     child: Optional[ChildMini2] = None
     nursery: Optional[NurserySlim]=None
-    employee: Optional[EmployeSlim]
+    added_by: Optional[EmployeSlim] = None
     medication_name: Optional[str]
     observation: Optional[str]
     medication_type: Optional[str]= None

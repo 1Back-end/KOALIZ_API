@@ -15,11 +15,16 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
 
     @classmethod
     def create(self, db: Session, obj_in: NapCreate) -> Nap:
-
-        obj_in_data = jsonable_encoder(obj_in)
-        obj_in_data["uuid"] = str(uuid.uuid4())
-        obj_in_data["added_by_uuid"] = obj_in.employee_uuid
-        db_obj = Nap(**obj_in_data)
+        db_obj = Nap(
+            uuid=str(uuid.uuid4()),
+            start_time=obj_in.start_time,
+            end_time=obj_in.end_time,
+            quality=obj_in.quality,
+            observation=obj_in.observation,
+            added_by_uuid=obj_in.employee_uuid,
+            child_uuid=obj_in.child_uuid,
+            nursery_uuid=obj_in.nursery_uuid,
+        )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
@@ -75,7 +80,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
         if nursery_uuid:
             record_query = record_query.filter(Nap.nursery_uuid == nursery_uuid)
         if employee_uuid:
-            record_query = record_query.filter(Nap.employee_uuid == employee_uuid)
+            record_query = record_query.filter(Nap.added_by_uuid == employee_uuid)
 
         if order == "asc":
             record_query = record_query.order_by(getattr(Nap, order_field).asc())

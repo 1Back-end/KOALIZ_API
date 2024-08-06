@@ -4,7 +4,7 @@ from typing import Optional, Union
 from sqlalchemy import or_
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
-from sqlalchemy.orm import Session,joinedload 
+from sqlalchemy.orm import Session,joinedload,contains_eager 
 from app.main import schemas, models,crud
 import uuid as py_uuid
 
@@ -12,6 +12,12 @@ import uuid as py_uuid
 
 class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
     
+    # @classmethod
+    # def get_members(db,nursery_uuid):
+    #     return db.query(models.Employee).join(models.NurseryEmployees).\
+    #         filter(models.NurseryEmployees.nursery_uuid == nursery_uuid).\
+    #             filter(models.Employee.status!="DELETED").\
+    #                 all()
     @classmethod
     def get_by_name(cls, db:Session, name:str)->models.Team:
         return db.query(models.Team).filter(models.Team.name == name).first()
@@ -25,7 +31,7 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
         return db.query(models.Team).filter(models.Team.uuid == uuid,models.Team.status!="DELETED").first()
     
     @classmethod
-    def create(cls, db: Session, obj_in: list[schemas.TeamCreate],owner_uuid:str) -> models.Team:
+    def create(cls, db: Session, obj_in: list[schemas.TeamCreate]) -> models.Team:
 
         for obj in obj_in: 
             db_obj = models.Team(
@@ -34,7 +40,7 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
                 leader_uuid = obj.leader_uuid,
                 description = obj.description,
                 status = obj.status,
-                owner_uuid = owner_uuid
+                # owner_uuid = owner_uuid
             )
             db.add(db_obj)
             db.flush()
@@ -100,24 +106,25 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
     
     @classmethod
     def get_multi(
-        *,
         cls,
         db:Session,
         page:int = 1,
         per_page:int = 30,
         order:Optional[str] = None,
         status:Optional[str] = None,
-        user_uuid:Optional[str] = None,
+        team_uuid:Optional[str] = None,
         keyword:Optional[str]= None,
-        owner_uuid: str
         # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Team).\
-            filter(models.Team.owner_uuid == owner_uuid)
-
+            filter(models.Team.status !="DELETED").\
+                outerjoin(models.TeamEmployees,models.Team.uuid == models.TeamEmployees.team_uuid).\
+                outerjoin(models.Employee, models.TeamEmployees.employee_uuid == models.Employee.uuid).\
+                    filter(models.Employee.status!="DELETED").\
+                        options(contains_eager(models.Team.employees))
+        
         # if order_filed:
         #     record_query = record_query.order_by(getattr(models.Team, order_filed))
-        
         if keyword:
             record_query = record_query.filter(
                 or_(
@@ -135,10 +142,11 @@ class CRUDTeam(CRUDBase[models.Team, schemas.TeamCreate,schemas.TeamUpdate]):
         elif order and order.lower() == "desc":
             record_query = record_query.order_by(models.Team.date_added.desc())
 
-        if user_uuid:
-            record_query = record_query.filter(models.Team.uuid == user_uuid)
+        if team_uuid:
+            record_query = record_query.filter(models.Team.uuid == team_uuid)
 
-        total = record_query.count()
+        total = len(record_query.all())
+
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
         return schemas.TeamResponseList(

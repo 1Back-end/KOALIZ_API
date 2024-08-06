@@ -9,7 +9,7 @@ from starlette.requests import Request
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
-from app.main.core.mail import send_reset_password_email, send_reset_password_option2_email
+from app.main.core.mail import send_account_confirmation_email, send_reset_password_email, send_reset_password_option2_email
 from app.main.core.security import create_access_token, generate_code, get_password_hash, verify_password, is_valid_password, \
     decode_access_token
 from app.main.core.config import Config
@@ -36,7 +36,7 @@ async def login_parent(
     if user.status in [models.UserStatusType.BLOCKED, models.UserStatusType.DELETED]:
         raise HTTPException(status_code=400, detail=__("auth-login-failed"))
 
-    if not crud.administrator.is_active(user):
+    if not crud.parent.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
     access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -370,18 +370,39 @@ async def create_parent_on_system(
     Create the parent in the system
     """
     user = crud.parent.get_by_email(db,input.email)
-    if user:
-        raise HTTPException(status_code=400, detail=__("user-email-taken"))
-    
+    if input.avatar_uuid:
+        avatar = crud.storage.get(db,input.avatar_uuid)
+        if not avatar:
+            raise HTTPException(status_code=404, detail=__("avatar-not-found"))
+
     code = generate_code(length=12)
-    code= str(code[0:6])
+    code= str(code[0:6]) 
 
-    # if not crud.parent.password_confirmation(db, input.password, input.confirm_password):
-    #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
+    if user:
+        if crud.parent.is_active(user):
+            raise HTTPException(status_code=400, detail=__("user-email-taken"))
+        
+        user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.user_uuid == user.uuid)
 
-    crud.parent.create(db=db, obj_in=input,code=code)
+        if user_code.count()>0:
+            user_code.delete()
 
-    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+        print("user_code1:")
+        db_code = models.ParentActionValidation(
+            uuid=str(uuid.uuid4()),
+            code=code,
+            user_uuid=user.uuid,
+            value=code,
+            expired_date=datetime.now() + timedelta(minutes=30)
+        )
+
+        db.add(db_code)
+        db.commit()
+        send_account_confirmation_email(email_to=input.email, name=(input.firstname+input.lastname),token=code,valid_minutes=30)
+
+    else:
+        crud.parent.create(db=db, obj_in=input,code=code)
 
     return schemas.Msg(message=__("account-validation-pending"))
 
@@ -467,6 +488,44 @@ def start_reset_password(
     )
 
     return schemas.Msg(message=__("reset-password-started"))
+
+@router.post("/parent/code/send", summary="send code", response_model=schemas.Msg)
+def send_code(
+        input: schemas.ResetPasswordOption2Step1,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Start reset password
+    """
+    user = crud.parent.get_by_email(db=db, email=input.email)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    # Generate code for validation after
+    code = generate_code(length=12)
+    code = str(code[0:6])
+
+    user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.user_uuid == user.uuid)
+
+    if user_code.count()>0:
+        user_code.delete()
+
+    print("user_code1:")
+    db_code = models.ParentActionValidation(
+        uuid=str(uuid.uuid4()),
+        code=code,
+        user_uuid=user.uuid,
+        value=code,
+        expired_date=datetime.now() + timedelta(minutes=30)
+    )
+
+    db.add(db_code)
+    db.commit()
+
+    send_account_confirmation_email(email_to=input.email, name=(user.firstname+user.lastname),token=code,valid_minutes=30)
+
+    return schemas.Msg(message=__("account-validation-pending"))
 
 
 @router.put("/parent/reset-password", summary="Reset password", response_model=schemas.Msg)

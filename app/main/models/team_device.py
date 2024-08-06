@@ -3,6 +3,7 @@ from sqlalchemy import Column, ForeignKey, String, DateTime,event
 from datetime import datetime
 from .db.base_class import Base
 from sqlalchemy.orm import relationship, Mapped
+from sqlalchemy.ext.hybrid import hybrid_property
 
 @dataclass
 class TeamDevice(Base):
@@ -16,6 +17,12 @@ class TeamDevice(Base):
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
+    @hybrid_property
+    def members(self):
+        employees = self.nursery.employees
+        active_employees = [employee for employee in employees if employee.status != "DELETED"]
+        return active_employees if active_employees else []
+    
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 

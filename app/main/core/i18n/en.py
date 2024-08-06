@@ -47,6 +47,11 @@ translation = {
     "item-adaptation": "Adaptation fee",
     "item-invoice": "Monthly payment",
     "item-registration": "Registration fee",
+    "quote-not-found": "Quote not found",
+    "quote-status-updated": "Quote status successfully changed",
+    "quote-settings-updated": "Quote parameters successfully changed",
+    "quote-cmg-updated": "CMG parameters successfully changed",
+    "dependencies-access-unauthorized": "You do not have the right to access this feature!",
     "member-not-found": "Member(s) not found",
     "leader-not-found": "There is no such member(s) as a leader",
     "nursery-owner-not-authorized": "You are not authorized to perform this action",
@@ -75,6 +80,15 @@ translation = {
     "Not-authorized-to-update-this-holiday":"Non autorisé à mettre à jour ce jour férié",
     "Not-authorized-to-delete-this-holiday":"Non autorisé à supprimer ce jour férié",
     "Nursery-holiday-not-found":"Vacances à la crèche introuvables",
-    "Holiday-deleted-successfully":"Jours fériés supprimés avec succès"
+    "Holiday-deleted-successfully":"Jours fériés supprimés avec succès",
+    "nap-not-found":"There's no such thing as a nap",
+    "hygiene-change-not-found":"There's no such thing as a hygiene change",
+    "hygiene-change-deleted": "hygiene change deleted successfully.",
+    "health-record-not-found": "Medical record not found",
+    "health-record-deleted": "Medical record successfully deleted",
+
+
+
+
 
 }

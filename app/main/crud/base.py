@@ -2,6 +2,8 @@ import math
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import Any, Dict, Generic, Optional, Type, TypeVar, Union
+
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.models.db.base_class import Base

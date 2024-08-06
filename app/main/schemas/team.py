@@ -1,14 +1,15 @@
 from datetime import datetime
 from typing import Optional
+from fastapi import Query
 from pydantic import BaseModel, EmailStr,ConfigDict
 from .file import File
-from . import EmployeResponse
+from app.main.models.team import TeamStatusEnum
 
 class TeamBase(BaseModel):
     name: str
     leader_uuid: str
     description: Optional[str] = None
-    status: str = ""
+    status: str = Query(..., enum=[st.value for st in TeamStatusEnum if st.value != TeamStatusEnum.DELETED])
 
     model_config = ConfigDict(from_attributes=True)
 

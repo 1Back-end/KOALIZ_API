@@ -57,6 +57,10 @@ translation = {
     "item-adaptation": "Frais d'adaptation",
     "item-invoice": "Mensualité",
     "item-registration": "Frais d'inscription",
+    "quote-not-found": "Le devis n'existe pas",
+    "quote-status-updated": "Statut du de devis changé avec succès",
+    "quote-settings-updated": "Paramètres du devis changés avec succès",
+    "quote-cmg-updated": "Paramètres de la CMG changés avec succès",
     "member-not-found": "le(s) membre(s) n'existe(nt) pas.",
     "leader-not-found": "le(s)  leader(s) n'existe(nt) pas.",
     "nursery-owner-not-authorized": "Vous n'êtes pas autorisé à effectuer cette action",
@@ -86,5 +90,10 @@ translation = {
     "Not-authorized-to-update-this-holiday":"Non autorisé à mettre à jour ce jour férié",
     "Not-authorized-to-delete-this-holiday":"Non autorisé à supprimer ce jour férié",
     "Nursery-holiday-not-found":"Vacances à la crèche introuvables",
-    "Holiday-deleted-successfully":"Jours fériés supprimés avec succès"
+    "Holiday-deleted-successfully":"Jours fériés supprimés avec succès",
+    "nap-not-found":"La sieste n'existe pas",
+    "hygiene-change-not-found":"Le changement d'hygiène n'existe pas",
+    "hygiene-change-deleted": "Changement d'hygiène supprimé avec succès",
+    "health-record-not-found": "Dossier médical non trouvé",
+    "health-record-deleted": "Dossier médical supprimé avec succès",
 }

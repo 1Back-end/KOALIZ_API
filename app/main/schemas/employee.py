@@ -1,15 +1,17 @@
 from datetime import datetime
 from typing import Optional
+from fastapi import Query
 from pydantic import BaseModel, EmailStr,ConfigDict
 
 from .file import File
+from app.main.models.team import EmployeStatusEnum
 
 class EmployeBase(BaseModel):
     email:EmailStr
     firstname: str
     lastname: str
     avatar_uuid: Optional[str] = None
-    status: str
+    status: str = Query(..., enum=[st.value for st in EmployeStatusEnum if st.value != EmployeStatusEnum.DELETED])
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -31,7 +33,8 @@ class EmployeUpdate(EmployeBase):
 
 
 class EmployeSlim(EmployeBase):
-    pass
+    uuid:str
+    avatar: Optional[File] = None
 
 class EmployeeInDB(EmployeBase):
     uuid: str

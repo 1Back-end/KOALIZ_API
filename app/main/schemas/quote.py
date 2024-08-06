@@ -11,25 +11,8 @@ from app.main.schemas.base import Items
 from app.main.schemas.file import File
 
 
-class PreContract(BaseModel):
-    begin_date: date
-    end_date: date
+class QuotePreContract(BaseModel):
     typical_weeks: list[Any]
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ParentGuest(BaseModel):
-    link: models.ParentRelationship
-    firstname: str
-    lastname: str
-    fix_phone: str = None
-    phone: str
-    email: EmailStr
-    zip_code: str
-    city: str
-    country: str
-    profession: str
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -43,45 +26,68 @@ class PreregistrationMini(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class QuoteDetails(BaseModel):
-    uuid: str
-    firstname: str
-    lastname: str
-    gender: models.Gender
-    birthdate: date
-    birthplace: str
-    date_added: datetime
-    date_modified: datetime
-    parents: list[ParentGuest]
-    pre_contract: PreContract
-    preregistrations: list[PreregistrationMini]
-    model_config = ConfigDict(from_attributes=True)
-
-
 class QuoteChildMini(BaseModel):
     uuid: str
     firstname: str
     lastname: str
     gender: models.Gender
     birthdate: date
-    birthplace: str
-    date_added: datetime
-    date_modified: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CMG(BaseModel):
+    amount: float = 0
+    family_type: models.FamilyType = None
+    number_children: int = 0
+    annual_income: float = 0
+    band_number: Optional[int] = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class QuoteTimeTableItem(BaseModel):
+    title_fr: str
+    title_en: str
+    amount: float = 0
+    type: models.QuoteTimetableItemType
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class QuoteTimetable(BaseModel):
+    date_to: date
+    amount: float = 0
+    items: list[QuoteTimeTableItem] = []
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class QuoteDetails(BaseModel):
     uuid: str
-    code: str
     child: QuoteChildMini
-    nursery: NurseryMini
-    pre_contract: PreContract
-    note: str = None
+    pre_contract: QuotePreContract
+    cmg: Optional[CMG] = None
     status: str = None
-    accepted_date: Optional[datetime] = None
-    refused_date: Optional[datetime] = None
-    date_added: datetime
-    date_modified: datetime
+    hourly_rate: float = 0
+    registration_fee: float = 0
+
+    deposit_type: models.DepositType
+    deposit_percentage: float = 0
+    deposit_value: float = 0
+
+    adaptation_type: models.AdaptationType
+    adaptation_hourly_rate: float = 0
+    adaptation_hours_number: int = 0
+    adaptation_package_costs: float = 0
+    adaptation_package_days: int = 0
+
+    monthly_billed_hours: Optional[float]
+    smoothing_months: Optional[float]
+    weeks_in_smoothing: Optional[float]
+    deductible_weeks: Optional[float]
+    total_closing_days: Optional[int]
+
+    timetables: list[QuoteTimetable] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -119,3 +125,27 @@ class QuoteList(DataList):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class CMGUpdate(BaseModel):
+    family_type: models.FamilyType = None
+    number_children: int = 0
+    annual_income: float = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class QuoteSettingsUpdate(BaseModel):
+    hourly_rate: float = 0
+    registration_fee: float = 0
+
+    deposit_type: models.DepositType
+    deposit_percentage: float = 0
+    deposit_value: float = 0
+
+    adaptation_type: models.AdaptationType
+    adaptation_hourly_rate: float = 0
+    adaptation_hours_number: int = 0
+    adaptation_package_costs: float = 0
+    adaptation_package_days: int = 0
+
+    model_config = ConfigDict(from_attributes=True)

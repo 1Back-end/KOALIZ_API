@@ -14,6 +14,12 @@ class EmployeStatusEnum(str,Enum):
     RETIRED = "RETIRED" # L'employé a pris sa retraite.
     PROBATION = "PROBATION" #L'employé est en période d'essai.
 
+class TeamStatusEnum(str,Enum):
+    ACTIVED = "ACTIVED" # L'employé est actuellement actif et en service.
+    UNACTIVED = "UNACTIVED" # L'employé est inactif, peut-être en congé ou en pause.
+    DELETED = "DELETED" # L'employé a quitté l'entreprise de manière permanente.
+
+
 @dataclass
 class Team(Base):
     """ Database class for storing team information"""
@@ -22,12 +28,14 @@ class Team(Base):
     name:str = Column(String, index=True,nullable = False)
     description: str = Column(Text)
 
-    owner_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
+    # owner_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
+    # owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False)
+
     leader_uuid: str = Column(String, ForeignKey('employees.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
     leader = relationship("Employee", foreign_keys=[leader_uuid], uselist=False)
     
     status:str = Column(String, index=True, nullable=False)
-    employees = relationship("Employee", secondary="team_employees", back_populates="teams", overlaps="employee,team")
+    employees = relationship("Employee", secondary="team_employees", back_populates="teams",overlaps="employee,team")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -60,8 +68,7 @@ class Employee(Base):
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid], uselist=False)
 
-    teams = relationship("Team",secondary="team_employees", back_populates="employees", overlaps="team,employee")
-    # teams = relationship("TeamEmployees", back_populates="employee")
+    teams = relationship("Team",secondary="team_employees", back_populates="employees",overlaps="team,employee")
 
     nurseries = relationship("Nursery", secondary="nursery_employees", back_populates="employees",overlaps="employee,nursery")
     # nurseries = relationship("Nursery", secondary="nursery_memberships", back_populates="memberships",overlaps="memberships, nursery")

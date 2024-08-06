@@ -1,9 +1,14 @@
+from datetime import datetime, timedelta
+import uuid
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+
+from app.main.core.mail import send_account_confirmation_email
+from app.main.core.security import generate_code, get_password_hash
 
 
 router = APIRouter(prefix="/parents", tags=["parents"])
@@ -27,17 +32,34 @@ def create(
             raise HTTPException(status_code=404, detail=__("avatar-not-found"))
         
     parent = crud.parent.get_by_email(db, obj_in.email)
+    
+    code = generate_code(length=12)
+    code= str(code[0:6])
+    
     if parent:
-        raise HTTPException(status_code=409, detail=__("user-email-taken"))
-    
-    # role = crud.role.get_by_uuid(db, obj_in.role_uuid)
-    # if not role:
-    #     raise HTTPException(status_code=404, detail=__("role-not-found"))
-    
-    # if not crud.parent.password_confirmation(db, obj_in.password, obj_in.confirm_password):
-    #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
-    
-    return crud.parent.create(db, obj_in)
+        if crud.parent.is_active(parent):
+            raise HTTPException(status_code=400, detail=__("user-email-taken"))
+        
+        user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.user_uuid == parent.uuid)
+
+        if user_code.count()>0:
+            user_code.delete()
+
+        print("user_code1:")
+        db_code = models.ParentActionValidation(
+            uuid=str(uuid.uuid4()),
+            code=code,
+            user_uuid=parent.uuid,
+            value=code,
+            expired_date=datetime.now() + timedelta(minutes=30)
+        )
+
+        db.add(db_code)
+        db.commit()
+        send_account_confirmation_email(email_to=obj_in.email, name=(obj_in.firstname+obj_in.lastname),token=code,valid_minutes=30)
+
+    return parent
 
 @router.put("", response_model=schemas.Parent, status_code=200)
 def update(

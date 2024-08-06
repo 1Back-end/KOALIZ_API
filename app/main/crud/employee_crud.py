@@ -5,7 +5,7 @@ from pydantic import EmailStr
 from sqlalchemy import or_
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
-from sqlalchemy.orm import Session,joinedload 
+from sqlalchemy.orm import Session,joinedload,contains_eager 
 from app.main import schemas, models
 import uuid as py_uuid
 
@@ -163,16 +163,16 @@ class CRUDEmployee(CRUDBase[models.Employee,schemas.EmployeCreate,schemas.Employ
         per_page:int = 30,
         order:Optional[str] = None,
         status:Optional[str] = None,
-        user_uuid:Optional[str] = None,
+        employee_uuid:Optional[str] = None,
         keyword:Optional[str]= None
         # order_filed:Optional[str] = None   
     ):
         record_query = db.query(models.Employee).\
-            options(
-                joinedload(models.Employee.avatar),
-                joinedload(models.Employee.teams),
-                joinedload(models.Employee.nurseries)
-                    )
+            filter(models.Employee.status != models.EmployeStatusEnum.DELETED).\
+                outerjoin(models.TeamEmployees, models.Employee.uuid == models.TeamEmployees.employee_uuid).\
+                outerjoin(models.Team, models.TeamEmployees.team_uuid == models.Team.uuid).\
+                    filter(models.Team.status != "DELETED").\
+                        options(contains_eager(models.Employee.teams))
 
         # if order_filed:
         #     record_query = record_query.order_by(getattr(models.Employee, order_filed))
@@ -196,10 +196,12 @@ class CRUDEmployee(CRUDBase[models.Employee,schemas.EmployeCreate,schemas.Employ
         elif order and order.lower() == "desc":
             record_query = record_query.order_by(models.Employee.date_added.desc())
 
-        if user_uuid:
-            record_query = record_query.filter(models.Employee.uuid == user_uuid)
+        if employee_uuid:
+            record_query = record_query.filter(models.Employee.uuid == employee_uuid)
 
         total = record_query.count()
+        print("total:",len(record_query.all()))
+        print("total1:",total)
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
         return schemas.EmployeResponseList(

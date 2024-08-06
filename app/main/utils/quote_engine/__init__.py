@@ -360,6 +360,11 @@ class QuoteEngine:
             mfi_registration_fee=mfi_registration_fee,
             mrc_remaining_contract_cost_after_first_month=mrc_remaining_contract_cost_after_first_month,
             last_month_amount=last_month_amount,
+            nfl_smoothing_month_count=nfl_smoothing_month_count,
+            sjfd_closing_days=sjfd_closing_days,
+            weeks_in_smoothing=nbjo_remaining_contract_days / nbjs_total_days_per_week,
+            monthly_billed_hours=nbjfm_numbers_of_days_per_month * mhj_average_duration_per_day,
+            deductible_weeks=sjfd_closing_days/nbjs_total_days_per_week,
             quote_timetables=quote_timetables
         )
         end_datetime = datetime.now()
