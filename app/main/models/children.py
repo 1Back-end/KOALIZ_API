@@ -139,7 +139,7 @@ class ActivityCategory(Base):
     name_fr = Column(String, nullable=False)
     name_en = Column(String, nullable=False)
 
-    activities = relationship("Activity", secondary=activity_category_table, back_populates="categories")
+    activities = relationship("Activity", secondary=activity_category_table, back_populates="activity_categories")
 
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
