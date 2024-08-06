@@ -122,10 +122,10 @@ class NuseryHoliday(Base):
     __tablename__ = "nursery_holidays"
     
     uuid: str = Column(String, primary_key=True,index=True)
-    name_fr: str = Column(String, nullable=False)
-    name_en: str = Column(String, nullable=False)
-    day: int = Column(Integer, nullable=False)
-    month: int = Column(Integer, nullable=False)
+    name_fr: str = Column(String, nullable=True)
+    name_en: str = Column(String, nullable=True)
+    day: int = Column(Integer, nullable=True)
+    month: int = Column(Integer, nullable=True)
     is_active: bool = Column(Boolean, default=False, nullable=False)  # Ajout de la colonne is_active
 
 
