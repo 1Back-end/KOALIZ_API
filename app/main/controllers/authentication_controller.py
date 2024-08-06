@@ -514,6 +514,47 @@ def start_reset_password(
 
     return schemas.Msg(message=__("reset-password-started"))
 
+@router.post("/parent/code/send", summary="send code", response_model=schemas.Msg)
+def send_code(
+        input: schemas.ResetPasswordOption2Step1,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Start reset password
+    """
+    user = crud.parent.get_by_email(db=db, email=input.email)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    # Generate code for validation after
+    code = generate_code(length=12)
+    code = str(code[0:6])
+
+    user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.user_uuid == user.uuid)
+
+    if user_code.count()>0:
+        user_code1 = user_code.filter(models.ParentActionValidation.expired_date >= datetime.now()).first()
+        print("user-code1",user_code1)
+        if not user_code1:
+            user_code.delete()
+            send_account_confirmation_email(email_to=input.email, name=(user.firstname+user.lastname),token=code,valid_minutes=30)
+    else:
+        print("user_code1:")
+        db_code = models.ParentActionValidation(
+            uuid=str(uuid.uuid4()),
+            code=code[:6],
+            user_uuid=user.uuid,
+            value=code,
+            expired_date=datetime.now() + timedelta(minutes=30)
+        )
+
+        db.add(db_code)
+        db.commit()
+        send_account_confirmation_email(email_to=input.email, name=(user.firstname+user.lastname),token=code,valid_minutes=30)
+
+    return schemas.Msg(message=__("account-validation-pending"))
+
 
 @router.put("/parent/reset-password", summary="Reset password", response_model=schemas.Msg)
 def reset_password(
