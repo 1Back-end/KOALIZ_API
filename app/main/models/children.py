@@ -121,22 +121,46 @@ class Meal(Base):
     date_added: any = Column(DateTime, server_default=func.now())
     date_modified: any = Column(DateTime, server_default=func.now())
 
+
+# Table d'association many-to-many entre Activity et Category
+activity_category_table = Table('activity_category', Base.metadata,
+    Column('activity_uuid', String, ForeignKey('activities.uuid'), primary_key=True),
+    Column('category_uuid', String, ForeignKey('activity_categories.uuid'), primary_key=True)
+)
+
+@dataclass
+class ActivityCategory(Base):
+
+    """ ActivityCategory model representing activities categories """
+
+    __tablename__ = "activity_categories"
+    
+    uuid = Column(String, primary_key=True, unique=True)
+    name_fr = Column(String, nullable=False)
+    name_en = Column(String, nullable=False)
+
+    activities = relationship("Activity", secondary=activity_category_table, back_populates="categories")
+
+    date_added = Column(DateTime, server_default=func.now())
+    date_modified = Column(DateTime, server_default=func.now())
+
 @dataclass
 class Activity(Base):
 
     """ Activity model representing activities """
 
     __tablename__ = "activities"
-    
+
     uuid = Column(String, primary_key=True, unique=True)
-    activity_name_fr = Column(String, nullable=False)
-    activity_name_en = Column(String, nullable=False)
-    activity_time = Column(DateTime, nullable=False, default=datetime.now())
-    
+    name_fr = Column(String, nullable=False)
+    name_en = Column(String, nullable=False)
+
+    children = relationship("ChildActivity", back_populates="activity")
+    categories = relationship("Category", secondary=activity_category_table, back_populates="activities")
+
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
 
-    children = relationship("ChildActivity", back_populates="activity")
 
 @dataclass
 class ChildActivity(Base):
@@ -144,11 +168,11 @@ class ChildActivity(Base):
     """ ChildActivity model representing the many-to-many relationship between children and activities """
 
     __tablename__ = "child_activities"
-    
+
     child_uuid = Column(String, ForeignKey('children.uuid'), primary_key=True)
-    activity_uuid = Column(String, ForeignKey('activities.uuid'), primary_key=True)
-    
     child = relationship("Child", back_populates="activities")
+
+    activity_uuid = Column(String, ForeignKey('activities.uuid'), primary_key=True)
     activity = relationship("Activity", back_populates="children")
 
     added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
@@ -156,6 +180,8 @@ class ChildActivity(Base):
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    activity_time = Column(DateTime, nullable=False, default=datetime.now())
 
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
@@ -290,7 +316,7 @@ class HygieneChange(Base):
     cleanliness = Column(types.Enum(Cleanliness), nullable=False) # Propreté (Rien a signaler, Couche, Sur le pot, Aux toilettes)
     pipi = Column(Boolean, nullable=False, default=False)
     stool_type = Column(types.Enum(StoolType), nullable=True) # (Dures, normales, molles, liquides)
-    additional_care = Column(types.Enum(AdditionalCare), nullable=True) # Soins complémentaires (Nez, yeux, Oreilles, Crème
+    additional_care = Column(types.Enum(AdditionalCare), nullable=True) # Soins complémentaires (Nez, yeux, Oreilles, Crème)
     observation = Column(Text, nullable=True)
 
     added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=False)

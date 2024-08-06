@@ -1,31 +1,60 @@
 from pydantic import BaseModel,ConfigDict
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
-class ActivityBase(BaseModel):
-    activity_name_fr: str
-    activity_name_en: str
+from app.main.schemas.base import DataList
+
+
+# ActivityCategory
+class ActivityCategoryBase(BaseModel):
+    name_fr: str
+    name_en: str
+
+class ActivityCategoryCreate(ActivityCategoryBase):
+    pass
+
+class ActivityCategoryUpdate(BaseModel):
+    uuid: str
+    name_fr: Optional[str] = None
+    name_en: Optional[str] = None
+
+
+class ActivityCategory(BaseModel):
+    uuid: str
+    name_fr: str
+    name_en: str
+    date_added: datetime
+    date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class ActivityCategoryList(DataList):
+
+    data: List[ActivityCategory] = []
+
+# Activity
+class ActivityBase(BaseModel):
+    name_fr: str
+    name_en: str
 
 class ActivityCreate(ActivityBase):
     pass
 
-class ActivityUpdateSchema(BaseModel):
-    activity_name_fr: Optional[str] = None
-    activity_name_en: Optional[str] = None
-    activity_time: Optional[datetime] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ActivitySchema(BaseModel):
+class ActivityUpdate(BaseModel):
     uuid: str
-    activity_name_fr: str
-    activity_name_en: str
-    activity_time: datetime
+    name_fr: Optional[str] = None
+    name_en: Optional[str] = None
+
+
+class Activity(BaseModel):
+    uuid: str
+    name_fr: str
+    name_en: str
     date_added: datetime
     date_modified: datetime
 
-    class Config:
-        orm_mode: True
+    model_config = ConfigDict(from_attributes=True)
+
+class ActivityList(DataList):
+
+    data: List[Activity] = []

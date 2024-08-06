@@ -72,17 +72,17 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         db.query(models.Parent).filter(models.Parent.uuid.in_(uuids)).delete()
         # db.delete(parents)
         db.commit()
-    
+
     @classmethod
     def soft_delete(cls,db:Session, uuid) -> models.Parent:
         parent = cls.get_by_uuid(db, uuid)
         parent.status = models.UserStatusType.DELETED
         db.commit()
-    
+
     @classmethod
     def get_by_email(cls,db:Session,email:EmailStr) -> models.Parent:
         return db.query(models.Parent).filter(models.Parent.email == email).first()
-    
+
     @classmethod
     def get_multi(
         cls,
@@ -101,7 +101,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         #     record_query = record_query.order_by(getattr(models.Parent, order_filed))
 
         record_query = record_query.filter(models.Parent.status.not_in(["DELETED","BLOCKED"]))
-        
+
         print("record_query.first()", record_query.all())
         if keyword:
             record_query = record_query.filter(
