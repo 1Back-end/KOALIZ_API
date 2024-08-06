@@ -195,7 +195,7 @@ def get_all_without_filter(
 def get_employee_home_page(
     nursery_uuid: str,
     db: Session = Depends(get_db),
-    # current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
     nursery_details = crud.nursery.get_employee_home_page(
         db=db,
