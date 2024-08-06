@@ -32,7 +32,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
     @classmethod
     def update(cls, db: Session,obj_in: NapUpdate) -> NapMini:
         nap = cls.get_nap_by_uuid(db, obj_in.uuid)
-        nap.start_time = obj_in.start_time if obj_in.start_time else nap.firstname
+        nap.start_time = obj_in.start_time if obj_in.start_time else nap.start_time
         nap.end_time = obj_in.end_time if obj_in.end_time else nap.end_time
         nap.quality = obj_in.quality if obj_in.quality else nap.quality
         nap.observation = obj_in.observation if obj_in.observation else nap.observation

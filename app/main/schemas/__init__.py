@@ -25,3 +25,5 @@ from .nap import *
 from .health_record import *
 from .hygiene_change import *
 from .observation import *
+from .activity import *
+from .meal import *

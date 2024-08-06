@@ -24,6 +24,7 @@ from .health_record_controller import router as health_record
 from .hygiene_change_controller import router as hygiene_change
 from .nursery_holidays_controller import router as nursery_holidays
 from .observation_controller import router as observation
+from .meal_controller import router as meal_controller
 
 api_router = APIRouter()
 
@@ -48,3 +49,5 @@ api_router.include_router(storage)
 api_router.include_router(tag)
 api_router.include_router(helper)
 api_router.include_router(nursery_close_hours)
+api_router.include_router(meal_controller)
+api_router.include_router(employee)

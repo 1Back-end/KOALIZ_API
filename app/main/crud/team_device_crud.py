@@ -16,6 +16,12 @@ from app.main.schemas import TeamDeviceCreate, TeamDeviceUpdate, DataList, TeamD
 class CRUDTeamDevice(CRUDBase[TeamDevice, TeamDeviceCreate, TeamDeviceUpdate]):
 
     @classmethod
+    def is_nursery_team_device(cls,db:Session,team_device_uuid:str,nursery_uuid:str)->bool:
+        device = db.query(TeamDevice).filter(TeamDevice.uuid == team_device_uuid).first()
+        return device.nursery_uuid == nursery_uuid
+
+        
+    @classmethod
     def create(self, db: Session, obj_in: TeamDeviceCreate) -> TeamDevice:
 
         code = generate_code(length=15)

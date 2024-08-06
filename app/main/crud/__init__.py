@@ -21,5 +21,6 @@ from .hygiene_change_crud import hygiene_change
 from .team_crud import team
 from .nap_crud import nap
 from .nursery_close_hours_crud import nursery_close_hour
-from .nursery_holidays import nursery_holiday
 from .observation_crud import observation
+from .nursery_holidays_crud import nursery_holiday
+from .meal_crud import meal
