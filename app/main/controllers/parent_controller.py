@@ -37,56 +37,29 @@ def create(
     code= str(code[0:6])
     
     if parent:
-
         if crud.parent.is_active(parent):
             raise HTTPException(status_code=400, detail=__("user-email-taken"))
-
-        response = crud.parent.update(
-            db,
-            schemas.ParentUpdate(
-                uuid=parent.uuid,
-                firstname=obj_in.firstname,
-                lastname=obj_in.lastname,
-                email=obj_in.email,
-                avatar_uuid=obj_in.avatar_uuid
-            )
-        )
-        parent.password_hash = get_password_hash(obj_in.password)
-
+        
         user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
         models.ParentActionValidation.user_uuid == parent.uuid)
 
         if user_code.count()>0:
-            user_code1 = user_code.filter(models.ParentActionValidation.expired_date >= datetime.now()).first()
-            print("user-code1",user_code.count())
-            if not user_code1:
-                user_code.delete()
-                send_account_confirmation_email(email_to=obj_in.email, name=(obj_in.firstname+obj_in.lastname),token=code,valid_minutes=30)
-        else:
-            print("user_code1:")
-            db_code = models.ParentActionValidation(
-                uuid=str(uuid.uuid4()),
-                code=code,
-                user_uuid=parent.uuid,
-                value=code,
-                expired_date=datetime.now() + timedelta(minutes=30)
-            )
+            user_code.delete()
 
-            db.add(db_code)
-            db.commit()
-            send_account_confirmation_email(email_to=obj_in.email, name=(obj_in.firstname+obj_in.lastname),token=code,valid_minutes=30)
-    else:
-        response = crud.parent.create(db=db, obj_in=input,code=code)
-        
-    
-    # role = crud.role.get_by_uuid(db, obj_in.role_uuid)
-    # if not role:
-    #     raise HTTPException(status_code=404, detail=__("role-not-found"))
-    
-    # if not crud.parent.password_confirmation(db, obj_in.password, obj_in.confirm_password):
-    #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
-    
-    return response
+        print("user_code1:")
+        db_code = models.ParentActionValidation(
+            uuid=str(uuid.uuid4()),
+            code=code,
+            user_uuid=parent.uuid,
+            value=code,
+            expired_date=datetime.now() + timedelta(minutes=30)
+        )
+
+        db.add(db_code)
+        db.commit()
+        send_account_confirmation_email(email_to=obj_in.email, name=(obj_in.firstname+obj_in.lastname),token=code,valid_minutes=30)
+
+    return parent
 
 @router.put("", response_model=schemas.Parent, status_code=200)
 def update(
