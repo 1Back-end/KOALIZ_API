@@ -36,7 +36,7 @@ async def login_parent(
     if user.status in [models.UserStatusType.BLOCKED, models.UserStatusType.DELETED]:
         raise HTTPException(status_code=400, detail=__("auth-login-failed"))
 
-    if not crud.administrator.is_active(user):
+    if not crud.parent.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
     access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -381,53 +381,28 @@ async def create_parent_on_system(
     if user:
         if crud.parent.is_active(user):
             raise HTTPException(status_code=400, detail=__("user-email-taken"))
-
-        crud.parent.update(
-            db,
-            schemas.ParentUpdate(
-                uuid=user.uuid,
-                firstname=input.firstname,
-                lastname=input.lastname,
-                email=input.email,
-                avatar_uuid=input.avatar_uuid
-            )
-        )
-        user.password_hash = get_password_hash(input.password)
-
+        
         user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
         models.ParentActionValidation.user_uuid == user.uuid)
 
         if user_code.count()>0:
-            user_code1 = user_code.filter(models.ParentActionValidation.expired_date >= datetime.now()).first()
-            print("user-code1",user_code1)
-            if not user_code1:
-                user_code.delete()
-                send_account_confirmation_email(email_to=input.email, name=(input.firstname+input.lastname),token=code,valid_minutes=30)
-        else:
-            print("user_code1:")
-            db_code = models.ParentActionValidation(
-                uuid=str(uuid.uuid4()),
-                code=code,
-                user_uuid=user.uuid,
-                value=code,
-                expired_date=datetime.now() + timedelta(minutes=30)
-            )
+            user_code.delete()
 
-            db.add(db_code)
-            db.commit()
-            send_account_confirmation_email(email_to=input.email, name=(input.firstname+input.lastname),token=code,valid_minutes=30)
+        print("user_code1:")
+        db_code = models.ParentActionValidation(
+            uuid=str(uuid.uuid4()),
+            code=code,
+            user_uuid=user.uuid,
+            value=code,
+            expired_date=datetime.now() + timedelta(minutes=30)
+        )
+
+        db.add(db_code)
+        db.commit()
+        send_account_confirmation_email(email_to=input.email, name=(input.firstname+input.lastname),token=code,valid_minutes=30)
 
     else:
         crud.parent.create(db=db, obj_in=input,code=code)
-
-    
-
-    
-    # if not crud.parent.password_confirmation(db, input.password, input.confirm_password):
-    #     raise HTTPException(status_code=400, detail=__("passwords-not-match"))
-
-
-    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return schemas.Msg(message=__("account-validation-pending"))
 
@@ -534,24 +509,21 @@ def send_code(
         models.ParentActionValidation.user_uuid == user.uuid)
 
     if user_code.count()>0:
-        user_code1 = user_code.filter(models.ParentActionValidation.expired_date >= datetime.now()).first()
-        print("user-code1",user_code1)
-        if not user_code1:
-            user_code.delete()
-            send_account_confirmation_email(email_to=input.email, name=(user.firstname+user.lastname),token=code,valid_minutes=30)
-    else:
-        print("user_code1:")
-        db_code = models.ParentActionValidation(
-            uuid=str(uuid.uuid4()),
-            code=code[:6],
-            user_uuid=user.uuid,
-            value=code,
-            expired_date=datetime.now() + timedelta(minutes=30)
-        )
+        user_code.delete()
 
-        db.add(db_code)
-        db.commit()
-        send_account_confirmation_email(email_to=input.email, name=(user.firstname+user.lastname),token=code,valid_minutes=30)
+    print("user_code1:")
+    db_code = models.ParentActionValidation(
+        uuid=str(uuid.uuid4()),
+        code=code,
+        user_uuid=user.uuid,
+        value=code,
+        expired_date=datetime.now() + timedelta(minutes=30)
+    )
+
+    db.add(db_code)
+    db.commit()
+
+    send_account_confirmation_email(email_to=input.email, name=(user.firstname+user.lastname),token=code,valid_minutes=30)
 
     return schemas.Msg(message=__("account-validation-pending"))
 
