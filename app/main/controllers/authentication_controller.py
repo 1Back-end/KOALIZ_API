@@ -510,8 +510,8 @@ def send_code(
 
     if user_code.count()>0:
         user_code.delete()
+        db.flush()
 
-    print("user_code1:")
     db_code = models.ParentActionValidation(
         uuid=str(uuid.uuid4()),
         code=code,

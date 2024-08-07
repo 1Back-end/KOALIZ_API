@@ -8,7 +8,7 @@ from sqlalchemy import or_
 
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session, aliased,joinedload
 from app.main import crud, schemas, models
 from app.main.utils.quote_engine import QuoteEngine
 import uuid
@@ -704,6 +704,20 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             current_page=page,
             data=record_query
         )
+    def get_transmission(
+        self,
+        child_uuid: str,
+        page: int = 1,
+        per_page: int = 30,
+        db:Session = None
+    ):
+        child:models.Child =  db.query(models.Child).filter(models.Child.uuid == child_uuid).first()
+            
+        # total = record_query.count()
+        # record_query = record_query.offset((page - 1) * per_page).limit(per_page)
+
+
+        return child
 
     def get_tracking_cases(self,
         db,
