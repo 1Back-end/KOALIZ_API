@@ -595,3 +595,41 @@ def reset_password(
     db.commit()
 
     return schemas.Msg(message=__("password-reset-successfully"))
+
+@router.put("/parent/restore-password", summary="restore password when not logged in", response_model=schemas.Msg)
+def restore_password(
+        input: schemas.ResetPasswordOption2Step2,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Reset password
+    """
+
+    token_data = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    if not token_data:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+
+    user = crud.parent.get_by_uuid(db, token_data.user_uuid)
+
+    user_code = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.user_uuid == token_data.user_uuid).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+    
+    if not is_valid_password(password=input.new_password):
+        raise HTTPException(
+            status_code=400,
+            detail=__("password-invalid")
+        )
+
+    db.delete(user_code)
+
+    user.password_hash = get_password_hash(input.new_password)
+    db.add(user)
+    db.commit()
+
+    return schemas.Msg(message=__("password-reset-successfully"))
