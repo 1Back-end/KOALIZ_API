@@ -507,9 +507,9 @@ async def create_user_roles(
     check_user_access_key(admin_key)
 
     for holiday_day in [
-        {"month": 12, "day":  25, "name": "Noël"},
-        {"month": 1,  "day": 1, "name": "Jour de l'an"},
-        {"month": 8,  "day": 15, "name": "Assomption"}
+        {"month": 12, "day":  25, "name_fr": "Noël", "name_en": "Christmas"},
+        {"month": 1,  "day": 1, "name_fr": "Jour de l'an", "name_en": "New Year's Day"},
+        {"month": 8,  "day": 15, "name_fr": "Assomption", "name_en": "Assumption of Mary"},
     ]:
         for nursery in db.query(models.Nursery).filter(models.Nursery.status != models.NurseryStatusType.DELETED).all():
             nh = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.day == holiday_day["day"]).filter(
@@ -518,7 +518,8 @@ async def create_user_roles(
             if not nh:
                 nh = models.NuseryHoliday(
                     uuid = str(uuid4()),
-                    name=holiday_day["name"],
+                    name_fr=holiday_day["name_fr"],
+                    name_en=holiday_day["name_en"],
                     day=holiday_day["day"],
                     month=holiday_day["month"],
                     is_active=True,
@@ -526,7 +527,8 @@ async def create_user_roles(
                 )
                 db.add(nh)
             else:
-                nh.name = holiday_day["name"]
+                nh.name_fr = holiday_day["name_fr"]
+                nh.name_en = holiday_day["name_en"]
     db.commit()
 
     return {"message": "Nurseries holidays created successfully"}
