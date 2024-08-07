@@ -6,6 +6,8 @@ from datetime import datetime, time
 
 from app.main.core.i18n import __
 from app.main.schemas import File, DataList, Address, AddressCreate, AddressUpdate
+from app.main.schemas.nursery_close_hours import NurseryCloseHourDetails
+from app.main.schemas.nursery_holidays import NurseryHolidaysDetails
 from app.main.schemas.user import AddedBy
 
 
@@ -184,4 +186,11 @@ class OpeningHoursDetails(BaseModel):
     from_time: str
     to_time: str
 
+    model_config = ConfigDict(from_attributes=True)
+
+class EmployeeHomePageList(BaseModel):
+    opening_hours: list[OpeningHoursDetails]
+    close_hours: list[NurseryCloseHourDetails]
+    holidays: list[NurseryHolidaysDetails]
+    
     model_config = ConfigDict(from_attributes=True)

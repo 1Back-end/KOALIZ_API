@@ -37,7 +37,7 @@ def team_device_login(
         "team_device": team_device
     }
 
-@router.get("/me", response_model=schemas.TeamDevice)
+@router.get("/me", response_model=schemas.TeamDeviceSlim)
 def current_team_device(
         current_team_device: models.TeamDevice = Depends(dependencies.TeamTokenRequired(roles=[])),
 ) -> schemas.TeamDevice:
