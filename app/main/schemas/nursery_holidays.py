@@ -37,8 +37,10 @@ class NurseryHolidayList(DataList):
 
 class NurseryHolidaysDetails(BaseModel):
         uuid : str
-        name_fr: str
-        name_en: str 
+        name_fr: Optional[str]=None
+        name_en: Optional[str]=None
+        day: int
+        month: int
 
         model_config = ConfigDict(from_attributes=True)
 
