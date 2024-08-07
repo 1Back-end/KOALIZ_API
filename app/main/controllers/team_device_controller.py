@@ -37,6 +37,16 @@ def team_device_login(
         "team_device": team_device
     }
 
+@router.get("/me", summary="Get current team device", response_model=schemas.TeamDevice)
+def current_team_device(
+        current_team_device: models.TeamDevice = Depends(dependencies.TeamTokenRequired()),
+) -> schemas.TeamDevice:
+    """
+    Get current team device
+    """
+
+    return current_team_device
+
 @router.delete("/logout", status_code=200)
 def logout(
     *,
