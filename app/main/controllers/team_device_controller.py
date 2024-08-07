@@ -21,6 +21,7 @@ def team_device_login(
     """
         Team device login
     """
+    return "BBBBBBBBBBBBBBBBBBBBBBBBB"
     team_device = crud.team_device.get_by_team_device_code(db, code)
     if not team_device:
         raise HTTPException(status_code=404, detail=__("device-not-found"))

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session,joinedload
 from app.main import crud, schemas, models
 import uuid
 from app.main.core.security import get_password_hash, verify_password, generate_code, generate_slug
+from app.main.models.preregistration import Child, PreRegistration, PreRegistrationStatusType
 
 
 class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.NurseryUpdate]):
@@ -260,7 +261,26 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             "close_hours": close_hours_data,
             "holidays": holidays_data
         }
-
+    
+    def get_children_by_nursery(self,*,db: Session, nursery_uuid: str):
+        # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
+        accepted_preregistrations = db.query(PreRegistration).filter(
+            PreRegistration.nursery_uuid == nursery_uuid,
+            PreRegistration.status == PreRegistrationStatusType.ACCEPTED
+        ).all()
+        
+        # Récupérer les UUIDs des enfants acceptés
+        child_uuids = [preregistration.child_uuid for preregistration in accepted_preregistrations if preregistration.child_uuid]
+        
+        # Filtrer les enfants par UUID et is_accepted
+        children = db.query(Child).filter(
+            Child.uuid.in_(child_uuids),
+            Child.is_accepted == True
+        ).all()
+        
+        return children
+    
+        
 
 
 nursery = CRUDNursery(models.Nursery)

@@ -569,6 +569,11 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 db.add(quote_timetable_item)
         db.commit()
 
+
+
+
+
+
     @classmethod
     def create(cls, db: Session, obj_in: schemas.PreregistrationCreate, background_task: BackgroundTasks, current_user_uuid: str = None) -> models.Child:
 

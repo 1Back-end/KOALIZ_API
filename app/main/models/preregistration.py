@@ -93,7 +93,18 @@ class Child(Base):
             if parent.is_paying_parent:
                 return parent
         return self.parents[0]
-
+    
+    @hybrid_property
+    def nb_parent(self):
+        return len(self.parents)
+    
+    
+    @hybrid_property
+    def age(self):
+        current_year = datetime.now().date().year
+        birthday_year = self.birthdate.year
+        return current_year - birthday_year
+    
 
 @event.listens_for(Child, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
