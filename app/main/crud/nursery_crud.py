@@ -247,13 +247,13 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             raise HTTPException(status_code=404, detail="Nursery not found")
 
         opening_hours = db.query(models.NurseryOpeningHour).filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid).all()
-        opening_hours_data = [schemas.OpeningHoursDetails.from_orm(hour) for hour in opening_hours]
+        opening_hours_data = [schemas.OpeningHoursDetails.model_validate(hour).model_dump() for hour in opening_hours]
 
         close_hours = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid == nursery_uuid).all()
-        close_hours_data = [schemas.NurseryCloseHourDetails.from_orm(hour) for hour in close_hours]
+        close_hours_data = [schemas.NurseryCloseHourDetails.model_validate(hour).model_dump() for hour in close_hours]
 
         holidays = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.nursery_uuid == nursery_uuid).all()
-        holidays_data = [schemas.NurseryHolidaysDetails.from_orm(holiday) for holiday in holidays]
+        holidays_data = [schemas.NurseryHolidaysDetails.model_validate(holiday).model_dump() for holiday in holidays]
 
         return {
             "opening_hours": opening_hours_data,
