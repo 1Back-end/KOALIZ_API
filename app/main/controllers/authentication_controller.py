@@ -455,6 +455,33 @@ def validate_account(
         }
     }
 
+
+@router.post("/parent/password-validation", response_model=schemas.Msg)
+def validate_password(
+        input: schemas.ValidateAccount,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    validate password
+    """
+
+    user = crud.parent.get_by_email(db, email=input.email)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.user_uuid == user.uuid).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("invalid-user"))
+
+    return {"message":__("Ok")}
+
+
+    
+
 @router.post("/parent/start-reset-password", summary="Start reset password with email", response_model=schemas.Msg)
 def start_reset_password(
         input: schemas.ResetPasswordOption2Step1,

@@ -109,7 +109,7 @@ class Child(Base):
         return len(self.parents)
     
     @hybrid_property
-    def accepted_date(self) -> date:
+    def accepted_date(self):
         db = SessionLocal()
 
         """Return the date when this child was accepted"""
@@ -118,8 +118,7 @@ class Child(Base):
                 filter(PreRegistration.child_uuid == self.uuid).\
                 filter(PreRegistration.status == PreRegistrationStatusType.ACCEPTED).\
                 first()
-            
-            return pre_registration.accepted_date if pre_registration else date(1999, 12, 11)
+            return pre_registration.accepted_date.date()
         finally:
             db.close()
 

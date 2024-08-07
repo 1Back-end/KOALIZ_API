@@ -1,4 +1,4 @@
-from datetime import time, date
+from datetime import datetime, time, date
 
 from fastapi.encoders import jsonable_encoder
 
@@ -242,8 +242,7 @@ def get_many(
 def get_child_transmission(
         uuid: str,
         nursery_uuid: str,
-        page: int = 1,
-        per_page: int = 30,
+        date:date = datetime.now().date(),
         db: Session = Depends(get_db),
         current_team_device: models.TeamDevice = Depends(dependencies.TeamTokenRequired())
 ):
@@ -255,9 +254,8 @@ def get_child_transmission(
     
     return crud.preregistration.get_transmission(
         uuid,
-        page,
-        per_page,
-        db
+        db,
+        date
     )
 
 # 8d54df37-9954-44a3-8733-9be1f9f5a148

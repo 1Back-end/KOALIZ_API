@@ -707,11 +707,19 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     def get_transmission(
         self,
         child_uuid: str,
-        page: int = 1,
-        per_page: int = 30,
-        db:Session = None
+        db:Session,
+        date:date = None,
     ):
-        child:models.Child =  db.query(models.Child).filter(models.Child.uuid == child_uuid).first()
+        child:models.Child =  db.query(models.Child).filter(models.Child.uuid == child_uuid).\
+            options(joinedload(models.Child.meals),
+                joinedload(models.Child.activities),
+                joinedload(models.Child.naps),
+                joinedload(models.Child.health_records),
+                joinedload(models.Child.hygiene_changes),
+                joinedload(models.Child.observations),
+                joinedload(models.Child.media)
+            ).\
+            first()
             
         # total = record_query.count()
         # record_query = record_query.offset((page - 1) * per_page).limit(per_page)

@@ -452,7 +452,7 @@ class Transmission(BaseModel):
     lastname: str
     gender: str
     age:int = 0
-    accepted_date:date
+    accepted_date:Optional[date]
     avatar:Optional[File] = None
     nb_parent: int
     meals:Optional[list[MealSlim]] 
