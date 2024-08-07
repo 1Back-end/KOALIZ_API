@@ -2,6 +2,7 @@ from datetime import time, date
 
 from fastapi.encoders import jsonable_encoder
 
+from app.main.core import dependencies
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
@@ -236,6 +237,27 @@ def get_many(
         order_field,
         keyword,
         tag_uuid
+    )
+@router.get("/transmission/child/{uuid}", response_model=schemas.Transmission, status_code=200)
+def get_child_transmission(
+        uuid: str,
+        nursery_uuid: str,
+        page: int = 1,
+        per_page: int = 30,
+        db: Session = Depends(get_db),
+        current_team_device: models.TeamDevice = Depends(dependencies.TeamTokenRequired())
+):
+    """
+    Get child transmission
+    """
+    if current_team_device.nursery_uuid!=nursery_uuid:
+        raise HTTPException(status_code=403, detail=__("not-authorized"))
+    
+    return crud.preregistration.get_transmission(
+        uuid,
+        page,
+        per_page,
+        db
     )
 
 # 8d54df37-9954-44a3-8733-9be1f9f5a148
