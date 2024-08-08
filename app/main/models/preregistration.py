@@ -95,16 +95,32 @@ class Child(Base):
         return self.parents[0]
     
     @hybrid_property
-    def nb_parent(self):
-        return len(self.parents)
-    
-    
-    @hybrid_property
     def age(self):
+        print("birthdate: ", self.birthdate)
+        # current_date = datetime.now().date()
         current_year = datetime.now().date().year
         birthday_year = self.birthdate.year
+
         return current_year - birthday_year
     
+    @hybrid_property
+    def nb_parent(self):
+        """ Return the number of parents for this child """
+        return len(self.parents)
+    
+    @hybrid_property
+    def accepted_date(self):
+        db = SessionLocal()
+
+        """Return the date when this child was accepted"""
+        try:
+            pre_registration = db.query(PreRegistration).\
+                filter(PreRegistration.child_uuid == self.uuid).\
+                filter(PreRegistration.status == PreRegistrationStatusType.ACCEPTED).\
+                first()
+            return pre_registration.accepted_date.date()
+        finally:
+            db.close()
 
 @event.listens_for(Child, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):

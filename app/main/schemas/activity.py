@@ -3,6 +3,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from app.main.schemas.base import DataList
+from app.main.schemas.employee import EmployeSlim
+from app.main.schemas.nursery import NurserySlim
+from app.main.schemas.preregistration import ChildMini2
 
 class ActivityBase(BaseModel):
     uuid : str
@@ -27,6 +30,4 @@ class ActivityResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
 class ActivityList(DataList):
-    data: list[Optional[ActivityResponse]]
-
-    model_config = ConfigDict(from_attributes=True)
+    data: list[Optional[ActivityResponse]] =  []

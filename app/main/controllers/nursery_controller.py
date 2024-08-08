@@ -193,7 +193,7 @@ def get_all_without_filter(
     return crud.nursery.get_all_uuids_of_same_owner(db, current_user.uuid)
 
 
-@router.get("/employee/{nursery_uuid}/home")
+@router.get("/employee/{nursery_uuid}/home", response_model=schemas.EmployeeHomePageList)
 def get_employee_home_page(
     nursery_uuid: str,
     db: Session = Depends(get_db),
