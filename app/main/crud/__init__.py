@@ -25,3 +25,4 @@ from .observation_crud import observation
 from .nursery_holidays_crud import nursery_holiday
 from .meal_crud import meal
 from .invoice_crud import invoice
+from .child_planning_crud import child_planning
