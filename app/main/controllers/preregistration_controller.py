@@ -86,7 +86,7 @@ def change_status_of_special_folder(
     uuid: str,
     status: str = Query(..., enum=[st.value for st in models.PreRegistrationStatusType if st.value != models.PreRegistrationStatusType.PENDING]),
     db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"])),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Change status of a special folder """
 

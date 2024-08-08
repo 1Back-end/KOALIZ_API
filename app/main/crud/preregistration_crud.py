@@ -52,8 +52,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
         if not exist_folder.quote:
-            background_task.add_task(cls.generate_quote, db, exist_folder.uuid)
-        
+            background_task.add_task(cls.generate_quote, cls, db, exist_folder.uuid)
+
         # Create the log tracking
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
@@ -357,9 +357,13 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         child_age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
 
         print(f"child_age {child_age}")
+        if child_age < 0:
+            child_age = 0
 
         cmg_amount_obj = db.query(models.CMGAmount).filter(models.CMGAmount.child_age_lower <= child_age).filter(
             models.CMGAmount.child_age_upper > child_age).first()
+        if not cmg_amount_obj:
+            return None
 
         cmg_amount = 0
         band_number = 0
@@ -392,7 +396,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             )
             db.add(q_cmg)
         return q_cmg
-
 
     def generate_quote(self, db: Session, preregistration_uuid):
         exist_preregistration = self.get_by_uuid(db, preregistration_uuid)
@@ -575,11 +578,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 db.add(quote_timetable_item)
         db.commit()
 
-
-
-
-
-
     @classmethod
     def create(cls, db: Session, obj_in: schemas.PreregistrationCreate, background_task: BackgroundTasks, current_user_uuid: str = None) -> models.Child:
 
@@ -652,7 +650,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         db.refresh(child)
 
         for preregistration_uuid in preregistration_uuids:
-            background_task.add_task(cls.generate_quote, db, preregistration_uuid)
+            background_task.add_task(cls.generate_quote, cls, db, preregistration_uuid)
 
         return child
 
