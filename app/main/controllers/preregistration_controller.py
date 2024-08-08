@@ -239,9 +239,9 @@ def get_many(
         keyword,
         tag_uuid
     )
-@router.get("/transmission/child/{uuid}", response_model=schemas.Transmission, status_code=200)
+@router.get("/transmission/child", response_model=schemas.Transmission, status_code=200)
 def get_child_transmission(
-        uuid: str,
+        child_uuid: str,
         nursery_uuid: str,
         date:date = datetime.now().date(),
         db: Session = Depends(get_db),
@@ -254,7 +254,7 @@ def get_child_transmission(
         raise HTTPException(status_code=403, detail=__("not-authorized"))
     
     return crud.preregistration.get_transmission(
-        uuid,
+        child_uuid,
         db,
         date
     )

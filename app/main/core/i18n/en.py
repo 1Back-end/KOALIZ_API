@@ -88,6 +88,16 @@ translation = {
     "hygiene-change-deleted": "hygiene change deleted successfully.",
     "health-record-not-found": "Medical record not found",
     "health-record-deleted": "Medical record successfully deleted",
+    "observation-not-found": "Observation file not found.",
+    "observation-deleted":"Observation file deleted successfully",
+    "mail-subject-account-confirmation-email":"finalisation of account creation",
+    "mail-subject-account-created":"Account creation.",
+    "mail-subject-password-reset-succes":"Password reset.",
+    "account-created":"Your account has been created successfully"
+
+
+
+
 
 
 
