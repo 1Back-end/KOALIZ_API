@@ -132,6 +132,8 @@ class QuoteTimetable(Base):
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     date_to: date = Column(Date)
+    invoicing_period_start: date = Column(Date)
+    invoicing_period_end: date = Column(Date)
     amount: float = Column(Float, default=0)
     items: Mapped[list[any]] = relationship("QuoteTimetableItem", back_populates="quote_timetable", uselist=True, cascade="all, delete-orphan")
 
@@ -167,6 +169,8 @@ class QuoteTimetableItem(Base):
     title_en: str = Column(String, nullable=False)
     type: str = Column(types.Enum(QuoteTimetableItemType), nullable=False)
     amount: float = Column(Float, nullable=0)
+    total_hours: float = Column(Float)
+    unit_price: float = Column(Float)
 
     quote_timetable_uuid: str = Column(String, ForeignKey('quote_timetables.uuid', ondelete='CASCADE'), nullable=False)
     quote_timetable: Mapped[any] = relationship("QuoteTimetable", foreign_keys=quote_timetable_uuid, uselist=False, back_populates="items")

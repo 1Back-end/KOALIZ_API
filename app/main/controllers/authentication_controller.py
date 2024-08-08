@@ -9,7 +9,7 @@ from starlette.requests import Request
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
-from app.main.core.mail import send_account_confirmation_email, send_reset_password_email, send_reset_password_option2_email
+from app.main.core.mail import send_account_confirmation_email, send_reset_password_email, send_reset_password_option2_email,send_password_reset_succes_email,send_account_created_succes_email
 from app.main.core.security import create_access_token, generate_code, get_password_hash, verify_password, is_valid_password, \
     decode_access_token
 from app.main.core.config import Config
@@ -197,6 +197,7 @@ def reset_password(
             status_code=404,
             detail=__("validation-code-not-found"),
         )
+    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),user_code.value)
 
     db.delete(user_code)
 
@@ -271,6 +272,7 @@ def reset_password(
             status_code=400,
             detail=__("password-invalid")
         )
+    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),user_code.value)
 
     db.delete(user_code)
 
@@ -301,6 +303,8 @@ async def update_current_user_password(
 
     if not is_valid_password(password=new_password):
         raise HTTPException(status_code=400, detail=__("invalid-password"))
+    
+    send_password_reset_succes_email(current_user.email,(current_user.firstname +" "+ current_user.lastname),new_password)
 
     current_user.password_hash = get_password_hash(new_password)
     if current_user.is_new_user:
@@ -439,7 +443,7 @@ def validate_account(
     user.status = models.UserStatusType.ACTIVED
     # user.otp = None
     # user.otp_expired_at = None
-
+    send_account_created_succes_email(user.email,(user.firstname + " " +user.lastname))
     db.commit()
     db.refresh(user)
 
@@ -454,6 +458,33 @@ def validate_account(
             "token_type": "bearer",
         }
     }
+
+
+@router.post("/parent/password-validation", response_model=schemas.Msg)
+def validate_password(
+        input: schemas.ValidateAccount,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    validate password
+    """
+
+    user = crud.parent.get_by_email(db, email=input.email)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.user_uuid == user.uuid).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("invalid-user"))
+
+    return {"message":__("Ok")}
+
+
+    
 
 @router.post("/parent/start-reset-password", summary="Start reset password with email", response_model=schemas.Msg)
 def start_reset_password(
@@ -510,8 +541,8 @@ def send_code(
 
     if user_code.count()>0:
         user_code.delete()
+        db.flush()
 
-    print("user_code1:")
     db_code = models.ParentActionValidation(
         uuid=str(uuid.uuid4()),
         code=code,
@@ -560,6 +591,47 @@ def reset_password(
             status_code=400,
             detail=__("password-invalid")
         )
+
+    db.delete(user_code)
+    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),input.new_password)
+
+    user.password_hash = get_password_hash(input.new_password)
+    db.add(user)
+    db.commit()
+
+    return schemas.Msg(message=__("password-reset-successfully"))
+
+@router.put("/parent/restore-password", summary="restore password when not logged in", response_model=schemas.Msg)
+def restore_password(
+        input: schemas.ResetPasswordOption2Step2,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Reset password
+    """
+
+    token_data = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    if not token_data:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+
+    user = crud.parent.get_by_uuid(db, token_data.user_uuid)
+
+    user_code = db.query(models.ParentActionValidation).filter(
+        models.ParentActionValidation.code == input.token).filter(
+        models.ParentActionValidation.user_uuid == token_data.user_uuid).filter(
+        models.ParentActionValidation.expired_date >= datetime.now()).first()
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+    
+    if not is_valid_password(password=input.new_password):
+        raise HTTPException(
+            status_code=400,
+            detail=__("password-invalid")
+        )
+
+    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),input.new_password)
 
     db.delete(user_code)
 

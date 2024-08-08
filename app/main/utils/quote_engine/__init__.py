@@ -283,33 +283,48 @@ class QuoteEngine:
         if self.has_deposit:
             quote_timetables.append(QuoteTimetable(
                 billing_date=ddc_contract_start_date,
+                billing_period_start=None,
+                billing_period_end=None,
                 amount=acp_deposit_amount,
                 items=[
                     QuoteTimeTableItem(
                         amount=acp_deposit_amount,
                         quote_type=QuoteTimetableItemType.DEPOSIT,
-                        qty=1
+                        qty=1,
+                        total_hours=None,
+                        unit_price=acp_deposit_amount
                     )
                 ]
             ))
         quote_timetables.append(QuoteTimetable(
             billing_date=dfp_first_month_end_date if self.invoice_timing == InvoiceTimeType.END_OF_MONTH else dfp_first_month_end_date.replace(day=1),
+            billing_period_start=None,
+            billing_period_end=None,
             amount=fpm_first_month_cost + mfa_adaptation_package_cost + mfi_registration_fee,
             items=[
                 QuoteTimeTableItem(
                     amount=fpm_first_month_cost,
                     quote_type=QuoteTimetableItemType.INVOICE,
-                    qty=nbjop_billable_first_month_days/mhj_average_duration_per_day
+                    qty=nbjop_billable_first_month_days/mhj_average_duration_per_day,
+                    total_hours=None,
+                    unit_price=fpm_first_month_cost
                 ),
+                # mfa_adaptation_package_cost = self.adaptation_package_costs
+                #     if self.adaptation_type == AdaptationType.PACKAGE
+                #     else self.adaptation_hours_number * self.adaptation_hourly_rate
                 QuoteTimeTableItem(
                     amount=mfa_adaptation_package_cost,
                     quote_type=QuoteTimetableItemType.ADAPTATION,
-                    qty=adaption_days
+                    qty=adaption_days,
+                    total_hours=self.adaptation_hours_number if self.adaptation_type == AdaptationType.HOURLY else None,
+                    unit_price=self.adaptation_hourly_rate if self.adaptation_type == AdaptationType.HOURLY else self.adaptation_package_costs
                 ),
                 QuoteTimeTableItem(
                     amount=mfi_registration_fee,
                     quote_type=QuoteTimetableItemType.REGISTRATION,
-                    qty=1
+                    qty=1,
+                    total_hours=None,
+                    unit_price=mfi_registration_fee
                 )
             ]
         ))
@@ -325,12 +340,16 @@ class QuoteEngine:
                 remaing_acp_deposit_amount = 0
             quote_timetables.append(QuoteTimetable(
                 billing_date=current_month if self.invoice_timing == InvoiceTimeType.END_OF_MONTH else current_month.replace(day=1),
+                billing_period_start=current_month.replace(day=1),
+                billing_period_end=current_month,
                 amount=amount,
                 items=[
                     QuoteTimeTableItem(
                         amount=amount,
                         quote_type=QuoteTimetableItemType.INVOICE,
-                        qty=nbjfm_numbers_of_days_per_month/mhj_average_duration_per_day
+                        qty=nbjfm_numbers_of_days_per_month/mhj_average_duration_per_day,
+                        total_hours=mhj_average_duration_per_day*nbjfm_numbers_of_days_per_month if month != 1 else None,
+                        unit_price=th_hourly_rate if month != 1 else amount
                     )
                 ]
             ))
@@ -338,12 +357,16 @@ class QuoteEngine:
         if is_last_special_month_matched:
             quote_timetables.append(QuoteTimetable(
                 billing_date=self.contract_end_date if self.invoice_timing == InvoiceTimeType.END_OF_MONTH else self.contract_end_date.replace(day=1),
+                billing_period_start=self.contract_end_date.replace(day=1),
+                billing_period_end=self.contract_end_date,
                 amount=last_month_amount,
                 items=[
                     QuoteTimeTableItem(
                         amount=last_month_amount,
                         quote_type=QuoteTimetableItemType.INVOICE,
-                        qty=last_special_month_days/mhj_average_duration_per_day
+                        qty=last_special_month_days/mhj_average_duration_per_day,
+                        total_hours=last_special_month_days * mhj_average_duration_per_day,
+                        unit_price=th_hourly_rate
                     )
                 ]
             ))

@@ -92,8 +92,34 @@ class Child(Base):
         for parent in self.parents:
             if parent.is_paying_parent:
                 return parent
-        return self.parents[0]
+        if len(self.parents) > 0:
+            return self.parents[0]
+    
+    @hybrid_property
+    def age(self):
+        current_year = datetime.now().date().year
+        birthday_year = self.birthdate.year
 
+        return current_year - birthday_year
+    
+    @hybrid_property
+    def nb_parent(self):
+        """ Return the number of parents for this child """
+        return len(self.parents)
+    
+    @hybrid_property
+    def accepted_date(self):
+        db = SessionLocal()
+
+        """Return the date when this child was accepted"""
+        try:
+            pre_registration = db.query(PreRegistration).\
+                filter(PreRegistration.child_uuid == self.uuid).\
+                filter(PreRegistration.status == PreRegistrationStatusType.ACCEPTED).\
+                first()
+            return pre_registration.accepted_date.date()
+        finally:
+            db.close()
 
 @event.listens_for(Child, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
@@ -318,6 +344,7 @@ class Contract(Base):
 
     sepa_direct_debit_uuid: str = Column(String, ForeignKey('sepa_direct_debits.uuid'))
     sepa_direct_debit: Mapped[any] = relationship("SEPADirectDebit", foreign_keys=sepa_direct_debit_uuid, uselist=False)
+    reference: str = Column(String, default="")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

@@ -1,7 +1,8 @@
-from datetime import time, date
+from datetime import datetime, time, date
 
 from fastapi.encoders import jsonable_encoder
 
+from app.main.core import dependencies
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
@@ -81,6 +82,7 @@ def get_special_folder_without_permission(
 
 @router.put("/status", response_model=schemas.PreregistrationDetails, status_code=200)
 def change_status_of_special_folder(
+    background_task: BackgroundTasks,
     uuid: str,
     status: str = Query(..., enum=[st.value for st in models.PreRegistrationStatusType if st.value != models.PreRegistrationStatusType.PENDING]),
     db: Session = Depends(get_db),
@@ -88,7 +90,8 @@ def change_status_of_special_folder(
 ):
     """ Change status of a special folder """
 
-    return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, performed_by_uuid="4cdb3f7f-8f7d-4113-95b8-35521d55d76c")
+    # return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, performed_by_uuid="4cdb3f7f-8f7d-4113-95b8-35521d55d76c")
+    return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, performed_by_uuid="4cdb3f7f-8f7d-4113-95b8-35521d55d76c", background_task=background_task)
 
 # 4cdb3f7f-8f7d-4113-95b8-35521d55d76c owner uuid
 @router.put("", response_model=schemas.ChildDetails, status_code=200)
@@ -236,6 +239,25 @@ def get_many(
         order_field,
         keyword,
         tag_uuid
+    )
+@router.get("/transmission/child", response_model=schemas.Transmission, status_code=200)
+def get_child_transmission(
+        child_uuid: str,
+        nursery_uuid: str,
+        date:date = datetime.now().date(),
+        db: Session = Depends(get_db),
+        current_team_device: models.TeamDevice = Depends(dependencies.TeamTokenRequired())
+):
+    """
+    Get child transmission
+    """
+    if current_team_device.nursery_uuid!=nursery_uuid:
+        raise HTTPException(status_code=403, detail=__("not-authorized"))
+    
+    return crud.preregistration.get_transmission(
+        child_uuid,
+        db,
+        date
     )
 
 # 8d54df37-9954-44a3-8733-9be1f9f5a148

@@ -51,6 +51,8 @@ class Nursery(Base):
     added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
     added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
 
+    is_actived: bool = Column(Boolean, default=False,nullable=True)  # Ajout de la colonne is_actived
+
     opening_hours = relationship("NurseryOpeningHour", back_populates="nursery", order_by="NurseryOpeningHour.day_of_week")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -99,7 +101,7 @@ class NurseryCloseHour(Base):
     __tablename__ = "nursery_close_hours"
     
     uuid: str = Column(String, primary_key=True, index=True)
-    name_fr: str = Column(String, nullable=False)
+    name_fr: str = Column(String, nullable=True)
     name_en: str = Column(String, nullable=True)
     start_day: int = Column(Integer, nullable=False)
     start_month: int = Column(Integer, nullable=False)

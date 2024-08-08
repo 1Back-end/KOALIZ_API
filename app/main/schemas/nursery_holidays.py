@@ -43,5 +43,3 @@ class NurseryHolidaysDetails(BaseModel):
         month: int
 
         model_config = ConfigDict(from_attributes=True)
-
-    

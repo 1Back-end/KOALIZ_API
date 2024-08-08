@@ -59,6 +59,8 @@ translation = {
     "duplicate-entry-email": "several entries have the same address,please check that and try again",
     "duplicate-team-name-entry": "several entries already have the same team name",
     "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own.",
+    "invoice-not-found": "Invoice not found",
+    "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own.",
     "Close-Hour-not-found":"Heure de fermeture introuvable",
     "Close-Hour-not-found-or-not-authorized":"Heure de fermeture introuvable ou non autorisée",
     "Nurseries-not-found":"Crèches introuvables",
@@ -86,6 +88,16 @@ translation = {
     "hygiene-change-deleted": "hygiene change deleted successfully.",
     "health-record-not-found": "Medical record not found",
     "health-record-deleted": "Medical record successfully deleted",
+    "observation-not-found": "Observation file not found.",
+    "observation-deleted":"Observation file deleted successfully",
+    "mail-subject-account-confirmation-email":"finalisation of account creation",
+    "mail-subject-account-created":"Account creation.",
+    "mail-subject-password-reset-succes":"Password reset.",
+    "account-created":"Your account has been created successfully"
+
+
+
+
 
 
 
