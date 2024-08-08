@@ -33,7 +33,7 @@ def update_active_nursery(
     *,
     uuid: str,
     db: Session = Depends(get_db),
-    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """
     Update active nursery
@@ -46,7 +46,7 @@ def update_active_nursery(
     db.commit()
 
     nurseries = db.query(models.Nursery)\
-        .filter(models.Nursery.owner_uuid == "7e9a29e4-3372-49dc-8413-a9ad708b5601")\
+        .filter(models.Nursery.owner_uuid == current_user.uuid)\
         .filter(models.Nursery.uuid != uuid)\
         .all()
     

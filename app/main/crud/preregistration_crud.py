@@ -733,7 +733,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     ):
         child = db.query(models.Child).filter(models.Child.uuid == child_uuid).first()
 
-        if child:
+        if date:
             # Step 2: Load filtered relations and assign to the child object
             child.meals = db.query(models.Meal).filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == date).all()
             child.activities = db.query(models.ChildActivity).filter(models.ChildActivity.child_uuid == child.uuid, models.ChildActivity.date_added == date).all()
@@ -742,7 +742,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             child.hygiene_changes = db.query(models.HygieneChange).filter(models.HygieneChange.child_uuid == child.uuid, models.HygieneChange.date_added == date).all()
             child.observations = db.query(models.Observation).filter(models.Observation.child_uuid == child.uuid, models.Observation.date_added == date).all()
             # child.media = db.query(models.Media).filter(models.Media.child_uuid == child.uuid, models.Observation.date_added == date).all()
-
 
         return child
 
