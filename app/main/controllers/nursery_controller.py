@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import date, time
 
 from app.main.core.dependencies import TeamTokenRequired, get_db, TokenRequired
 from app.main import schemas, crud, models
@@ -211,6 +211,7 @@ def get_employee_home_page(
 def read_children_by_nursery(
     *,
     nursery_uuid:str,
+    date_admitted:Optional[date]=None,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
