@@ -64,7 +64,7 @@ class ActivityList(DataList):
 
 # Child Activity
 class ChildActivityBase(BaseModel):
-    child_uuid : str
+    child_uuids : list[str]
     activity_uuid : str
     nursery_uuid : str
     employee_uuid: str
@@ -72,8 +72,10 @@ class ChildActivityBase(BaseModel):
 class ChildActivityCreate(ChildActivityBase):
     pass
 
-class ChildActivityUpdate(ChildActivityBase):
+class ChildActivityUpdate(BaseModel):
     uuid: str
+    activity_uuid : str
+    activity_time: datetime
 
 class ChildActivityDetails(BaseModel):
     uuid: str

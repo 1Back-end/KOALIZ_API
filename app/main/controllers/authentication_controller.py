@@ -385,7 +385,7 @@ async def create_parent_on_system(
     if user:
         if crud.parent.is_active(user):
             raise HTTPException(status_code=400, detail=__("user-email-taken"))
-        
+
         user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
         models.ParentActionValidation.user_uuid == user.uuid)
 

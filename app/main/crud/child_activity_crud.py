@@ -13,17 +13,19 @@ class CRUDChildActivity(CRUDBase[ChildActivity, ChildActivityCreate, ChildActivi
 
     @classmethod
     def create(self, db: Session, obj_in: ChildActivityCreate) -> ChildActivity:
-        db_obj = ChildActivity(
-            uuid=str(uuid.uuid4()),
-            activity_time=obj_in.activity_time,
-            added_by_uuid=obj_in.employee_uuid,
-            child_uuid=obj_in.child_uuid,
-            nursery_uuid=obj_in.nursery_uuid,
-            activity_uuid=obj_in.activity_uuid
-        )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        
+        for child_uuid in obj_in.child_uuids:
+            db_obj = ChildActivity(
+                uuid=str(uuid.uuid4()),
+                activity_time=obj_in.activity_time,
+                added_by_uuid=obj_in.employee_uuid,
+                child_uuid=child_uuid,
+                nursery_uuid=obj_in.nursery_uuid,
+                activity_uuid=obj_in.activity_uuid
+            )
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
         return db_obj
     
     @classmethod
