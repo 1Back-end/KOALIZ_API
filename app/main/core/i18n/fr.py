@@ -69,6 +69,8 @@ translation = {
     "team-name-already-exist": "Nom d'équipe déjà existant",
     "duplicate-team-name-entry": "plusieurs entrées ont déja le même nom d'équipe.",
     "team-owner-unauthorized":"vous n'êtes pas autorisé à apporter des modifications sur les teams dont vous n'êtes pas propriétaire.",
+    "invoice-not-found": "La facture n'existe pas",
+    "team-owner-unauthorized":"vous n'êtes pas autorisé à apporter des modifications sur les teams dont vous n'êtes pas propriétaire.",
     "Close-Hour-not-found":"Heure de fermeture introuvable",
     "Close-Hour-not-found-or-not-authorized":"Heure de fermeture introuvable ou non autorisée",
     "Nurseries-not-found":"Crèches introuvables",

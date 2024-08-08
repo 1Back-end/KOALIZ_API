@@ -20,11 +20,11 @@ class ChildSchema(BaseModel):
     birthdate: date
     birthplace: str
 
-    @field_validator("birthdate")
-    def validate_birthdate(cls, value):
-        if value >= date.today():
-            raise ValueError("Birthdate must be before today's date.")
-        return value
+    # @field_validator("birthdate")
+    # def validate_birthdate(cls, value):
+    #     if value >= date.today():
+    #         raise ValueError("Birthdate must be before today's date.")
+    #     return value
 
 @field_validator("birthdate")
 class ChildUpdateSchema(BaseModel):

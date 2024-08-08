@@ -44,11 +44,15 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         db.commit()
 
     @classmethod
-    def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, performed_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
+    def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, performed_by_uuid: str,
+                                          background_task=None) -> Optional[schemas.PreregistrationDetails]:
 
         exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
+        if not exist_folder.quote:
+            background_task.add_task(cls.generate_quote, db, exist_folder.uuid)
         
         # Create the log tracking
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
@@ -82,7 +86,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             if exist_folder.quote and exist_folder.quote.status != models.QuoteStatusType.ACCEPTED:
                 exist_folder.quote.status = models.QuoteStatusType.ACCEPTED
                 crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
-            crud.invoice.generate_invoice(db, exist_folder.quote.uuid)
+                crud.invoice.generate_invoice(db, exist_folder.quote.uuid, exist_folder.contract_uuid)
 
         db.commit()
 
@@ -542,6 +546,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             quote_timetable = models.QuoteTimetable(
                 uuid=str(uuid.uuid4()),
                 date_to=quote_timetable_res.billing_date,
+                invoicing_period_start=quote_timetable_res.billing_period_start,
+                invoicing_period_end=quote_timetable_res.billing_period_end,
                 amount=quote_timetable_res.amount,
                 quote_uuid=quote.uuid
             )

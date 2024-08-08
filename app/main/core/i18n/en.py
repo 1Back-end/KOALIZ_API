@@ -59,6 +59,8 @@ translation = {
     "duplicate-entry-email": "several entries have the same address,please check that and try again",
     "duplicate-team-name-entry": "several entries already have the same team name",
     "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own.",
+    "invoice-not-found": "Invoice not found",
+    "team-owner-unauthorized": "you are not authorized to make changes to teams that you do not own.",
     "Close-Hour-not-found":"Heure de fermeture introuvable",
     "Close-Hour-not-found-or-not-authorized":"Heure de fermeture introuvable ou non autorisée",
     "Nurseries-not-found":"Crèches introuvables",

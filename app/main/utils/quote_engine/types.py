@@ -7,21 +7,30 @@ from datetime import date
 class QuoteTimeTableItem:
     amount: Decimal
     qty: Decimal
+    total_hours: float
+    unit_price: float
     quote_type: QuoteTimetableItemType
 
-    def __init__(self, amount: float, qty: float, quote_type: QuoteTimetableItemType):
+    def __init__(self, amount: float, qty: float, quote_type: QuoteTimetableItemType, total_hours: float = None, unit_price: float = None):
         self.amount = Decimal("%.2f" % amount)
         self.quote_type = quote_type
+        self.total_hours = total_hours
+        self.unit_price = unit_price
         self.qty = Decimal("%.2f" % qty)
 
 
 class QuoteTimetable:
     billing_date: date
+    billing_period_start: date
+    billing_period_end: date
     amount: Decimal
     items: list[QuoteTimeTableItem]
 
-    def __init__(self, billing_date: date, amount: float, items: list[QuoteTimeTableItem]):
+    def __init__(self, billing_date: date, billing_period_start: date, billing_period_end, amount: float,
+                 items: list[QuoteTimeTableItem]):
         self.billing_date = billing_date
+        self.billing_period_start = billing_period_start
+        self.billing_period_end = billing_period_end
         self.amount = Decimal("%.2f" % amount)
         self.items = items
 
