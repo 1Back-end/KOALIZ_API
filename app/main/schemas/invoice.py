@@ -10,20 +10,6 @@ from app.main.schemas.base import Items, DataList
 from app.main.schemas.file import File
 
 
-class InvoicePreContract(BaseModel):
-    typical_weeks: list[Any]
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class PreregistrationMini(BaseModel):
-    uuid: str
-    note: str = None
-    status: str = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class InvoiceChildMini(BaseModel):
     uuid: str
     firstname: str
@@ -33,58 +19,57 @@ class InvoiceChildMini(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class CMG(BaseModel):
-    amount: float = 0
-    family_type: models.FamilyType = None
-    number_children: int = 0
-    annual_income: float = 0
-    band_number: Optional[int] = 0
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class InvoiceTimeTableItem(BaseModel):
     title_fr: str
     title_en: str
     amount: float = 0
+    total_hours: Optional[float] = None
+    unit_price: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class InvoiceTimetable(BaseModel):
-    date_to: date
-    amount: float = 0
-    items: list[InvoiceTimeTableItem] = []
+class InvoiceContract(BaseModel):
+    reference: Optional[str]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InvoiceNursery(BaseModel):
+    uuid: str
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InvoiceParentGuest(BaseModel):
+    firstname: str
+    lastname: str
+    fix_phone: str = None
+    phone: str
+    email: EmailStr
+    zip_code: str
+    city: str
+    country: str
+    company_name: str
+    has_company_contract: bool
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class InvoiceDetails(BaseModel):
     uuid: str
-    child: InvoiceChildMini
-    pre_contract: InvoicePreContract
-    cmg: Optional[CMG] = None
+    date_to: date
+    amount: float = 0
     status: str = None
-    hourly_rate: float = 0
-    registration_fee: float = 0
+    reference: str
+    invoicing_period_start: Optional[date]
+    invoicing_period_end: Optional[date]
 
-    deposit_type: models.DepositType
-    deposit_percentage: float = 0
-    deposit_value: float = 0
+    contract: InvoiceContract
+    parent_guest: InvoiceParentGuest
 
-    adaptation_type: models.AdaptationType
-    adaptation_hourly_rate: float = 0
-    adaptation_hours_number: int = 0
-    adaptation_package_costs: float = 0
-    adaptation_package_days: int = 0
-
-    monthly_billed_hours: Optional[float]
-    smoothing_months: Optional[float]
-    weeks_in_smoothing: Optional[float]
-    deductible_weeks: Optional[float]
-    total_closing_days: Optional[int]
-
-    timetables: list[InvoiceTimetable] = []
+    items: list[InvoiceTimeTableItem] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -95,13 +80,6 @@ class InvoiceChildSlim(BaseModel):
     lastname: str
     gender: models.Gender
     birthdate: date
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class InvoicePreContractSlim(BaseModel):
-    begin_date: date
-    end_date: date
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -123,30 +101,5 @@ class InvoiceTimetableSlim(BaseModel):
 
 class InvoiceList(DataList):
     data: list[InvoiceTimetableSlim] = []
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class CMGUpdate(BaseModel):
-    family_type: models.FamilyType = None
-    number_children: int = 0
-    annual_income: float = 0
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class InvoiceSettingsUpdate(BaseModel):
-    hourly_rate: float = 0
-    registration_fee: float = 0
-
-    deposit_type: models.DepositType
-    deposit_percentage: float = 0
-    deposit_value: float = 0
-
-    adaptation_type: models.AdaptationType
-    adaptation_hourly_rate: float = 0
-    adaptation_hours_number: int = 0
-    adaptation_package_costs: float = 0
-    adaptation_package_days: int = 0
 
     model_config = ConfigDict(from_attributes=True)
