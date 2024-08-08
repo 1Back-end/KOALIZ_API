@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, models,crud
 from app.main.core.i18n import __
@@ -6,6 +7,7 @@ from fastapi import APIRouter, Depends, Body, HTTPException, Query, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from typing import Optional,List
+
 router = APIRouter(prefix="/nursery-close-hours", tags=["nursery-close-hours"])
 
 @router.post("/nursery_close_hours",response_model=schemas.NurseryCloseHour)
@@ -22,7 +24,6 @@ def create(
         owner_uuid=current_user.uuid
 )
 
- 
 
 
 @router.get("", response_model=schemas.NurseryCloseHourResponsiveList)
@@ -87,3 +88,8 @@ def read_nursery_close_hour(
     if db_close_hour is None:
         raise HTTPException(status_code=404, detail="Nursery close hour not found")
     return db_close_hour
+
+
+
+
+    
