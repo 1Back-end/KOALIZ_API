@@ -27,6 +27,37 @@ def create(
 
     return crud.nursery.create(db, obj_in, current_user.uuid)
 
+
+@router.put("/actived", response_model=schemas.Nursery, status_code=200)
+def update_active_nursery(
+    *,
+    uuid: str,
+    db: Session = Depends(get_db),
+    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Update active nursery
+    """
+    exist_nursery = crud.nursery.get(db=db, uuid=uuid)
+    if not exist_nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    exist_nursery.is_actived=True
+    db.commit()
+
+    nurseries = db.query(models.Nursery)\
+        .filter(models.Nursery.owner_uuid == "7e9a29e4-3372-49dc-8413-a9ad708b5601")\
+        .filter(models.Nursery.uuid != uuid)\
+        .all()
+    
+    for nursery in nurseries:
+        print(nursery.uuid)
+        nursery.is_actived=False
+        db.commit()
+
+    return exist_nursery
+
+
 @router.delete("", response_model=schemas.Msg)
 def delete(
         *,
@@ -215,6 +246,11 @@ def update(
         return nursery
 
     return crud.nursery.update_status(db, nursery, status)
+
+
+
+
+
 
 
 
