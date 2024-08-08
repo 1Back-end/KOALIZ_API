@@ -108,6 +108,7 @@ class TokenRequired(HTTPBearer):
                 raise HTTPException(status_code=403, detail=__("dependencies-token-invalid"))
 
             if current_user.status != models.UserStatusType.ACTIVED:
+                print("-------------",current_user)
                 raise HTTPException(status_code=405, detail=__("user-not-active"))
 
             if current_user.is_new_user and not self.let_new_user:

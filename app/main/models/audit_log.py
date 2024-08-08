@@ -27,7 +27,7 @@ class AuditLog(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     @hybrid_property
-    def performed_by (self):
+    def performed_by(self):
         db = SessionLocal()
         if self.performed_by_uuid:
             current_user = db.query(models.Administrator).filter(models.Administrator.uuid==self.performed_by_uuid).first()

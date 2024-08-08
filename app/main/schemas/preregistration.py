@@ -6,10 +6,11 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
+from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType
 from app.main.schemas import DataList, NurseryMini
 from app.main.schemas.base import Items
 from app.main.schemas.user import Storage
-
+from app.main.schemas.file import File
 
 @field_validator("birthdate")
 class ChildSchema(BaseModel):
@@ -229,6 +230,18 @@ class ChildMini(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChildResponse(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    age : int
+    nb_parent: int
+    date_added: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+
 class ChildMini2(BaseModel):
     uuid: str
     firstname: str
@@ -338,7 +351,6 @@ class PreContractSlim(BaseModel):
 class Icon(Storage):
     pass
 
-
 class Tag(BaseModel):
     uuid: str
     title_fr: str
@@ -372,3 +384,107 @@ class TrackingCaseList(DataList):
 class TransferPreRegistration(BaseModel):
     nursery_uuid: str
 
+class NapSlim(BaseModel):
+    uuid: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    quality: Optional[NapQuality] = None
+    observation: Optional[str] = None
+    duration: Optional[int] = 0
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class MealSlim(BaseModel):
+    uuid: Optional[str] = None
+    # child: Optional[ChildMini2] = None
+    meal_time: Optional[datetime] = None
+    bottle_milk_ml: Optional[int] = None
+    breastfeeding_duration_minutes: Optional[int] = None
+    meal_quality: Optional[MealQuality] = None
+    observation: Optional[str] = None    
+    # nursery: Optional[NurserySlim]=None
+    # added_by: Optional[EmployeBase]=None
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ActivitySlim(BaseModel):
+    uuid: str
+    name_fr: str
+    name_en: str
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class HealthRecordSlim(BaseModel):
+    uuid: Optional[str] = None
+    medication_name: Optional[str]
+    observation: Optional[str]
+    medication_type: Optional[str]= None
+    care_type: Optional[CareType]= None
+    route: Optional[Route]= None
+    time: Optional[datetime]= None
+    weight: Optional[float] = 0
+    temperature: Optional[float] = 0
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class HygieneChangeSlim(BaseModel):
+    uuid: Optional[str] = None
+    time: Optional[datetime]= None
+    cleanliness: Optional[Cleanliness]= None
+    pipi: Optional[bool] = False
+    stool_type: Optional[StoolType]= None
+    additional_care: Optional[AdditionalCare]= None
+    observation: Optional[str]= None
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ObservationSlim(BaseModel):
+    uuid: Optional[str] = None
+    time: Optional[datetime] = None
+    observation: Optional[str] = None
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class Transmission(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: str
+    age:int = 0
+    accepted_date:Optional[date]
+    avatar:Optional[File] = None
+    nb_parent: int
+    meals:Optional[list[MealSlim]] 
+    activities:Optional[list[ActivitySlim]]
+    naps:Optional[list[NapSlim]]
+    health_records:Optional[list[HealthRecordSlim]] 
+    hygiene_changes:Optional[list[HygieneChangeSlim]]
+    media:Optional[list[File]]
+    observations:Optional[list[ObservationSlim]]
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ChildTransmission(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: str
+    age:int
+    avatar:Optional[File]
+    nb_parents: int
+    transmission: Optional[Transmission]
+
+    model_config = ConfigDict(from_attributes=True)

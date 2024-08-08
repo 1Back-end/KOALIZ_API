@@ -31,7 +31,7 @@ class Scheduler:
             'apscheduler.timezone': 'UTC',
         })
         self.add_job(test_scheduler, 'interval', seconds=60 * 2, id='test_scheduler')
-        self.add_job(reminder_program, 'interval', seconds=60 * 1, id='reminder_program')
+        #self.add_job(reminder_program, 'interval', seconds=60 * 1, id='reminder_program')
 
     def add_job(self, func, trigger, **kwargs):
         try:

@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship, Mapped
 from app.main.models.db.session import SessionLocal
 from app.main.models.quote import FamilyType
 from .db.base_class import Base
+from .children import children_media
 
 
 class PreRegistrationStatusType(str, Enum):
@@ -48,7 +49,7 @@ class ContractType(str, Enum):
 
 class Child(Base):
     """
-         database model for storing Nursery related details
+    database model for storing Nursery related details
     """
     __tablename__ = 'children'
 
@@ -70,6 +71,14 @@ class Child(Base):
 
     preregistrations: Mapped[list[any]] = relationship("PreRegistration", back_populates="child", uselist=True)
 
+    meals: Mapped[list[any]] = relationship("Meal", back_populates="child", uselist=True) # Repas
+    activities: Mapped[list[any]] = relationship("ChildActivity", back_populates="child", uselist=True) # Activités
+    naps: Mapped[list[any]] = relationship("Nap", back_populates="child", uselist=True) # Siestes
+    health_records: Mapped[list[any]] = relationship("HealthRecord", back_populates="child", uselist=True) # Santés
+    hygiene_changes: Mapped[list[any]] = relationship("HygieneChange", back_populates="child", uselist=True) # Hygienes
+    media: Mapped[list[any]] = relationship("Media", secondary=children_media, back_populates="children", uselist=True) # Media
+    observations: Mapped[list[any]] = relationship("Observation", back_populates="child", uselist=True) # Observations
+
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)
     is_accepted: bool = Column(Boolean, default=False)
@@ -84,7 +93,34 @@ class Child(Base):
             if parent.is_paying_parent:
                 return parent
         return self.parents[0]
+    
+    @hybrid_property
+    def age(self):
+        print("birthdate: ", self.birthdate)
+        # current_date = datetime.now().date()
+        current_year = datetime.now().date().year
+        birthday_year = self.birthdate.year
 
+        return current_year - birthday_year
+    
+    @hybrid_property
+    def nb_parent(self):
+        """ Return the number of parents for this child """
+        return len(self.parents)
+    
+    @hybrid_property
+    def accepted_date(self):
+        db = SessionLocal()
+
+        """Return the date when this child was accepted"""
+        try:
+            pre_registration = db.query(PreRegistration).\
+                filter(PreRegistration.child_uuid == self.uuid).\
+                filter(PreRegistration.status == PreRegistrationStatusType.ACCEPTED).\
+                first()
+            return pre_registration.accepted_date.date()
+        finally:
+            db.close()
 
 @event.listens_for(Child, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):

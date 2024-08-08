@@ -22,3 +22,9 @@ from .team_device import *
 from .conversation import *
 from .employee import *
 from .team import *
+from .nap import *
+from .health_record import *
+from .hygiene_change import *
+from .observation import *
+from .activity import *
+from .meal import *

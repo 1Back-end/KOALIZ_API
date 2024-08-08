@@ -5,6 +5,11 @@ from datetime import datetime
 from app.main.schemas import UserAuthentication, File, DataList
 from app.main.schemas.user import AddedBy
 
+class NurseryMiniSlim(BaseModel):
+    uuid: str
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 class Owner(BaseModel):
     uuid: Optional[str] = None
@@ -12,6 +17,23 @@ class Owner(BaseModel):
     firstname: Optional[str]
     lastname: str
     status: str
+    phone_number: Optional[str]
+    is_new_user: Optional[bool] = False
+    avatar: Optional[File]
+    added_by: Optional[AddedBy]
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OwnerWithNursery(BaseModel):
+    uuid: Optional[str] = None
+    email: EmailStr
+    firstname: Optional[str]
+    lastname: str
+    status: str
+    nurseries:list[NurseryMiniSlim] =[]
     phone_number: Optional[str]
     is_new_user: Optional[bool] = False
     avatar: Optional[File]
@@ -54,6 +76,6 @@ class OwnerList(DataList):
 
 
 class OwnerAuthentication(UserAuthentication):
-    user: Owner
+    user: OwnerWithNursery
 
     model_config = ConfigDict(from_attributes=True)
