@@ -592,7 +592,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             added_by_uuid=current_user_uuid
         )
         db.add(child)
-
+        db.flush()
         contract = models.PreContract(
             uuid=str(uuid.uuid4()),
             begin_date=obj_in.pre_contract.begin_date,
@@ -600,6 +600,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
         )
         db.add(contract)
+        db.flush()
 
         child.pre_contract_uuid = contract.uuid
 
@@ -626,6 +627,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 child_uuid=child.uuid
             )
             db.add(parent_guest)
+            db.flush()
 
         preregistration_uuids: list[str] = []
         code = cls.code_unicity(code=generate_slug(f"{child.firstname} {child.lastname}"), db=db)
@@ -640,6 +642,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 status=models.PreRegistrationStatusType.PENDING
             )
             db.add(new_preregistration)
+            db.flush()
+
             preregistration_uuids.append(new_preregistration.uuid)
 
         db.commit()
