@@ -26,3 +26,5 @@ from .nursery_holidays_crud import nursery_holiday
 from .meal_crud import meal
 from .invoice_crud import invoice
 from .child_planning_crud import child_planning
+from .child_activity_crud import child_activity
+from .media_crud import media

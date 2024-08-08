@@ -29,3 +29,4 @@ from .observation import *
 from .activity import *
 from .meal import *
 from .planning import *
+from .media import *

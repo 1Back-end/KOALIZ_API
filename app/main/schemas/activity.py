@@ -3,6 +3,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from app.main.schemas.base import DataList
+from app.main.schemas.employee import EmployeSlim
+from app.main.schemas.nursery import NurserySlim
+from app.main.schemas.preregistration import ChildMini2
 
 # ActivityCategory
 class ActivityCategoryBase(BaseModel):
@@ -56,5 +59,34 @@ class ActivityResponse(BaseModel):
     
 class ActivityList(DataList):
     data: list[Optional[ActivityResponse]]
+
+    model_config = ConfigDict(from_attributes=True)
+
+# Child Activity
+class ChildActivityBase(BaseModel):
+    child_uuid : str
+    activity_uuid : str
+    nursery_uuid : str
+    employee_uuid: str
+    activity_time: datetime
+class ChildActivityCreate(ChildActivityBase):
+    pass
+
+class ChildActivityUpdate(ChildActivityBase):
+    uuid: str
+
+class ChildActivityDetails(BaseModel):
+    uuid: str
+    activity_time: datetime
+    # child: Optional[ChildMini2] = None
+    # nursery: Optional[NurserySlim]=None
+    # added_by: Optional[EmployeSlim] = None    
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+    
+class ChildActivityList(DataList):
+    data: list[Optional[ChildActivityDetails]]
 
     model_config = ConfigDict(from_attributes=True)

@@ -26,6 +26,8 @@ from .hygiene_change_controller import router as hygiene_change
 from .nursery_holidays_controller import router as nursery_holidays
 from .observation_controller import router as observation
 from .meal_controller import router as meal_controller
+from .child_activity_controller import router as child_activity
+from .media_controller import router as media
 
 api_router = APIRouter()
 
@@ -40,6 +42,8 @@ api_router.include_router(parent)
 api_router.include_router(health_record)
 api_router.include_router(hygiene_change)
 api_router.include_router(nap)
+api_router.include_router(child_activity)
+api_router.include_router(media)
 api_router.include_router(observation)
 api_router.include_router(message)
 api_router.include_router(preregistration)

@@ -91,7 +91,7 @@ class ChildActivity(Base):
 
     """ ChildActivity model representing the many-to-many relationship between children and activities """
 
-    __tablename__ = "child_activities"
+    __tablename__ = "children_activities"
 
     child_uuid = Column(String, ForeignKey('children.uuid'), primary_key=True)
     child = relationship("Child", back_populates="activities")

@@ -254,9 +254,10 @@ def get_child_transmission(
         raise HTTPException(status_code=403, detail=__("not-authorized"))
     
     return crud.preregistration.get_transmission(
-        child_uuid,
-        db,
-        date
+        child_uuid=child_uuid,
+        db=db,
+        date=date,
+        nursery_uuid=nursery_uuid
     )
 
 # 8d54df37-9954-44a3-8733-9be1f9f5a148
