@@ -6,7 +6,9 @@ from app.main.core.i18n import __
 from app.main.core.config import Config
 from fastapi import APIRouter, Depends, Body, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import List, Optional
+
+from app.main.schemas.preregistration import ChildResponse
 
 
 router = APIRouter(prefix="/nurseries", tags=["nurseries"])
@@ -195,7 +197,7 @@ def get_all_without_filter(
 def get_employee_home_page(
     nursery_uuid: str,
     db: Session = Depends(get_db),
-    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+    # current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
     nursery_details = crud.nursery.get_employee_home_page(
         db=db,
@@ -203,4 +205,13 @@ def get_employee_home_page(
     )
     return nursery_details
 
-"c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
+# "c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
+
+@router.get("/children/", response_model=List[ChildResponse])
+def read_children_by_nursery(
+    *,
+    nursery_uuid:str,
+    db: Session = Depends(get_db),
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+):
+    return crud.nursery.get_children_by_nursery(db=db, nursery_uuid=nursery_uuid)

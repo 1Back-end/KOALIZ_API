@@ -230,6 +230,17 @@ class ChildMini(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChildResponse(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    age : int
+    nb_parent: int
+    date_added: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+
 class ChildMini2(BaseModel):
     uuid: str
     firstname: str

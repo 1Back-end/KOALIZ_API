@@ -96,8 +96,6 @@ class Child(Base):
     
     @hybrid_property
     def age(self):
-        print("birthdate: ", self.birthdate)
-        # current_date = datetime.now().date()
         current_year = datetime.now().date().year
         birthday_year = self.birthdate.year
 

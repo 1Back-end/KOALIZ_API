@@ -5,7 +5,6 @@ from typing import Union, Optional, List
 from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlalchemy import or_
-
 from app.main.core.i18n import __
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
@@ -160,7 +159,6 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
             "close_hours": close_hours_data,
             "holidays": holidays_data
         }
-    
 
     
 
