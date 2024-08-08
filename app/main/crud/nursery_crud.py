@@ -262,7 +262,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             "holidays": holidays_data
         }
     
-    def get_children_by_nursery(self,*,db: Session, nursery_uuid: str,date_admitted:Optional[date]=None):
+    def get_children_by_nursery(self,*,db: Session, nursery_uuid: str,filter_date:Optional[date]=None):
         # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
         accepted_preregistrations = db.query(PreRegistration).filter(
             PreRegistration.nursery_uuid == nursery_uuid,
@@ -271,16 +271,15 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         
         # Récupérer les UUIDs des enfants acceptés
         child_uuids = [preregistration.child_uuid for preregistration in accepted_preregistrations if preregistration.child_uuid]
+
+        if filter_date:
+            pass
         
         # Filtrer les enfants par UUID et is_accepted
         children = db.query(Child).filter(
             Child.uuid.in_(child_uuids),
             Child.is_accepted == True
         ).all()
-
-        if date_admitted:
-            pass
-        
         return children
     
         

@@ -207,12 +207,12 @@ def get_employee_home_page(
 
 "c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
 
-@router.get("/children/", response_model=List[ChildResponse])
+@router.get("/children", response_model=List[ChildResponse])
 def read_children_by_nursery(
     *,
     nursery_uuid:str,
-    date_admitted:Optional[date]=None,
+    filter_date:Optional[date]=None,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
-    return crud.nursery.get_children_by_nursery(db=db, nursery_uuid=nursery_uuid)
+    return crud.nursery.get_children_by_nursery(db=db, nursery_uuid=nursery_uuid,filter_date=filter_date)
