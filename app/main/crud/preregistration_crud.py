@@ -91,6 +91,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             db.flush()
 
             # Insert planning for child
+            # background_task.add_task(crud.child_planning.insert_planning, exist_folder.nursery, exist_folder.child, db)
             crud.child_planning.insert_planning(db=db, child=exist_folder.child, nursery=exist_folder.nursery)
 
         db.commit()

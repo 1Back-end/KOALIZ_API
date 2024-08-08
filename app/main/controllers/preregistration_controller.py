@@ -86,12 +86,11 @@ def change_status_of_special_folder(
     uuid: str,
     status: str = Query(..., enum=[st.value for st in models.PreRegistrationStatusType if st.value != models.PreRegistrationStatusType.PENDING]),
     db: Session = Depends(get_db),
-    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Change status of a special folder """
 
-    # return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, performed_by_uuid="4cdb3f7f-8f7d-4113-95b8-35521d55d76c")
-    return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, performed_by_uuid="4cdb3f7f-8f7d-4113-95b8-35521d55d76c", background_task=background_task)
+    return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, performed_by_uuid=current_user.uuid, background_task=background_task)
 
 # 4cdb3f7f-8f7d-4113-95b8-35521d55d76c owner uuid
 @router.put("", response_model=schemas.ChildDetails, status_code=200)
