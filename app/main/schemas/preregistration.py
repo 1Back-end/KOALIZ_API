@@ -234,6 +234,7 @@ class ChildResponse(BaseModel):
     uuid: str
     firstname: str
     lastname: str
+    gender: models.Gender
     age : int
     nb_parent: int
     date_added: datetime
