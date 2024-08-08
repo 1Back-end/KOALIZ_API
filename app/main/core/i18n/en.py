@@ -86,6 +86,9 @@ translation = {
     "hygiene-change-deleted": "hygiene change deleted successfully.",
     "health-record-not-found": "Medical record not found",
     "health-record-deleted": "Medical record successfully deleted",
+    "observation-not-found": "Observation file not found.",
+    "observation-deleted":"Observation file deleted successfully"
+
 
 
 
