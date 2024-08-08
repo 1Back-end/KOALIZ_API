@@ -84,6 +84,11 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
             crud.invoice.generate_invoice(db, exist_folder.quote.uuid)
 
+            db.flush()
+
+            # Insert planning for child
+            crud.child_planning.insert_planning(db=db, child=exist_folder.child, nursery=exist_folder.nursery)
+
         db.commit()
 
         after_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()

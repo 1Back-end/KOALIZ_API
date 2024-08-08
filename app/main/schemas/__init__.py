@@ -28,3 +28,4 @@ from .hygiene_change import *
 from .observation import *
 from .activity import *
 from .meal import *
+from .planning import *
