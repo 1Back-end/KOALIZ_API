@@ -92,7 +92,8 @@ class Child(Base):
         for parent in self.parents:
             if parent.is_paying_parent:
                 return parent
-        return self.parents[0]
+        if len(self.parents) > 0:
+            return self.parents[0]
     
     @hybrid_property
     def age(self):

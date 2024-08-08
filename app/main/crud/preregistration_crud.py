@@ -573,7 +573,9 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                     title_en=__(title, "en"),
                     type=item.quote_type,
                     amount=item.amount,
-                    quote_timetable_uuid=quote_timetable.uuid
+                    quote_timetable_uuid=quote_timetable.uuid,
+                    total_hours=item.total_hours,
+                    unit_price=item.unit_price
                 )
                 db.add(quote_timetable_item)
         db.commit()
