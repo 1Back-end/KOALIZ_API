@@ -103,5 +103,8 @@ translation = {
     "mail-subject-account-confirmation-email":"finalisation de creation de compte",
     "mail-subject-account-created":"creation de compte.",
     "account-created":"Votre compte a été crée avecc succès",
-    "mail-subject-password-reset-succes":"Votre mot de passe a été modifié avec succès."
+    "mail-subject-password-reset-succes":"Votre mot de passe a été modifié avec succès.",
+    "activity-type-not-found":"le(es) type(e)s d'activités n'existe(nt) pas",
+    "category-activity-deleted-successfully":"la(es) catégories d'activités ont été suprrimées avec succès.",
+    "category-activity-not-found":"la catégorie d'activité n'existe pas"
 }
