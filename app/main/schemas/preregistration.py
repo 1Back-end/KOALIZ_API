@@ -477,14 +477,7 @@ class Transmission(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class ChildTransmission(BaseModel):
-    uuid: str
-    firstname: str
-    lastname: str
-    gender: str
-    age:int
-    avatar:Optional[File]
-    nb_parents: int
-    transmission: Optional[Transmission]
+class ChildTransmissionList(DataList):
+    data: list[Transmission] = []
 
     model_config = ConfigDict(from_attributes=True)

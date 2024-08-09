@@ -741,7 +741,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             child.health_records = db.query(models.HealthRecord).filter(models.HealthRecord.child_uuid == child.uuid, models.HealthRecord.date_added == date).all()
             child.hygiene_changes = db.query(models.HygieneChange).filter(models.HygieneChange.child_uuid == child.uuid, models.HygieneChange.date_added == date).all()
             child.observations = db.query(models.Observation).filter(models.Observation.child_uuid == child.uuid, models.Observation.date_added == date).all()
-            # child.media = db.query(models.Media).filter(models.Media.child_uuid == child.uuid, models.Observation.date_added == date).all()
+            child.media = db.query(models.Media).filter(models.Media.children.in_ == child.uuid, models.Observation.date_added == date).all()
 
         return child
 

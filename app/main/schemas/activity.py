@@ -10,18 +10,32 @@ class ActivityCategoryBase(BaseModel):
     name_en: str
 
 class ActivityCategoryCreate(ActivityCategoryBase):
-    pass
+    activity_type_uuid_tab:Optional[list[str]]
 
 class ActivityCategoryUpdate(BaseModel):
     uuid: str
+    activity_type_uuid_tab:Optional[list[str]]
     name_fr: Optional[str] = None
     name_en: Optional[str] = None
 
+class ActivityCategoryDelete(BaseModel):
+    uuid: str
+    activity_type_uuid_tab: Optional[list[str]]
+
+class ActivityMini(BaseModel):
+    uuid: str
+    name_fr: str
+    name_en: Optional[str] = None
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ActivityCategory(BaseModel):
     uuid: str
     name_fr: str
     name_en: str
+    activities: list[ActivityMini]
     date_added: datetime
     date_modified: datetime
 
