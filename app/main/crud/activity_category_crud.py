@@ -35,10 +35,8 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
                             first()
                 
                 if not exist_category_activity:
-                    db.add(activity_category_table(
-                        category_uuid=db_obj.uuid,
-                        activity_uuid=activity_uuid,
-                    ))
+                    activity_type = cls.get_activity_type_by_uuid(db, activity_uuid)
+                    db_obj.activities.append(activity_type)
         db.commit()
         db.refresh(db_obj)
         return db_obj
@@ -62,10 +60,8 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
                             first()
                 
                 if not exist_category_activity:
-                    db.add(activity_category_table(
-                        category_uuid=db_obj.uuid,
-                        activity_uuid=activity_uuid,
-                    ))
+                    activity_type = cls.get_activity_type_by_uuid(db, activity_uuid)
+                    db_obj.activities.append(activity_type)
 
         db.commit()
         db.refresh(db_obj)
