@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from datetime import date, datetime
 from sqlalchemy.sql import func
-from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, String, Integer, DateTime, Table, Text, types
+from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, String, Integer, DateTime, Table, Text, Time, types
 from sqlalchemy import event
 from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -304,6 +304,88 @@ class Observation(Base):
 
     time = Column(DateTime, nullable=False, default=datetime.now())
     observation = Column(Text, nullable=False)
+
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added = Column(DateTime, server_default=func.now())
+    date_modified = Column(DateTime, server_default=func.now())
+
+
+''' Attendance Table : Gère les horaires d'arrivée et de départ. '''
+@dataclass
+class Attendance(Base):
+
+    """ Attendance model representing attendances of children """
+
+    __tablename__ = "attendances"
+
+    uuid = Column(String, primary_key=True, unique=True)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False, back_populates="attendances")
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    date = Column(Date, nullable=False)
+    arrival_time = Column(DateTime, nullable=True)
+    departure_time = Column(DateTime, nullable=True)
+
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added = Column(DateTime, server_default=func.now())
+    date_modified = Column(DateTime, server_default=func.now())
+
+
+''' Absences Table : Permet de noter les absences avec une plage de temps et une note. '''
+@dataclass
+class Absence(Base):
+
+    """ Absence model representing absences of children """
+
+    __tablename__ = "absences"
+
+    uuid = Column(String, primary_key=True, unique=True)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    note = Column(Text, nullable=True)
+
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added = Column(DateTime, server_default=func.now())
+    date_modified = Column(DateTime, server_default=func.now())
+
+
+""" OccasionalPresence Table : Permet d'enregistrer les présences occasionnelles avec des détails spécifiques."""
+@dataclass
+class OccasionalPresence(Base):
+
+    """ OccasionalPresence model representing occasional presence of children """
+
+    __tablename__ = "occasional_presences"
+
+    uuid = Column(String, primary_key=True, unique=True)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    date = Column(Date, nullable=False)
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
+    note = Column(Text, nullable=True)
 
     added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
     added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)

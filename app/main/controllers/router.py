@@ -28,6 +28,9 @@ from .observation_controller import router as observation
 from .meal_controller import router as meal_controller
 from .child_activity_controller import router as child_activity
 from .media_controller import router as media
+from .occasional_presence_controller import router as occasional_presence
+from .absence_controller import router as absence
+from .attendance_controller import router as attendance
 
 api_router = APIRouter()
 
@@ -45,6 +48,9 @@ api_router.include_router(nap)
 api_router.include_router(child_activity)
 api_router.include_router(media)
 api_router.include_router(observation)
+api_router.include_router(attendance)
+api_router.include_router(absence)
+api_router.include_router(occasional_presence)
 api_router.include_router(message)
 api_router.include_router(preregistration)
 api_router.include_router(quote)

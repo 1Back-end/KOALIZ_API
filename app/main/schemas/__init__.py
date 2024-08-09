@@ -30,3 +30,6 @@ from .activity import *
 from .meal import *
 from .planning import *
 from .media import *
+from .attendance import *
+from .absence import *
+from .occasional_presence import *
