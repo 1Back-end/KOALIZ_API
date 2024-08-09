@@ -46,6 +46,9 @@ class ActivityCategoryList(DataList):
     data: List[ActivityCategory] = []
 
 # Activity
+
+
+
 class ActivityBase(BaseModel):
     name_fr : str
     name_en : str
@@ -57,14 +60,16 @@ class ActivityCreate(ActivityBase):
 class ActivityUpdate(ActivityBase):
     uuid: str
     activity_category_uuid_tab: Optional[List[str]] = None
+    name_fr: Optional[str] = None
+    name_en: Optional[str] = None
+
 
 
 class ActivityResponse(BaseModel):
     uuid: str
     name_fr: str
     name_en: str
-    activity_category_uuid_tab:list[str]
-
+    activity_categories:list[ActivityMini]
     date_added: datetime
     date_modified: datetime
 
@@ -72,6 +77,6 @@ class ActivityResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
 class ActivityList(DataList):
-    data: list[Optional[ActivityResponse]]
+    data: List[ActivityResponse] = []
 
-    model_config = ConfigDict(from_attributes=True)
+    
