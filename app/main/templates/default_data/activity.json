@@ -1,0 +1,72 @@
+[
+    {
+        "uuid": "d6a7a1c8-64a3-4f56-98a7-2f6e2e7a5b8f",
+        "name_fr": "Eveil au goût",
+        "name_en": "Taste Awakening"
+    },
+    {
+        "uuid": "8b2c4f3d-b5c7-4d9e-a15f-36e7c8c48a3a",
+        "name_fr": "Eveil tout-petits",
+        "name_en": "Early Childhood Awakening"
+    },
+    {
+        "uuid": "a123f9e4-234a-4f6b-baa5-86a3e99f042c",
+        "name_fr": "Eveil Sonore",
+        "name_en": "Sound Awakening"
+    },
+    {
+        "uuid": "c6789e0b-1d3f-4c9f-a6a2-3b9e2b1c7c42",
+        "name_fr": "Construction et Encastrement",
+        "name_en": "Construction and Fitting"
+    },
+    {
+        "uuid": "b345f1c2-4d9e-4a76-9a1d-5c6f4c8b9a11",
+        "name_fr": "Manuelle",
+        "name_en": "Manual"
+    },
+    {
+        "uuid": "d4a9e0b1-3c5f-4b6a-9c8a-7d1e2f3b6a67",
+        "name_fr": "Manipulation",
+        "name_en": "Manipulation"
+    },
+    {
+        "uuid": "e234b6f2-4d6a-4e9c-b5a7-6f3e7d8c9a1e",
+        "name_fr": "Motricité",
+        "name_en": "Motor Skills"
+    },
+    {
+        "uuid": "f6c9e1b3-2d4a-4e6b-8a3e-9b7e1c5a7d2f",
+        "name_fr": "Jeux symboliques",
+        "name_en": "Symbolic Play"
+    },
+    {
+        "uuid": "a1b2c3d4-e5f6-7a8b-9c0d-e1f2g3h4i5j6",
+        "name_fr": "Langage",
+        "name_en": "Language"
+    },
+    {
+        "uuid": "c7d8e9f0-1a2b-3c4d-5e6f-7g8h9i0j1k2l",
+        "name_fr": "Jardin",
+        "name_en": "Garden"
+    },
+    {
+        "uuid": "b2c3d4e5-f6g7-8h9i-0j1k-2l3m4n5o6p7q",
+        "name_fr": "Extérieur de l’etablissement",
+        "name_en": "Outside the Establishment"
+    },
+    {
+        "uuid": "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6",
+        "name_fr": "Cube en bois",
+        "name_en": "Wooden Cube"
+    },
+    {
+        "uuid": "f7g8h9i0-1j2k-3l4m-5n6o-7p8q9r0s1t2u",
+        "name_fr": "Coussin sensoriel",
+        "name_en": "Sensory Cushion"
+    },
+    {
+        "uuid": "b1c2d3e4-f5g6-7h8i-9j0k-l1m2n3o4p5q6",
+        "name_fr": "Autres",
+        "name_en": "Others"
+    }
+]

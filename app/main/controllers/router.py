@@ -26,7 +26,7 @@ from .hygiene_change_controller import router as hygiene_change
 from .nursery_holidays_controller import router as nursery_holidays
 from .observation_controller import router as observation
 from .meal_controller import router as meal_controller
-
+from .activity_controller import router as activity_controller
 api_router = APIRouter()
 
 api_router.include_router(audit_logs)
@@ -54,3 +54,4 @@ api_router.include_router(nursery_close_hours)
 api_router.include_router(nursery_holidays)
 api_router.include_router(meal_controller)
 api_router.include_router(employee)
+api_router.include_router(activity_controller)
