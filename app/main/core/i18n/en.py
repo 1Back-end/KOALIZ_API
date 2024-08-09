@@ -91,7 +91,13 @@ translation = {
     "mail-subject-account-confirmation-email":"finalisation of account creation",
     "mail-subject-account-created":"Account creation.",
     "mail-subject-password-reset-succes":"Password reset.",
-    "account-created":"Your account has been created successfully"
+    "account-created":"Your account has been created successfully",
+    "activity-type-not-found":"activity(ies) type not found",
+    "category-activity-deleted-successfully":"activity category(ies) deleted.",
+    "category-activity-not-found":"activity category not found"
+
+
+
 
 
 
