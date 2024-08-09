@@ -264,7 +264,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             "holidays": holidays
         }
     
-    ddef get_children_by_nursery(
+    def get_children_by_nursery(
             self,*,
             db: Session, 
             nursery_uuid: str,
