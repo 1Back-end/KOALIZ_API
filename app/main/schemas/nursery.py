@@ -196,5 +196,5 @@ class EmployeeHomePageList(BaseModel):
     opening_hours: list[OpeningHoursDetails]
     close_hours: list[NurseryCloseHourDetails]
     holidays: list[NurseryHolidaysDetails]
-    
+
     model_config = ConfigDict(from_attributes=True)

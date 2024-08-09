@@ -56,6 +56,20 @@ class InvoiceParentGuest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class InvoiceClientAccount(BaseModel):
+    name: str
+    account_number: str
+    entity_name: str
+    iban: str
+    address: str
+    zip_code: str
+    city: str
+    country: str
+    phone_number: str
+    email: str
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class InvoiceDetails(BaseModel):
     uuid: str
@@ -68,6 +82,7 @@ class InvoiceDetails(BaseModel):
 
     contract: InvoiceContract
     parent_guest: InvoiceParentGuest
+    client_account: Optional[InvoiceClientAccount] = None
 
     items: list[InvoiceTimeTableItem] = []
 

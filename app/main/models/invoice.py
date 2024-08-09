@@ -116,7 +116,8 @@ class ClientAccount(Base):
 
     name: str = Column(String, nullable=False)
     account_number: str = Column(String, nullable=False)
-    iban: float = Column(Float, nullable=0)
+    entity_name: str = Column(String, default="")
+    iban: str = Column(String, nullable=False, default="")
     address: str = Column(String, nullable=False)
     zip_code: str = Column(String, nullable=False)
     city: str = Column(String, nullable=False)

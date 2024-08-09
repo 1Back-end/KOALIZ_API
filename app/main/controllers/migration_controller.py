@@ -524,7 +524,7 @@ async def create_default_planning_data(
 
     try:
         start_year = 2024
-        end_year = 2030
+        end_year = 2100
 
         background_tasks.add_task(populate_data, db, start_year, end_year)
 

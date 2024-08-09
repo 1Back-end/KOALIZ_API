@@ -101,7 +101,7 @@ class NurseryCloseHour(Base):
     __tablename__ = "nursery_close_hours"
     
     uuid: str = Column(String, primary_key=True, index=True)
-    name_fr: str = Column(String, nullable=False)
+    name_fr: str = Column(String, nullable=True)
     name_en: str = Column(String, nullable=True)
     start_day: int = Column(Integer, nullable=False)
     start_month: int = Column(Integer, nullable=False)

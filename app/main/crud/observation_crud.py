@@ -16,10 +16,17 @@ class CRUDObservation(CRUDBase[Observation, ObservationCreate, ObservationUpdate
     @classmethod
     def create(self, db: Session, obj_in: ObservationCreate) -> Observation:
 
-        obj_in_data = jsonable_encoder(obj_in)
-        obj_in_data["uuid"] = str(uuid.uuid4())
-        obj_in_data["added_by_uuid"] = obj_in.employee_uuid
-        db_obj = Observation(**obj_in_data)
+        # obj_in_data = jsonable_encoder(obj_in)
+        # obj_in_data["uuid"] = str(uuid.uuid4())
+        # obj_in_data["added_by_uuid"] = obj_in.employee_uuid
+        db_obj = Observation(
+            uuid=str(uuid.uuid4()),
+            time=obj_in.time,
+            observation=obj_in.observation,
+            added_by_uuid=obj_in.employee_uuid,
+            child_uuid=obj_in.child_uuid,
+            nursery_uuid=obj_in.nursery_uuid,
+        )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
@@ -70,7 +77,7 @@ class CRUDObservation(CRUDBase[Observation, ObservationCreate, ObservationUpdate
         if nursery_uuid:
             record_query = record_query.filter(Observation.nursery_uuid == nursery_uuid)
         if employee_uuid:
-            record_query = record_query.filter(Observation.employee_uuid == employee_uuid)
+            record_query = record_query.filter(Observation.added_by_uuid == employee_uuid)
 
         if order == "asc":
             record_query = record_query.order_by(getattr(Observation, order_field).asc())
