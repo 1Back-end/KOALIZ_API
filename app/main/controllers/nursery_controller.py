@@ -28,64 +28,34 @@ def create(
     return crud.nursery.create(db, obj_in, current_user.uuid)
 
 
-@router.put("/{uuid}", response_model=schemas.Nursery, status_code=200)
-def update(
-        uuid: str,
-        obj_in: schemas.NurseryUpdateBase,
-        db: Session = Depends(get_db),
-        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+@router.put("/actived", response_model=schemas.Nursery, status_code=200)
+def update_active_nursery(
+    *,
+    uuid: str,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """
-    Update nursery
+    Update active nursery
     """
-    nursery = crud.nursery.get(db=db, uuid=uuid)
-    if not nursery:
+    exist_nursery = crud.nursery.get(db=db, uuid=uuid)
+    if not exist_nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    if current_user.role.code == "owner" and nursery.owner_uuid != current_user.uuid:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    exist_nursery.is_actived=True
+    db.commit()
 
-    return crud.nursery.update(db, nursery, obj_in)
+    nurseries = db.query(models.Nursery)\
+        .filter(models.Nursery.owner_uuid == current_user.uuid)\
+        .filter(models.Nursery.uuid != uuid)\
+        .all()
+    
+    for nursery in nurseries:
+        print(nursery.uuid)
+        nursery.is_actived=False
+        db.commit()
 
-
-@router.put("/{uuid}/status", response_model=schemas.Nursery, status_code=200)
-def update(
-        uuid: str,
-        status: str = Query(..., enum=[st.value for st in models.NurseryStatusType if
-                                       st.value != models.NurseryStatusType.DELETED]),
-        db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
-):
-    """
-    Update nursery owner status
-    """
-    nursery = crud.nursery.get(db=db, uuid=uuid)
-    if not nursery:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-    if nursery.status == status:
-        return nursery
-
-    return crud.nursery.update_status(db, nursery, status)
-
-
-@router.get("/{uuid}", response_model=schemas.Nursery, status_code=200)
-def get_details(
-        uuid: str,
-        db: Session = Depends(get_db),
-        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
-):
-    """
-    Get nursery details
-    """
-    nursery = crud.nursery.get_by_uuid(db, uuid)
-    if not nursery:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-    if current_user.role.code == "owner" and nursery.owner_uuid != current_user.uuid:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-    return nursery
+    return exist_nursery
 
 
 @router.delete("", response_model=schemas.Msg)
@@ -133,53 +103,15 @@ def get(
     )
 
 
-@router.get("/guest/{slug}", response_model=schemas.NurseryByGuest, status_code=200)
-def get_by_slug_guest(
-        slug: str,
-        db: Session = Depends(get_db)
+@router.get("/children", response_model=List[ChildResponse])
+def read_children_by_nursery(
+    *,
+    nursery_uuid:str,
+    filter_date:Optional[date]=None,
+    db: Session = Depends(get_db),
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
-    """
-    Get nursery by slug and return all nurseries of the same owner
-    """
-    nursery = crud.nursery.get_by_slug(db, slug)
-    if not nursery:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-    other_nurseries = crud.nursery.get_all_uuids_of_same_owner(db, nursery.owner_uuid, [nursery.uuid])
-
-    nursery.others = other_nurseries
-
-    return nursery
-
-
-@router.post("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
-async def create_opening_hours(
-        opening_hours: list[schemas.OpeningHoursInput],
-        uuid: str,
-        db: Session = Depends(get_db),
-        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
-):
-    if len(opening_hours) > 7:
-        raise HTTPException(status_code=422, detail="Opening hours data list cannot exceed 7 items")
-    nursery = crud.nursery.get(db, uuid)
-    if not nursery or nursery.owner_uuid != current_user.uuid:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-    return crud.nursery.add_update_opening_hours(db, nursery, opening_hours)
-
-
-@router.get("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
-async def get_opening_hours(
-        uuid: str,
-        db: Session = Depends(get_db),
-        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
-):
-
-    nursery = crud.nursery.get(db, uuid)
-    if not nursery or nursery.owner_uuid != current_user.uuid:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-    return nursery
+    return crud.nursery.get_children_by_nursery(db=db, nursery_uuid=nursery_uuid,filter_date=filter_date)
 
 
 @router.get("/all/slim", response_model=list[schemas.OtherNurseryByGuest], status_code=200)
@@ -207,12 +139,118 @@ def get_employee_home_page(
 
 "c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
 
-@router.get("/children", response_model=List[ChildResponse])
-def read_children_by_nursery(
-    *,
-    nursery_uuid:str,
-    filter_date:Optional[date]=None,
-    db: Session = Depends(get_db),
-    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+@router.get("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
+async def get_opening_hours(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
-    return crud.nursery.get_children_by_nursery(db=db, nursery_uuid=nursery_uuid,filter_date=filter_date)
+
+    nursery = crud.nursery.get(db, uuid)
+    if not nursery or nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    return nursery
+
+
+@router.post("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
+async def create_opening_hours(
+        opening_hours: list[schemas.OpeningHoursInput],
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    if len(opening_hours) > 7:
+        raise HTTPException(status_code=422, detail="Opening hours data list cannot exceed 7 items")
+    nursery = crud.nursery.get(db, uuid)
+    if not nursery or nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    return crud.nursery.add_update_opening_hours(db, nursery, opening_hours)
+
+
+@router.get("/guest/{slug}", response_model=schemas.NurseryByGuest, status_code=200)
+def get_by_slug_guest(
+        slug: str,
+        db: Session = Depends(get_db)
+):
+    """
+    Get nursery by slug and return all nurseries of the same owner
+    """
+    nursery = crud.nursery.get_by_slug(db, slug)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    other_nurseries = crud.nursery.get_all_uuids_of_same_owner(db, nursery.owner_uuid, [nursery.uuid])
+
+    nursery.others = other_nurseries
+
+    return nursery
+
+
+@router.get("/{uuid}", response_model=schemas.Nursery, status_code=200)
+def get_details(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+):
+    """
+    Get nursery details
+    """
+    nursery = crud.nursery.get_by_uuid(db, uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    if current_user.role.code == "owner" and nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    return nursery
+
+
+@router.put("/{uuid}", response_model=schemas.Nursery, status_code=200)
+def update(
+        uuid: str,
+        obj_in: schemas.NurseryUpdateBase,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+):
+    """
+    Update nursery
+    """
+    nursery = crud.nursery.get(db=db, uuid=uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    if current_user.role.code == "owner" and nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    return crud.nursery.update(db, nursery, obj_in)
+
+
+@router.put("/{uuid}/status", response_model=schemas.Nursery, status_code=200)
+def update(
+        uuid: str,
+        status: str = Query(..., enum=[st.value for st in models.NurseryStatusType if
+                                       st.value != models.NurseryStatusType.DELETED]),
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+):
+    """
+    Update nursery owner status
+    """
+    nursery = crud.nursery.get(db=db, uuid=uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    if nursery.status == status:
+        return nursery
+
+    return crud.nursery.update_status(db, nursery, status)
+
+
+
+
+
+
+
+

@@ -39,7 +39,20 @@ class Invoice(Base):
 
     status: str = Column(types.Enum(InvoiceStatusType), nullable=False, default=InvoiceStatusType.PROFORMA)
 
-    timetables: Mapped[list[any]] = relationship("InvoiceTimetable", back_populates="invoice", uselist=True, cascade="all, delete-orphan")
+    date_to: date = Column(Date)
+    invoicing_period_start: date = Column(Date)
+    invoicing_period_end: date = Column(Date)
+    amount: float = Column(Float, default=0)
+    amount_paid: float = Column(Float, default=0)
+    amount_due: float = Column(Float, default=0)
+
+    items: Mapped[list[any]] = relationship("InvoiceItem", back_populates="invoice", uselist=True, cascade="all, delete-orphan")
+
+    contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
+    contract: Mapped[any] = relationship("Contract", uselist=False)
+
+    client_account_uuid: str = Column(String, ForeignKey('client_accounts.uuid'))
+    client_account: Mapped[any] = relationship("ClientAccount", foreign_keys=client_account_uuid, uselist=False, back_populates="invoices")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -59,74 +72,73 @@ def update_modified_on_update_listener(mapper, connection, target):
     target.date_modified = datetime.now()
 
 
-class InvoiceTimetable(Base):
+class InvoiceItem(Base):
     """
      database model for storing Timetable related details
     """
-    __tablename__ = "invoice_timetables"
-
-    uuid: str = Column(String, primary_key=True, unique=True, index=True)
-
-    date_to: date = Column(Date)
-    amount: float = Column(Float, default=0)
-    amount_paid: float = Column(Float, default=0)
-    amount_due: float = Column(Float, default=0)
-    status: str = Column(types.Enum(InvoiceStatusType), nullable=False, default=InvoiceStatusType.PROFORMA)
-
-    reference: str = Column(String, nullable=False, default="")
-    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
-    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
-
-    items: Mapped[list[any]] = relationship("InvoiceTimetableItem", back_populates="timetable", uselist=True, cascade="all, delete-orphan")
-
-    invoice_uuid: str = Column(String, ForeignKey('invoices.uuid', ondelete='CASCADE'), nullable=False)
-    invoice: Mapped[any] = relationship("Invoice", foreign_keys=invoice_uuid, uselist=False, back_populates="timetables")
-
-    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
-    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
-
-
-@event.listens_for(InvoiceTimetable, 'before_insert')
-def update_created_modified_on_create_listener(mapper, connection, target):
-    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
-    target.date_added = datetime.now()
-    target.date_modified = datetime.now()
-    target.reference = datetime.now().strftime('%Y%m%d%H%M%S')
-
-
-@event.listens_for(InvoiceTimetable, 'before_update')
-def update_modified_on_update_listener(mapper, connection, target):
-    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
-    target.date_modified = datetime.now()
-
-
-class InvoiceTimetableItem(Base):
-    """
-     database model for storing Timetable related details
-    """
-    __tablename__ = "invoice_timetable_items"
+    __tablename__ = "invoice_items"
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     title_fr: str = Column(String, nullable=False)
     title_en: str = Column(String, nullable=False)
     amount: float = Column(Float, nullable=0)
+    total_hours: float = Column(Float)
+    unit_price: float = Column(Float)
 
-    timetable_uuid: str = Column(String, ForeignKey('invoice_timetables.uuid', ondelete='CASCADE'), nullable=False)
-    timetable: Mapped[any] = relationship("InvoiceTimetable", foreign_keys=timetable_uuid, uselist=False, back_populates="items")
+    invoice_uuid: str = Column(String, ForeignKey('invoices.uuid', ondelete='CASCADE'), nullable=False)
+    invoice: Mapped[any] = relationship("Invoice", foreign_keys=invoice_uuid, uselist=False, back_populates="items")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
 
-@event.listens_for(InvoiceTimetableItem, 'before_insert')
+@event.listens_for(InvoiceItem, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
     target.date_modified = datetime.now()
 
 
-@event.listens_for(InvoiceTimetableItem, 'before_update')
+@event.listens_for(InvoiceItem, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
+class ClientAccount(Base):
+    """
+     database model for storing Timetable related details
+    """
+    __tablename__ = "client_accounts"
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+
+    name: str = Column(String, nullable=False)
+    account_number: str = Column(String, nullable=False)
+    entity_name: str = Column(String, default="")
+    iban: str = Column(String, nullable=False, default="")
+    address: str = Column(String, nullable=False)
+    zip_code: str = Column(String, nullable=False)
+    city: str = Column(String, nullable=False)
+    country: str = Column(String, nullable=False)
+    phone_number: str = Column(String, nullable=False)
+    email: str = Column(String, nullable=False)
+
+    invoices: Mapped[list[any]] = relationship("Invoice", uselist=True, back_populates="client_account")
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(ClientAccount, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(ClientAccount, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()

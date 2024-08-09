@@ -44,12 +44,16 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         db.commit()
 
     @classmethod
-    def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, performed_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
+    def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, performed_by_uuid: str,
+                                          background_task=None) -> Optional[schemas.PreregistrationDetails]:
 
         exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
-        
+
+        if not exist_folder.quote:
+            background_task.add_task(cls.generate_quote, cls, db, exist_folder.uuid)
+
         # Create the log tracking
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
@@ -82,7 +86,13 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             if exist_folder.quote and exist_folder.quote.status != models.QuoteStatusType.ACCEPTED:
                 exist_folder.quote.status = models.QuoteStatusType.ACCEPTED
                 crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
-            crud.invoice.generate_invoice(db, exist_folder.quote.uuid)
+                crud.invoice.generate_invoice(db, exist_folder.quote.uuid, exist_folder.contract_uuid)
+
+            db.flush()
+
+            # Insert planning for child
+            # background_task.add_task(crud.child_planning.insert_planning, exist_folder.nursery, exist_folder.child, db)
+            crud.child_planning.insert_planning(db=db, child=exist_folder.child, nursery=exist_folder.nursery)
 
         db.commit()
 
@@ -353,9 +363,13 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         child_age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
 
         print(f"child_age {child_age}")
+        if child_age < 0:
+            child_age = 0
 
         cmg_amount_obj = db.query(models.CMGAmount).filter(models.CMGAmount.child_age_lower <= child_age).filter(
             models.CMGAmount.child_age_upper > child_age).first()
+        if not cmg_amount_obj:
+            return None
 
         cmg_amount = 0
         band_number = 0
@@ -388,7 +402,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             )
             db.add(q_cmg)
         return q_cmg
-
 
     def generate_quote(self, db: Session, preregistration_uuid):
         exist_preregistration = self.get_by_uuid(db, preregistration_uuid)
@@ -542,6 +555,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             quote_timetable = models.QuoteTimetable(
                 uuid=str(uuid.uuid4()),
                 date_to=quote_timetable_res.billing_date,
+                invoicing_period_start=quote_timetable_res.billing_period_start,
+                invoicing_period_end=quote_timetable_res.billing_period_end,
                 amount=quote_timetable_res.amount,
                 quote_uuid=quote.uuid
             )
@@ -564,15 +579,12 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                     title_en=__(title, "en"),
                     type=item.quote_type,
                     amount=item.amount,
-                    quote_timetable_uuid=quote_timetable.uuid
+                    quote_timetable_uuid=quote_timetable.uuid,
+                    total_hours=item.total_hours,
+                    unit_price=item.unit_price
                 )
                 db.add(quote_timetable_item)
         db.commit()
-
-
-
-
-
 
     @classmethod
     def create(cls, db: Session, obj_in: schemas.PreregistrationCreate, background_task: BackgroundTasks, current_user_uuid: str = None) -> models.Child:
@@ -650,7 +662,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         db.refresh(child)
 
         for preregistration_uuid in preregistration_uuids:
-            background_task.add_task(cls.generate_quote, db, preregistration_uuid)
+            background_task.add_task(cls.generate_quote, cls, db, preregistration_uuid)
 
         return child
 
@@ -721,7 +733,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     ):
         child = db.query(models.Child).filter(models.Child.uuid == child_uuid).first()
 
-        if child:
+        if date:
             # Step 2: Load filtered relations and assign to the child object
             child.meals = db.query(models.Meal).filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == date).all()
             child.activities = db.query(models.ChildActivity).filter(models.ChildActivity.child_uuid == child.uuid, models.ChildActivity.date_added == date).all()
@@ -730,7 +742,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             child.hygiene_changes = db.query(models.HygieneChange).filter(models.HygieneChange.child_uuid == child.uuid, models.HygieneChange.date_added == date).all()
             child.observations = db.query(models.Observation).filter(models.Observation.child_uuid == child.uuid, models.Observation.date_added == date).all()
             # child.media = db.query(models.Media).filter(models.Media.child_uuid == child.uuid, models.Observation.date_added == date).all()
-
 
         return child
 

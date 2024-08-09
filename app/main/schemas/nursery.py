@@ -18,6 +18,7 @@ class NurseryMini(BaseModel):
     total_places: int = 0
     phone_number: str
     status: str
+    is_actived:Optional[bool]=None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -40,6 +41,7 @@ class Nursery(BaseModel):
     total_places: int = 0
     phone_number: str
     status: str
+    is_actived:Optional[bool]=None
     website: Optional[str] = None
     slug: Optional[str] = None
     logo: Optional[File]
@@ -56,6 +58,7 @@ class Nursery(BaseModel):
 class NurserySlim(BaseModel):
     uuid: str
     name: str
+    is_actived:Optional[bool]=None
     memberships:Optional[list[Membership1]]=[]
 
     model_config = ConfigDict(from_attributes=True)
@@ -177,6 +180,7 @@ class NurseryByGuest(BaseModel):
     logo: Optional[File]
     address: Address
     others: list[OtherNurseryByGuest] = []
+    is_actived:Optional[bool]=None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -192,5 +196,5 @@ class EmployeeHomePageList(BaseModel):
     opening_hours: list[OpeningHoursDetails]
     close_hours: list[NurseryCloseHourDetails]
     holidays: list[NurseryHolidaysDetails]
-    
+
     model_config = ConfigDict(from_attributes=True)

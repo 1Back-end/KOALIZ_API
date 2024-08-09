@@ -69,7 +69,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         db.commit()
         db.refresh(nursery)
         return nursery
-    
+
     @classmethod
     def update(cls, db: Session, nursery: models.Nursery, obj_in: schemas.NurseryUpdateBase) -> models.Nursery:
 
@@ -247,14 +247,16 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         if not nursery:
             raise HTTPException(status_code=404, detail="Nursery not found")
 
-        opening_hours = db.query(models.NurseryOpeningHour).filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid).all()
-        # opening_hours_data = [schemas.OpeningHoursDetails.model_validate(hour).model_dump() for hour in opening_hours]
+        opening_hours = db.query(models.NurseryOpeningHour)\
+            .filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid).\
+            all()
 
         close_hours = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid == nursery_uuid).all()
-        # close_hours_data = [schemas.NurseryCloseHourDetails.model_validate(hour).model_dump() for hour in close_hours]
 
-        holidays = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.nursery_uuid == nursery_uuid).all()
-        # holidays_data = [schemas.NurseryHolidaysDetails.model_validate(holiday).model_dump() for holiday in holidays]
+        holidays = db.query(models.NuseryHoliday).\
+            filter(models.NuseryHoliday.nursery_uuid == nursery_uuid).\
+            filter(models.NurseryOpeningHour.is_active == True).\
+            all()
 
         return {
             "opening_hours": opening_hours,
@@ -262,7 +264,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             "holidays": holidays
         }
     
-    def get_children_by_nursery(self,*,db: Session, nursery_uuid: str,filter_date:Optional[date]=None):
+    def get_children_by_nursery(self,*,db: Session, nursery_uuid: str, filter_date: Optional[date] = None):
         # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
         accepted_preregistrations = db.query(PreRegistration).filter(
             PreRegistration.nursery_uuid == nursery_uuid,
@@ -273,8 +275,16 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         child_uuids = [preregistration.child_uuid for preregistration in accepted_preregistrations if preregistration.child_uuid]
 
         if filter_date:
-            pass
-        
+            child_uuids = [
+                child_planning.child_uuid
+                for child_planning in
+                    db.query(models.ChildPlanning).
+                    filter(models.ChildPlanning.child_uuid.in_(child_uuids)).
+                    filter(models.ChildPlanning.nursery_uuid==nursery_uuid).
+                    filter(models.ChildPlanning.current_date==filter_date).
+                    all()
+            ]
+
         # Filtrer les enfants par UUID et is_accepted
         children = db.query(Child).filter(
             Child.uuid.in_(child_uuids),

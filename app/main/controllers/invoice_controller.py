@@ -43,7 +43,7 @@ def get(
     )
 
 
-@router.get("/{uuid}", response_model=schemas.InvoiceDetails, status_code=200, include_in_schema=False)
+@router.get("/{uuid}", response_model=schemas.InvoiceDetails, status_code=200)
 def get_details(
         uuid: str,
         db: Session = Depends(get_db),
@@ -52,11 +52,11 @@ def get_details(
     """
         Get quote details
     """
-    quote = crud.quote.get_by_uuid(db, uuid)
-    if not quote:
-        raise HTTPException(status_code=404, detail=__("quote-not-found"))
+    invoice = crud.invoice.get_by_uuid(db, uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
 
-    if current_user.role.code == "owner" and quote.nursery.owner_uuid != current_user.uuid:
-        raise HTTPException(status_code=404, detail=__("quote-not-found"))
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
 
-    return quote
+    return invoice

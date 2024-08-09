@@ -92,7 +92,8 @@ class Child(Base):
         for parent in self.parents:
             if parent.is_paying_parent:
                 return parent
-        return self.parents[0]
+        if len(self.parents) > 0:
+            return self.parents[0]
     
     @hybrid_property
     def age(self):
@@ -343,6 +344,7 @@ class Contract(Base):
 
     sepa_direct_debit_uuid: str = Column(String, ForeignKey('sepa_direct_debits.uuid'))
     sepa_direct_debit: Mapped[any] = relationship("SEPADirectDebit", foreign_keys=sepa_direct_debit_uuid, uselist=False)
+    reference: str = Column(String, default="")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
