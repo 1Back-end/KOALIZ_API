@@ -8,6 +8,7 @@ from app.main import models
 from app.main.core.i18n import __
 from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType
 from app.main.schemas import DataList, NurseryMini
+from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
 from app.main.schemas.user import Storage
 from app.main.schemas.file import File
@@ -237,6 +238,7 @@ class ChildResponse(BaseModel):
     gender: models.Gender
     age : int
     nb_parent: int
+    attendances: list[AttendanceMini]
     date_added: datetime
     model_config = ConfigDict(from_attributes=True)
 

@@ -725,23 +725,46 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             current_page=page,
             data=record_query
         )
+    
     def get_transmission(
         self,
         child_uuid: str,
         db:Session,
-        date:date = None,
+        nursery_uuid:str,
+        date:date = None
     ):
         child = db.query(models.Child).filter(models.Child.uuid == child_uuid).first()
 
         if date:
             # Step 2: Load filtered relations and assign to the child object
-            child.meals = db.query(models.Meal).filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == date).all()
-            child.activities = db.query(models.ChildActivity).filter(models.ChildActivity.child_uuid == child.uuid, models.ChildActivity.date_added == date).all()
-            child.naps = db.query(models.Nap).filter(models.Nap.child_uuid == child.uuid, models.Nap.date_added == date).all()
-            child.health_records = db.query(models.HealthRecord).filter(models.HealthRecord.child_uuid == child.uuid, models.HealthRecord.date_added == date).all()
-            child.hygiene_changes = db.query(models.HygieneChange).filter(models.HygieneChange.child_uuid == child.uuid, models.HygieneChange.date_added == date).all()
-            child.observations = db.query(models.Observation).filter(models.Observation.child_uuid == child.uuid, models.Observation.date_added == date).all()
-            child.media = db.query(models.Media).filter(models.Media.children.in_ == child.uuid, models.Observation.date_added == date).all()
+            child.meals = db.query(models.Meal).\
+                filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == date).\
+                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                all()
+            child.activities = db.query(models.ChildActivity).\
+                filter(models.ChildActivity.child_uuid == child.uuid, models.ChildActivity.date_added == date).\
+                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                all()
+            child.naps = db.query(models.Nap).\
+                filter(models.Nap.child_uuid == child.uuid, models.Nap.date_added == date).\
+                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                all()
+            child.health_records = db.query(models.HealthRecord).\
+                filter(models.HealthRecord.child_uuid == child.uuid, models.HealthRecord.date_added == date).\
+                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                all()
+            child.hygiene_changes = db.query(models.HygieneChange).\
+                filter(models.HygieneChange.child_uuid == child.uuid, models.HygieneChange.date_added == date).\
+                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                all()
+            child.observations = db.query(models.Observation).\
+                filter(models.Observation.child_uuid == child.uuid, models.Observation.date_added == date).\
+                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                all()
+            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
+            child.media = db.query(models.Media).\
+                filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
+                all()
 
         return child
 
