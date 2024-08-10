@@ -6,11 +6,12 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType
+from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, Media, NapQuality, Route, StoolType
 from app.main.schemas import DataList, NurseryMini
 from app.main.schemas.base import Items
 from app.main.schemas.user import Storage
 from app.main.schemas.file import File
+
 
 @field_validator("birthdate")
 class ChildSchema(BaseModel):
@@ -458,6 +459,16 @@ class ObservationSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class MediaSlim(BaseModel):
+    uuid: str
+    file:Optional[File]
+    media_type:str
+    time: datetime
+    observation: Optional[str] = None
+    date_added: datetime
+    date_modified: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 class Transmission(BaseModel):
     uuid: str
     firstname: str
@@ -472,7 +483,7 @@ class Transmission(BaseModel):
     naps:Optional[list[NapSlim]]
     health_records:Optional[list[HealthRecordSlim]] 
     hygiene_changes:Optional[list[HygieneChangeSlim]]
-    media:Optional[list[File]]
+    media:Optional[list[MediaSlim]]
     observations:Optional[list[ObservationSlim]]
 
     model_config = ConfigDict(from_attributes=True)
