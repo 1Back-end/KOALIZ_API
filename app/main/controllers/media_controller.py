@@ -22,8 +22,8 @@ def create_media(
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    if not childs or  len(obj_in.child_uuids)!= len(childs):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
     employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
@@ -40,14 +40,17 @@ def update_media(
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
     """ Update media for children """
+    
+    if current_team_device.nursery_uuid!=obj_in.nursery_uuid:
+        raise HTTPException(status_code=403, detail=__("not-authorized"))
 
     media = crud.media.get_media_by_uuid(db, obj_in.uuid)
     print("media-updated",media)
     if not media:
         raise HTTPException(status_code=404, detail=__("media-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    if not childs or  len(obj_in.child_uuids)!= len(childs):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
@@ -57,7 +60,10 @@ def update_media(
     employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
     if not employe:
         raise HTTPException(status_code=404, detail=__("member-not-found"))
-
+    
+    if employe not in current_team_device.members:
+        raise HTTPException(status_code=403, detail=__("not-authorized"))
+    
     return crud.media.update(db ,obj_in)
 
 
@@ -69,6 +75,14 @@ def delete_media(
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles =[]))
 ):
     """ Delete many(or one) """
+    
+    nursery_media =  db.query(models.Media).\
+        filter(models.Media.uuid.in_(uuids)).\
+        filter(models.Media.nursery_uuid ==current_team_device.nursery_uuid).\
+        all()
+    
+    if not nursery_media or len(nursery_media)!=len(uuids):
+        raise HTTPException(status_code=404, detail=__("media-not-found"))
 
     crud.media.delete(db, uuids)
     return {"message": __("media-deleted")}
