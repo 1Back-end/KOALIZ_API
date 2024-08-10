@@ -243,7 +243,7 @@ def get_many(
 def get_child_transmission(
         child_uuid: str,
         nursery_uuid: str,
-        date:date = datetime.now().date(),
+        date:date = None,
         db: Session = Depends(get_db),
         current_team_device: models.TeamDevice = Depends(dependencies.TeamTokenRequired())
 ):
