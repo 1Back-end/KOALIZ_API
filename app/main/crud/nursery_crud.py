@@ -296,43 +296,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                     all()
             ]
 
-            for child in children:
-                # Step 2: Load filtered relations and assign to the child object
-                child.meals = db.query(models.Meal).\
-                    filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == filter_date,
-                           models.Meal.nursery_uuid == nursery_uuid).\
-                            all()
-                child.activities = db.query(models.ChildActivity).\
-                    filter(models.ChildActivity.child_uuid == child.uuid,
-                           models.ChildActivity.nursery_uuid == nursery_uuid, 
-                           models.ChildActivity.date_added == filter_date,
-                           ).\
-                            all()
-                child.naps = db.query(models.Nap).\
-                    filter(models.Nap.child_uuid == child.uuid,
-                            models.Nap.nursery_uuid == nursery_uuid,
-                           models.Nap.date_added == filter_date).\
-                            all()
-                child.health_records = db.query(models.HealthRecord).\
-                    filter(models.HealthRecord.child_uuid == child.uuid, 
-                           models.HealthRecord.nursery_uuid == nursery_uuid,
-                           models.HealthRecord.date_added == filter_date).\
-                            all()
-                child.hygiene_changes = db.query(models.HygieneChange).\
-                    filter(models.HygieneChange.child_uuid == child.uuid, 
-                           models.HygieneChange.nursery_uuid == nursery_uuid,
-                           models.HygieneChange.date_added == filter_date).\
-                            all()
-                child.observations = db.query(models.Observation).\
-                    filter(models.Observation.child_uuid == child.uuid, 
-                           models.Observation.nursery_uuid == nursery_uuid, 
-                           models.Observation.date_added == filter_date).\
-                            all()
-                child.media = db.query(models.Media).\
-                    join(models.children_media,child.uuid == models.children_media.c.child_uuid).\
-                        filter(models.Media.nursery_uuid == nursery_uuid,
-                            models.Media.date_added == filter_date).\
-                                all()
+            
 
 
             # Filtrer les enfants par UUID et is_accepted
@@ -340,6 +304,44 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             Child.uuid.in_(child_uuids),
             Child.is_accepted == True
         )
+
+        if filter_date:
+            for child in children:
+                # Step 2: Load filtered relations and assign to the child object
+                child.meals = db.query(models.Meal).\
+                    filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == filter_date,
+                            models.Meal.nursery_uuid == nursery_uuid).\
+                            all()
+                child.activities = db.query(models.ChildActivity).\
+                    filter(models.ChildActivity.child_uuid == child.uuid,
+                            models.ChildActivity.nursery_uuid == nursery_uuid, 
+                            models.ChildActivity.date_added == filter_date,
+                            ).\
+                            all()
+                child.naps = db.query(models.Nap).\
+                    filter(models.Nap.child_uuid == child.uuid,
+                            models.Nap.nursery_uuid == nursery_uuid,
+                            models.Nap.date_added == filter_date).\
+                            all()
+                child.health_records = db.query(models.HealthRecord).\
+                    filter(models.HealthRecord.child_uuid == child.uuid, 
+                            models.HealthRecord.nursery_uuid == nursery_uuid,
+                            models.HealthRecord.date_added == filter_date).\
+                            all()
+                child.hygiene_changes = db.query(models.HygieneChange).\
+                    filter(models.HygieneChange.child_uuid == child.uuid, 
+                            models.HygieneChange.nursery_uuid == nursery_uuid,
+                            models.HygieneChange.date_added == filter_date).\
+                            all()
+                child.observations = db.query(models.Observation).\
+                    filter(models.Observation.child_uuid == child.uuid, 
+                            models.Observation.nursery_uuid == nursery_uuid, 
+                            models.Observation.date_added == filter_date).\
+                            all()
+                media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
+                child.media = db.query(models.Media).\
+                    filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
+                    all()
 
         if keyword:
             children = children.filter(
