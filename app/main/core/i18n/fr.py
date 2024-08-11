@@ -98,4 +98,21 @@ translation = {
     "hygiene-change-deleted": "Changement d'hygiène supprimé avec succès",
     "health-record-not-found": "Dossier médical non trouvé",
     "health-record-deleted": "Dossier médical supprimé avec succès",
+    "observation-not-found":"Dossier d'observation introuvable.",
+    "observation-deleted":"Dossier d'observation supprimé avec succès",
+    "mail-subject-account-confirmation-email":"finalisation de creation de compte",
+    "mail-subject-account-created":"creation de compte.",
+    "account-created":"Votre compte a été crée avecc succès",
+    "mail-subject-password-reset-succes":"Votre mot de passe a été modifié avec succès.",
+    "activity-type-not-found":"le(es) type(e)s d'activités n'existe(nt) pas",
+    "category-activity-deleted-successfully":"la(es) catégories d'activités ont été suprrimées avec succès.",
+    "category-activity-not-found":"la catégorie d'activité n'existe pas",
+    "attendance-deleted":"Horaire supprimé(es) avec succès.",
+    "attendance-not-found":"les(l') Horaire(s) n'existe(nt) pas",
+    "absence-not-found":"période d'absence introuvable",
+    "absence-deleted":"periode d'absence supprimée avec succès",
+    "occasional-presence-not-found":"présence occasionelle introuvable",
+    "occasional-presence-deleted":" presence occasionelle supprimée avec succès",
+
+
 }

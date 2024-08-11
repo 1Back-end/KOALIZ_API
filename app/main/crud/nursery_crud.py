@@ -69,7 +69,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         db.commit()
         db.refresh(nursery)
         return nursery
-    
+
     @classmethod
     def update(cls, db: Session, nursery: models.Nursery, obj_in: schemas.NurseryUpdateBase) -> models.Nursery:
 
@@ -247,14 +247,16 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         if not nursery:
             raise HTTPException(status_code=404, detail="Nursery not found")
 
-        opening_hours = db.query(models.NurseryOpeningHour).filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid).all()
-        # opening_hours_data = [schemas.OpeningHoursDetails.model_validate(hour).model_dump() for hour in opening_hours]
+        opening_hours = db.query(models.NurseryOpeningHour)\
+            .filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid).\
+            all()
 
         close_hours = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid == nursery_uuid).all()
-        # close_hours_data = [schemas.NurseryCloseHourDetails.model_validate(hour).model_dump() for hour in close_hours]
 
-        holidays = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.nursery_uuid == nursery_uuid).all()
-        # holidays_data = [schemas.NurseryHolidaysDetails.model_validate(holiday).model_dump() for holiday in holidays]
+        holidays = db.query(models.NuseryHoliday).\
+            filter(models.NuseryHoliday.nursery_uuid == nursery_uuid).\
+            filter(models.NurseryOpeningHour.is_active == True).\
+            all()
 
         return {
             "opening_hours": opening_hours,
@@ -262,7 +264,18 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             "holidays": holidays
         }
     
-    def get_children_by_nursery(self,*,db: Session, nursery_uuid: str,filter_date:Optional[date]=None):
+    def get_children_by_nursery(
+            self,*,
+            db: Session, 
+            nursery_uuid: str,
+            child_uuid: Optional[str] = None,
+            filter_date: Optional[date] = None,
+            page:int=1,
+            per_page: int=30,
+            order_filed: str = "date_added",
+            order: str = "desc",
+            keyword:Optional[str] = None
+            ) -> List[Child]:
         # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
         accepted_preregistrations = db.query(PreRegistration).filter(
             PreRegistration.nursery_uuid == nursery_uuid,
@@ -273,14 +286,93 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         child_uuids = [preregistration.child_uuid for preregistration in accepted_preregistrations if preregistration.child_uuid]
 
         if filter_date:
-            pass
-        
-        # Filtrer les enfants par UUID et is_accepted
+            child_uuids = [
+                child_planning.child_uuid
+                for child_planning in
+                    db.query(models.ChildPlanning).
+                    filter(models.ChildPlanning.child_uuid.in_(child_uuids)).
+                    filter(models.ChildPlanning.nursery_uuid==nursery_uuid).
+                    filter(models.ChildPlanning.current_date==filter_date).
+                    all()
+            ]
+
+            
+
+
+            # Filtrer les enfants par UUID et is_accepted
         children = db.query(Child).filter(
             Child.uuid.in_(child_uuids),
             Child.is_accepted == True
-        ).all()
-        return children
+        )
+
+        if filter_date:
+            for child in children:
+                # Step 2: Load filtered relations and assign to the child object
+                child.meals = db.query(models.Meal).\
+                    filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == filter_date,
+                            models.Meal.nursery_uuid == nursery_uuid).\
+                            all()
+                child.activities = db.query(models.ChildActivity).\
+                    filter(models.ChildActivity.child_uuid == child.uuid,
+                            models.ChildActivity.nursery_uuid == nursery_uuid, 
+                            models.ChildActivity.date_added == filter_date,
+                            ).\
+                            all()
+                child.naps = db.query(models.Nap).\
+                    filter(models.Nap.child_uuid == child.uuid,
+                            models.Nap.nursery_uuid == nursery_uuid,
+                            models.Nap.date_added == filter_date).\
+                            all()
+                child.health_records = db.query(models.HealthRecord).\
+                    filter(models.HealthRecord.child_uuid == child.uuid, 
+                            models.HealthRecord.nursery_uuid == nursery_uuid,
+                            models.HealthRecord.date_added == filter_date).\
+                            all()
+                child.hygiene_changes = db.query(models.HygieneChange).\
+                    filter(models.HygieneChange.child_uuid == child.uuid, 
+                            models.HygieneChange.nursery_uuid == nursery_uuid,
+                            models.HygieneChange.date_added == filter_date).\
+                            all()
+                child.observations = db.query(models.Observation).\
+                    filter(models.Observation.child_uuid == child.uuid, 
+                            models.Observation.nursery_uuid == nursery_uuid, 
+                            models.Observation.date_added == filter_date).\
+                            all()
+                media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
+                child.media = db.query(models.Media).\
+                    filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
+                    all()
+
+        if keyword:
+            children = children.filter(
+                or_(
+                    models.Child.firstname.ilike('%' + str(keyword) + '%'),
+                    models.Child.lastname.ilike('%' + str(keyword) + '%'),
+                    models.Child.birthplace.ilike('%' + str(keyword) + '%'),
+                    models.Child.gender.ilike('%' + str(keyword) + '%'),
+                )
+            )
+
+        if child_uuid:
+            children = children.filter(Child.uuid == child_uuid)
+            
+        if order == "asc":
+            children = children.order_by(getattr(models.Child, order_filed).asc())
+        else:
+            children = children.order_by(getattr(models.Child, order_filed).desc())
+
+        
+        total = children.count()
+        children = children.offset((page - 1) * per_page).limit(per_page)
+
+
+        return schemas.ChildTransmissionList(
+            total=total,
+            pages=math.ceil(total / per_page),
+            per_page=per_page,
+            current_page=page,
+            data =children
+        )
     
         
 

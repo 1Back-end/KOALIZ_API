@@ -26,6 +26,12 @@ from .hygiene_change_controller import router as hygiene_change
 from .nursery_holidays_controller import router as nursery_holidays
 from .observation_controller import router as observation
 from .meal_controller import router as meal_controller
+from .child_activity_controller import router as child_activity
+from .media_controller import router as media
+from .occasional_presence_controller import router as occasional_presence
+from .absence_controller import router as absence
+from .attendance_controller import router as attendance
+from .activity_category_controller import router as activity_category
 
 api_router = APIRouter()
 
@@ -40,7 +46,12 @@ api_router.include_router(parent)
 api_router.include_router(health_record)
 api_router.include_router(hygiene_change)
 api_router.include_router(nap)
+api_router.include_router(child_activity)
+api_router.include_router(media)
 api_router.include_router(observation)
+api_router.include_router(attendance)
+api_router.include_router(absence)
+api_router.include_router(occasional_presence)
 api_router.include_router(message)
 api_router.include_router(preregistration)
 api_router.include_router(quote)
@@ -54,3 +65,4 @@ api_router.include_router(nursery_close_hours)
 api_router.include_router(nursery_holidays)
 api_router.include_router(meal_controller)
 api_router.include_router(employee)
+api_router.include_router(activity_category)

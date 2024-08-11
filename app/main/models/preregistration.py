@@ -78,6 +78,7 @@ class Child(Base):
     hygiene_changes: Mapped[list[any]] = relationship("HygieneChange", back_populates="child", uselist=True) # Hygienes
     media: Mapped[list[any]] = relationship("Media", secondary=children_media, back_populates="children", uselist=True) # Media
     observations: Mapped[list[any]] = relationship("Observation", back_populates="child", uselist=True) # Observations
+    attendances: Mapped[list[any]] = relationship("Attendance", back_populates="child", uselist=True) # Attendances (Presences)
 
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)
@@ -97,8 +98,6 @@ class Child(Base):
     
     @hybrid_property
     def age(self):
-        print("birthdate: ", self.birthdate)
-        # current_date = datetime.now().date()
         current_year = datetime.now().date().year
         birthday_year = self.birthdate.year
 
