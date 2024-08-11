@@ -113,6 +113,7 @@ translation = {
     "absence-deleted":"periode d'absence supprimée avec succès",
     "occasional-presence-not-found":"présence occasionelle introuvable",
     "occasional-presence-deleted":" presence occasionelle supprimée avec succès",
+    "child-activity-not-found":" activité introuvable",
 
 
 }

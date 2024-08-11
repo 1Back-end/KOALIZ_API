@@ -255,7 +255,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
         holidays = db.query(models.NuseryHoliday).\
             filter(models.NuseryHoliday.nursery_uuid == nursery_uuid).\
-            filter(models.NurseryOpeningHour.is_active == True).\
+            filter(models.NuseryHoliday.is_active == True).\
             all()
 
         return {
@@ -268,13 +268,13 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             self,*,
             db: Session, 
             nursery_uuid: str,
-            child_uuid: Optional[str] = None,
+            # child_uuid: Optional[str] = None,
             filter_date: Optional[date] = None,
-            page:int=1,
-            per_page: int=30,
+            # page:int=1,
+            # per_page: int=30,
             order_filed: str = "date_added",
             order: str = "desc",
-            keyword:Optional[str] = None
+            # keyword:Optional[str] = None
             ) -> List[Child]:
         # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
         accepted_preregistrations = db.query(PreRegistration).filter(
@@ -343,18 +343,18 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                     filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
                     all()
 
-        if keyword:
-            children = children.filter(
-                or_(
-                    models.Child.firstname.ilike('%' + str(keyword) + '%'),
-                    models.Child.lastname.ilike('%' + str(keyword) + '%'),
-                    models.Child.birthplace.ilike('%' + str(keyword) + '%'),
-                    models.Child.gender.ilike('%' + str(keyword) + '%'),
-                )
-            )
+        # if keyword:
+        #     children = children.filter(
+        #         or_(
+        #             models.Child.firstname.ilike('%' + str(keyword) + '%'),
+        #             models.Child.lastname.ilike('%' + str(keyword) + '%'),
+        #             models.Child.birthplace.ilike('%' + str(keyword) + '%'),
+        #             models.Child.gender.ilike('%' + str(keyword) + '%'),
+        #         )
+        #     )
 
-        if child_uuid:
-            children = children.filter(Child.uuid == child_uuid)
+        # if child_uuid:
+        #     children = children.filter(Child.uuid == child_uuid)
             
         if order == "asc":
             children = children.order_by(getattr(models.Child, order_filed).asc())
@@ -362,17 +362,11 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             children = children.order_by(getattr(models.Child, order_filed).desc())
 
         
-        total = children.count()
-        children = children.offset((page - 1) * per_page).limit(per_page)
+        # total = children.count()
+        # children = children.offset((page - 1) * per_page).limit(per_page)
 
 
-        return schemas.ChildTransmissionList(
-            total=total,
-            pages=math.ceil(total / per_page),
-            per_page=per_page,
-            current_page=page,
-            data =children
-        )
+        return children
     
         
 
