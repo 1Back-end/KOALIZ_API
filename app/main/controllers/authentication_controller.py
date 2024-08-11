@@ -39,13 +39,13 @@ async def login_parent(
     if not crud.parent.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -72,13 +72,13 @@ async def login_administrator(
     if not crud.administrator.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -105,13 +105,13 @@ async def login_owner(
     if not crud.owner.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -359,13 +359,13 @@ async def verify_otp(
     db.commit()
     db.refresh(user)
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -397,7 +397,7 @@ async def create_parent_on_system(
     if user:
         if crud.parent.is_active(user):
             raise HTTPException(status_code=400, detail=__("user-email-taken"))
-        
+
         user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
         models.ParentActionValidation.user_uuid == user.uuid)
 
@@ -453,13 +453,13 @@ def validate_account(
     db.commit()
     db.refresh(user)
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
