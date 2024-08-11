@@ -255,8 +255,8 @@ class MediaType(str, Enum):
     VIDEO = "VIDEO"
 
 children_media = Table('children_media', Base.metadata,
-    Column('child_uuid', String, ForeignKey('children.uuid')),
-    Column('media_uuid', String, ForeignKey('media.uuid'))
+    Column('child_uuid', String, ForeignKey('children.uuid',ondelete='CASCADE',onupdate='CASCADE')),
+    Column('media_uuid', String, ForeignKey('media.uuid',ondelete='CASCADE',onupdate='CASCADE'))
 )
 
 @dataclass

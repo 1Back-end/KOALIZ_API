@@ -18,17 +18,20 @@ def create_occasional_presence(
 ):
     """ Create occasional presence for children """
 
-    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
-    if not nursery:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    if obj_in.nursery_uuid:
+        nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+        if not nursery:
+            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    
+    if obj_in.child_uuid:
+        child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
+        if not child:
+            raise HTTPException(status_code=404, detail=__("child-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
-        raise HTTPException(status_code=404, detail=__("child-not-found"))
-
-    employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
-    if not employe:
-        raise HTTPException(status_code=404, detail=__("member-not-found"))
+    if obj_in.employee_uuid:
+        employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
+        if not employe:
+            raise HTTPException(status_code=404, detail=__("member-not-found"))
 
     return crud.occasional_presence.create(db, obj_in)
 
@@ -46,17 +49,20 @@ def update_occasional_presence(
     if not occasional_presence:
         raise HTTPException(status_code=404, detail=__("occasional-presence-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
-        raise HTTPException(status_code=404, detail=__("child-not-found"))
-
-    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
-    if not nursery:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    if obj_in.child_uuid:
+        child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
+        if not child:
+            raise HTTPException(status_code=404, detail=__("child-not-found"))
     
-    employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
-    if not employe:
-        raise HTTPException(status_code=404, detail=__("member-not-found"))
+    if obj_in.nursery_uuid:
+        nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+        if not nursery:
+            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    
+    if obj_in.employee_uuid:
+        employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
+        if not employe:
+            raise HTTPException(status_code=404, detail=__("member-not-found"))
 
     return crud.occasional_presence.update(db ,obj_in)
 
