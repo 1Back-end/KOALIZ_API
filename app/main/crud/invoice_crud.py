@@ -33,17 +33,9 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
 
 
     def get_many(
-            self,
-            db: Session,
-            nursery_uuid: str,
-            owner_uuid: str,
-            page: int = 1,
-            per_page: int = 30,
-            order: Optional[str] = None,
-            order_filed: Optional[str] = None,
-            keyword: Optional[str] = None,
-            status: Optional[str] = None,
-            reference: str = None
+            self, db: Session, nursery_uuid: str, owner_uuid: str, page: int = 1, per_page: int = 30,
+            order: Optional[str] = None, order_filed: Optional[str] = None, keyword: Optional[str] = None,
+            status: Optional[str] = None, reference: str = None, month: int = None, year: int = None, child_uuid: str = None
     ):
         record_query = db.query(models.Invoice).filter(models.Invoice.nursery_uuid==nursery_uuid).filter(models.Invoice.nursery.has(models.Nursery.owner_uuid==owner_uuid))
         if status:
@@ -59,6 +51,12 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                     models.Child.lastname.ilike('%' + str(keyword) + '%'),
                 ))
             )
+        if year and month:
+            record_query = record_query.filter(models.Invoice.date_to >= f"{year}-{month}-01").filter(
+                models.Invoice.date_to <= f"{year}-{month}-31")
+
+        if child_uuid:
+            record_query = record_query.filter(models.Invoice.child_uuid == child_uuid)
 
         if order == "asc":
             record_query = record_query.order_by(getattr(models.Invoice, order_filed).asc())
@@ -127,6 +125,13 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 )
                 db.add(timetable_item)
         db.commit()
+
+
+    def get_child_statistic(self, db: Session, child_uuid: str, status: str):
+        return db.query(models.Invoice).filter(
+            models.Invoice.child_uuid == child_uuid,
+            models.Invoice.status == status
+        ).count()
 
 
 invoice = CRUDInvoice(models.Invoice)
