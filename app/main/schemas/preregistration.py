@@ -8,10 +8,10 @@ from app.main import models
 from app.main.core.i18n import __
 from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, Media, NapQuality, Route, StoolType
 from app.main.schemas import DataList, NurseryMini
-from app.main.schemas.activity import ActivityResponse
+# from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
-from app.main.schemas.user import AddedBy, Storage
+from app.main.schemas.user import  Storage
 from app.main.schemas.file import File
 
 
@@ -417,13 +417,13 @@ class MealSlim(BaseModel):
 
 class ActivitySlim(BaseModel):
     added_by_uuid: str
-    added_by:AddedBy
+    # added_by:AddedBy
     nursery_uuid: str
-    nursery:NurseryMini
+    # nursery:NurseryMini
     child_uuid: str
-    child: ChildMini2
+    # child: ChildMini2
     activity_uuid: str
-    activity:ActivityResponse
+    # activity:ActivityResponse
     activity_time: datetime
     date_added: datetime
     date_modified: datetime
