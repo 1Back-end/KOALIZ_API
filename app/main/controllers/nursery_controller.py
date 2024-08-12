@@ -116,7 +116,7 @@ def read_children_by_nursery(
     filter_date:Optional[date] = None,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
-)->list[schemas.Transmission]:
+):
     if current_team_device.nursery_uuid!=nursery_uuid:
         raise HTTPException(status_code=403, detail=__("not-authorized"))
     
