@@ -3,9 +3,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from app.main.schemas.base import DataList
-from app.main.schemas.employee import EmployeSlim
-from app.main.schemas.nursery import NurserySlim
-from app.main.schemas.preregistration import ChildMini2
+# from app.main.schemas.employee import EmployeSlim
+# from app.main.schemas.nursery import NurserySlim
+# from app.main.schemas.preregistration import ChildMini2
 
 # ActivityCategory
 class ActivityCategoryBase(BaseModel):

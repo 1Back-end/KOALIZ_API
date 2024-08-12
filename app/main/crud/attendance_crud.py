@@ -29,9 +29,9 @@ class CRUDAttendance(CRUDBase[Attendance, AttendanceCreate, AttendanceUpdate]):
                 date=obj_in.date,
                 arrival_time=obj_in.arrival_time,
                 departure_time=obj_in.departure_time,
-                added_by_uuid=obj_in.employee_uuid if obj_in.child_uuid else None,
-                child_uuid=obj_in.child_uuid if obj_in.child_uuid else None,
-                nursery_uuid=obj_in.nursery_uuid if obj_in.child_uuid else None,
+                added_by_uuid=obj_in.employee_uuid,
+                child_uuid=obj_in.child_uuid,
+                nursery_uuid=obj_in.nursery_uuid
             )
             db.add(attendance_record)
         db.commit()
