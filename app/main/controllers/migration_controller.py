@@ -100,6 +100,40 @@ async def create_database_tables(
         raise ProgrammingError(status_code=512, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.post("/create-activity",response_model=schemas.Msg,status_code=201)
+async def create_activity(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+)-> dict[str, str]:
+    """ Create a new activity """
+    check_user_access_key(admin_key)
+    try:
+        with open('{}/app/main/templates/default_data/activity.json'.format(os.getcwd()), encoding='utf-8') as f:
+            datas = json.load(f)
+            
+            for data in datas:
+                activity = crud.activity.get_activity_by_uuid(db=db, uuid=data["uuid"])
+                if activity:
+                    crud.activity.update(db, schemas.ActivityUpdate(**data))
+                else:
+                    activity = models.Activity(
+                        name_fr=data["name_fr"],
+                        name_en=data["name_en"],
+                        uuid=data["uuid"]
+                    )
+                    db.add(activity)
+                    db.commit()
+                    db.refresh(activity)
+        return {"message": "Les activitées ont été créés avec succès"}
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+    
 
 
 @router.post("/create-user-roles", response_model=schemas.Msg, status_code=201)

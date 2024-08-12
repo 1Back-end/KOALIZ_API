@@ -9,9 +9,9 @@ from .base import DataList
 
 
 class AttendanceBase(BaseModel):
-    nursery_uuid: Optional[str] = None
-    child_uuid: Optional[str] = None
-    employee_uuid: Optional[str] = None
+    nursery_uuid: str
+    child_uuid: str
+    employee_uuid: str
     date: date
     arrival_time: Optional[datetime] = None
     departure_time: Optional[datetime] = None

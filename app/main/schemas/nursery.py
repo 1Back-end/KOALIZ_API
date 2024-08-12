@@ -172,18 +172,6 @@ class OtherNurseryByGuest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class NurseryByGuest(BaseModel):
-    uuid: str
-    email: EmailStr
-    name: str
-    phone_number: str
-    logo: Optional[File]
-    address: Address
-    others: list[OtherNurseryByGuest] = []
-    is_actived:Optional[bool]=None
-
-    model_config = ConfigDict(from_attributes=True)
-
 class OpeningHoursDetails(BaseModel):
     uuid : str
     day_of_week: int
@@ -196,5 +184,18 @@ class EmployeeHomePageList(BaseModel):
     opening_hours: list[OpeningHoursDetails]
     close_hours: list[NurseryCloseHourDetails]
     holidays: list[NurseryHolidaysDetails]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class NurseryByGuest(BaseModel):
+    uuid: str
+    email: EmailStr
+    name: str
+    phone_number: str
+    logo: Optional[File]
+    address: Address
+    others: list[OtherNurseryByGuest] = []
+    opening_hours: list[OpeningHoursDetails]
 
     model_config = ConfigDict(from_attributes=True)

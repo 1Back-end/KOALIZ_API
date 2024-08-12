@@ -85,6 +85,7 @@ class InvoiceDetails(BaseModel):
     client_account: Optional[InvoiceClientAccount] = None
 
     items: list[InvoiceTimeTableItem] = []
+    invoices_statistic: dict[str, int] = {}
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -107,7 +107,7 @@ def get(
 def read_children_by_nursery(
     *,
     nursery_uuid:str,
-    # child_uuid: Optional[str] = None,
+    child_uuid: Optional[str] = None,
     # page: int = 1,
     # per_page: int = 30,
     # order: str = Query("desc", enum=["asc", "desc"]),

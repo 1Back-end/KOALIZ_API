@@ -461,6 +461,20 @@ class ObservationSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class ChildrenConfirmation(BaseModel):
+    parent_email: str
+    nursery_uuid: str
+    child_uuid: str
+
+class ParentTransmissionsList(BaseModel):
+    meals:Optional[list[MealSlim]] 
+    activities:Optional[list[ActivitySlim]]
+    naps:Optional[list[NapSlim]]
+    health_records:Optional[list[HealthRecordSlim]] 
+    hygiene_changes:Optional[list[HygieneChangeSlim]]
+    media:Optional[list[File]]
+    observations:Optional[list[ObservationSlim]]
+
 class MediaSlim(BaseModel):
     uuid: str
     file:Optional[File]
@@ -489,6 +503,7 @@ class Transmission(BaseModel):
     observations:Optional[list[ObservationSlim]]
     date_added: datetime
     date_modified: datetime
+
     model_config = ConfigDict(from_attributes=True)
 
 class ChildTransmissionList(DataList):
