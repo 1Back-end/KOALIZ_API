@@ -394,7 +394,7 @@ class NapSlim(BaseModel):
     end_time: Optional[datetime] = None
     quality: Optional[NapQuality] = None
     observation: Optional[str] = None
-    duration: Optional[int] = 0
+    duration: Optional[float] = 0
     date_added: datetime
     date_modified: datetime
 
