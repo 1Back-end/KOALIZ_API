@@ -123,7 +123,7 @@ def read_children_by_nursery(
     return crud.nursery.get_children_by_nursery(
         db=db, 
         nursery_uuid=nursery_uuid,
-        # child_uuid=child_uuid,  # optional for getting transmission of a single child
+        child_uuid=child_uuid,  # optional for getting transmission of a single child
         filter_date=filter_date,
         # page=page,
         # per_page=per_page,
