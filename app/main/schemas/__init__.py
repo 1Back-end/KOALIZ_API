@@ -28,6 +28,7 @@ from .hygiene_change import *
 from .observation import *
 from .activity import *
 from .meal import *
+from .activity import *
 from .planning import *
 from .media import *
 from .attendance import *
