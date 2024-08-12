@@ -340,7 +340,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                             all()
                 media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
                 child.media = db.query(models.Media).\
-                    filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
+                    filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == filter_date).\
                     all()
 
         # if keyword:
@@ -353,8 +353,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         #         )
         #     )
 
-        # if child_uuid:
-        #     children = children.filter(Child.uuid == child_uuid)
+        if child_uuid:
+            children = children.filter(Child.uuid == child_uuid)
             
         if order == "asc":
             children = children.order_by(getattr(models.Child, order_filed).asc())
