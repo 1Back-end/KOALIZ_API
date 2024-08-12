@@ -145,11 +145,11 @@ class Nap(Base):
     date_modified = Column(DateTime, server_default=func.now())
 
     @hybrid_property
-    def duration(self)->float:
+    def duration(self):
         db = SessionLocal()
         if self.end_time:
             duration = (self.end_time - self.start_time).total_seconds() / 3600  # en heures
-            return duration
+            return int(duration)
         return 0
 
 
