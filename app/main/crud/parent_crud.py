@@ -1,16 +1,16 @@
-from datetime import date, datetime, timedelta
 import math
-from typing import Union, Optional, List
+from datetime import date, datetime, timedelta
+from typing import Union, Optional
 from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlalchemy import or_
 from app.main.core.i18n import __
-from app.main.core.mail import send_account_creation_email,send_account_confirmation_email
+from app.main.core.mail import send_account_confirmation_email
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models, crud
 import uuid
-from app.main.core.security import generate_code, get_password_hash, verify_password, generate_password
+from app.main.core.security import  get_password_hash, verify_password
 
 
 class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpdate]):
@@ -149,7 +149,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         order:Optional[str] = None,
         status:Optional[str] = None,
         user_uuid:Optional[str] = None,
-        order_filed:Optional[str] = None,  
+        order_filed:Optional[str] = None,
         keyword:Optional[str]= None
     ):
         record_query = db.query(models.Parent).options(joinedload(models.Parent.role))
@@ -186,7 +186,6 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
-        print("total:",total)
         return schemas.ParentResponseList(
             total = total,
             pages = math.ceil(total/per_page),
