@@ -502,7 +502,7 @@ class Transmission(BaseModel):
     avatar:Optional[File] = None
     nb_parent: int
     meals:Optional[list[MealSlim]] 
-    activities:Optional[list[ActivitySlim]]
+    # activities:Optional[list[ActivitySlim]]
     naps:Optional[list[NapSlim]]
     health_records:Optional[list[HealthRecordSlim]] 
     hygiene_changes:Optional[list[HygieneChangeSlim]]
