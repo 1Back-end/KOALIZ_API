@@ -3,7 +3,7 @@ from app.main import schemas, crud, models
 from app.main.core.i18n import __
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional,List
 
 
 router = APIRouter(prefix="/children_activities", tags=["children_activities"])
@@ -22,8 +22,8 @@ def create_child_activity(
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    if not childs or len(childs)!= len(obj_in.child_uuids):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
     employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
@@ -41,21 +41,21 @@ def update_child_activity(
 ):
     """ Update child_activity for children """
 
-    child_activity = crud.child_activity.get_child_activity_by_uuid(db, obj_in.uuid)
+    child_activity = crud.child_activity.get_by_activity_uuid_and_child_uuid(db, obj_in.activity_uuid,obj_in.child_uuid)
     if not child_activity:
         raise HTTPException(status_code=404, detail=__("child-activity-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
-        raise HTTPException(status_code=404, detail=__("child-not-found"))
+    # childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    # if not childs or len(childs)!=len(obj_in.child_uuids):
+    #     raise HTTPException(status_code=404, detail=__("child-not-found"))
 
-    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
-    if not nursery:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    # nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+    # if not nursery:
+    #     raise HTTPException(status_code=404, detail=__("nursery-not-found"))
     
-    employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
-    if not employe:
-        raise HTTPException(status_code=404, detail=__("member-not-found"))
+    # employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
+    # if not employe:
+    #     raise HTTPException(status_code=404, detail=__("member-not-found"))
 
     return crud.child_activity.update(db ,obj_in)
 
@@ -101,15 +101,16 @@ def get_child_activitys(
         order_field
     )
 
-@router.get("/{uuid}", response_model=schemas.ChildActivityDetails, status_code=200)
+@router.get("/{activity_uuid}/{child_uuid}", response_model=schemas.ChildActivityDetails, status_code=200)
 def get_child_activity_details(
-    uuid: str,
+    activity_uuid: str,
+    child_uuid: str,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
     """ Get child_activity details """
 
-    child_activity = crud.child_activity.get_child_activity_by_uuid(db, uuid)
+    child_activity = crud.child_activity.get_by_activity_uuid_and_child_uuid(db, activity_uuid,child_uuid)
     if not child_activity:
         raise HTTPException(status_code=404, detail=__("child-activity-not-found"))
 

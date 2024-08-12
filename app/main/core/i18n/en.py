@@ -103,6 +103,8 @@ translation = {
     "absence-deleted":"Absence record deleted successfully",
     "occasional-presence-not-found":"occasional presence record not found",
     "occasional-presence-deleted":" occasional presence record deleted successfully",
+    "child-activity-not-found":" Child activity not found",
+
 
 
 

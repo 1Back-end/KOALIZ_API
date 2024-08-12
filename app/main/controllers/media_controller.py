@@ -30,6 +30,10 @@ def create_media(
     if not employe:
         raise HTTPException(status_code=404, detail=__("member-not-found"))
 
+    if obj_in.file_uuid:
+        file = crud.storage.get(db, obj_in.file_uuid)
+        if not file:
+            raise HTTPException(status_code=404, detail=__("file-not-found"))
     return crud.media.create(db, obj_in)
 
 
@@ -41,9 +45,11 @@ def update_media(
 ):
     """ Update media for children """
     
-    if current_team_device.nursery_uuid!=obj_in.nursery_uuid:
-        raise HTTPException(status_code=403, detail=__("not-authorized"))
-
+    
+    if obj_in.file_uuid:
+        file = crud.storage.get(db, obj_in.file_uuid)
+        if not file:
+            raise HTTPException(status_code=404, detail=__("file-not-found"))
     media = crud.media.get_media_by_uuid(db, obj_in.uuid)
     print("media-updated",media)
     if not media:
@@ -53,16 +59,21 @@ def update_media(
     if not childs or  len(obj_in.child_uuids)!= len(childs):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
-    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
-    if not nursery:
-        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    if obj_in.nursery_uuid:
+        nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+        if not nursery:
+            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+        
+        if current_team_device.nursery_uuid!=obj_in.nursery_uuid:
+            raise HTTPException(status_code=403, detail=__("not-authorized"))
+        
+    if obj_in.employee_uuid:
+        employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
+        if not employe:
+            raise HTTPException(status_code=404, detail=__("member-not-found"))
     
-    employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
-    if not employe:
-        raise HTTPException(status_code=404, detail=__("member-not-found"))
-    
-    if employe not in current_team_device.members:
-        raise HTTPException(status_code=403, detail=__("not-authorized"))
+        if employe not in current_team_device.members:
+            raise HTTPException(status_code=403, detail=__("not-authorized"))
     
     return crud.media.update(db ,obj_in)
 
