@@ -51,11 +51,11 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             TagAlias = aliased(models.Tags)
             TagElementAlias = aliased(models.TagElement)
             record_query = record_query.join(
-                TagElementAlias, models.Quote.uuid == TagElementAlias.element_uuid
+                TagElementAlias, models.Quote.preregistration_uuid == TagElementAlias.element_uuid
             ).join(
                 TagAlias, TagElementAlias.tag_uuid == TagAlias.uuid
             ).filter(
-                TagAlias.type == models.TagTypeEnum.QUOTE,
+                TagAlias.type == models.TagTypeEnum.PRE_ENROLLMENT,
                 TagAlias.uuid == tag_uuid,
             )
 

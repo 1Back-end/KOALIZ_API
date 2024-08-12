@@ -24,19 +24,19 @@ class CRUDAttendance(CRUDBase[Attendance, AttendanceCreate, AttendanceUpdate]):
             attendance_record.arrival_time = obj_in.arrival_time
             attendance_record.departure_time = obj_in.departure_time
         else:
-            db_obj = Attendance(
+            attendance_record = Attendance(
                 uuid=str(uuid.uuid4()),
                 date=obj_in.date,
                 arrival_time=obj_in.arrival_time,
                 departure_time=obj_in.departure_time,
-                added_by_uuid=obj_in.employee_uuid,
-                child_uuid=obj_in.child_uuid,
-                nursery_uuid=obj_in.nursery_uuid,
+                added_by_uuid=obj_in.employee_uuid if obj_in.child_uuid else None,
+                child_uuid=obj_in.child_uuid if obj_in.child_uuid else None,
+                nursery_uuid=obj_in.nursery_uuid if obj_in.child_uuid else None,
             )
-            db.add(db_obj)
+            db.add(attendance_record)
         db.commit()
-        db.refresh(db_obj)
-        return db_obj
+        db.refresh(attendance_record)
+        return attendance_record
     
     @classmethod
     def get_attendance_by_uuid(cls, db: Session, uuid: str) -> Optional[AttendanceMini]:

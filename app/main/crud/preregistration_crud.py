@@ -343,6 +343,9 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     @classmethod
     def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.ChildDetails]:
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
+    @classmethod
+    def get_child_by_uuids(cls, db: Session, uuid_tab: list[str]) -> Optional[list[schemas.ChildDetails]]:
+        return db.query(models.Child).filter(models.Child.uuid.in_(uuid_tab)).all()
 
     @staticmethod
     def determine_cmg(db: Session, dependent_children: int, family_type: models.FamilyType,
@@ -743,23 +746,23 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 all()
             child.activities = db.query(models.ChildActivity).\
                 filter(models.ChildActivity.child_uuid == child.uuid, models.ChildActivity.date_added == date).\
-                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                filter(models.ChildActivity.nursery_uuid == nursery_uuid).\
                 all()
             child.naps = db.query(models.Nap).\
                 filter(models.Nap.child_uuid == child.uuid, models.Nap.date_added == date).\
-                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                filter(models.Nap.nursery_uuid == nursery_uuid).\
                 all()
             child.health_records = db.query(models.HealthRecord).\
                 filter(models.HealthRecord.child_uuid == child.uuid, models.HealthRecord.date_added == date).\
-                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                filter(models.HealthRecord.nursery_uuid == nursery_uuid).\
                 all()
             child.hygiene_changes = db.query(models.HygieneChange).\
                 filter(models.HygieneChange.child_uuid == child.uuid, models.HygieneChange.date_added == date).\
-                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                filter(models.HygieneChange.nursery_uuid == nursery_uuid).\
                 all()
             child.observations = db.query(models.Observation).\
                 filter(models.Observation.child_uuid == child.uuid, models.Observation.date_added == date).\
-                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                filter(models.Observation.nursery_uuid == nursery_uuid).\
                 all()
             media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
             child.media = db.query(models.Media).\

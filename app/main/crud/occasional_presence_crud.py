@@ -20,9 +20,9 @@ class CRUDOccasionalPresence(CRUDBase[OccasionalPresence, OccasionalPresenceCrea
             end_time=obj_in.end_time,
             date=obj_in.date,
             note=obj_in.note,
-            added_by_uuid=obj_in.employee_uuid,
+            added_by_uuid=obj_in.employee_uuid if obj_in.employee_uuid else None,
             child_uuid=obj_in.child_uuid,
-            nursery_uuid=obj_in.nursery_uuid,
+            nursery_uuid=obj_in.nursery_uuid if obj_in.nursery_uuid else None,
         )
         db.add(db_obj)
         db.commit()

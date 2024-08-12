@@ -16,7 +16,7 @@ def get(
         db: Session = Depends(get_db),
         page: int = 1,
         per_page: int = 30,
-        order: str = Query("desc", enum=["asc", "desc"]),
+        order: str = Query("asc", enum=["asc", "desc"]),
         order_filed: str = "date_to",
         keyword: Optional[str] = None,
         status: Optional[str] = Query(None, enum=[st.value for st in models.InvoiceStatusType]),
@@ -30,16 +30,9 @@ def get(
     get all with filters
     """
     return crud.invoice.get_many(
-        db,
-        nursery_uuid,
-        current_user.uuid,
-        page,
-        per_page,
-        order,
-        order_filed,
-        keyword,
-        status,
-        reference
+        db=db, nursery_uuid=nursery_uuid, owner_uuid=current_user.uuid, page=page, per_page=per_page, order=order,
+        order_filed=order_filed, keyword=keyword, status=status, reference=reference, month=month, year=year,
+        child_uuid=child_uuid
     )
 
 
@@ -58,5 +51,9 @@ def get_details(
 
     if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    invoice.invoices_statistic = {
+        st.value: crud.invoice.get_child_statistic(db, invoice.child_uuid, status=st) for st in models.InvoiceStatusType
+    }
 
     return invoice

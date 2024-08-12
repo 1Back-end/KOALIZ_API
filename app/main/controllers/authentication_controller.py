@@ -197,6 +197,12 @@ def reset_password(
             status_code=404,
             detail=__("validation-code-not-found"),
         )
+    
+    if not is_valid_password(password=input.otp):
+        raise HTTPException(
+            status_code=400,
+            detail=__("password-invalid")
+        )
     send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),user_code.value)
 
     db.delete(user_code)
@@ -381,7 +387,13 @@ async def create_parent_on_system(
 
     code = generate_code(length=12)
     code= str(code[0:6]) 
-
+    
+    if not is_valid_password(password=input.password):
+        raise HTTPException(
+            status_code=400,
+            detail=__("password-invalid")
+        )
+    
     if user:
         if crud.parent.is_active(user):
             raise HTTPException(status_code=400, detail=__("user-email-taken"))
@@ -422,12 +434,6 @@ def validate_account(
     user = crud.parent.get_by_email(db, email=input.email)
     if not user:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
-
-    # if user.otp != input.token:
-    #     raise HTTPException(status_code=400, detail=__("otp-invalid"))
-
-    # if user.otp_expired_at < datetime.now():
-    #     raise HTTPException(status_code=400, detail=__("otp-expired"))
     
     user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
         models.ParentActionValidation.code == input.token).filter(

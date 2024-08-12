@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import Media, Child
+from app.main.models import Media, Child,children_media
 from app.main.schemas import MediaCreate, MediaUpdate, MediaList, MediaMini
 
 
@@ -27,7 +27,13 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
         db.flush()
 
         for child in db.query(Child).filter(Child.uuid.in_(obj_in.child_uuids)).all():
-            db_obj.children.append(child)
+            exist_child_media = db.query(children_media).\
+                filter(children_media.c.child_uuid == child.uuid,
+                       children_media.c.media_uuid == db_obj.uuid).\
+                        all()
+            
+            if not exist_child_media:
+                db_obj.children.append(child)
 
         db.commit()
         db.refresh(db_obj)
@@ -45,9 +51,13 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
         media.media_type = obj_in.media_type if obj_in.media_type else media.media_type
         media.observation = obj_in.observation if obj_in.observation else media.observation
 
-        if obj_in.child_uuids:
-            media.children = []
-            for child in db.query(Child).filter(Child.uuid.in_(obj_in.child_uuids)).all():
+        for child in db.query(Child).filter(Child.uuid.in_(obj_in.child_uuids)).all():
+            exist_child_media = db.query(children_media).\
+                filter(children_media.c.child_uuid == child.uuid,
+                       children_media.c.media_uuid == media.uuid).\
+                        all()
+            
+            if not exist_child_media:
                 media.children.append(child)
 
         db.commit()
@@ -85,7 +95,8 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
         if media_type:
             record_query = record_query.filter(Media.media_type == media_type)
         if child_uuid:
-            record_query = record_query.filter(Media.child_uuid == child_uuid)
+            record_query = record_query.\
+                join(children_media,child_uuid == children_media.c.child_uuid)
         if nursery_uuid:
             record_query = record_query.filter(Media.nursery_uuid == nursery_uuid)
         if employee_uuid:

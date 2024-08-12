@@ -22,11 +22,11 @@ class AbsenceCreate(AbsenceBase):
 
 
 class AbsenceUpdate(AbsenceBase):
-    uuid: Optional[str] = None
+    uuid: str
 
 
 class Absence(BaseModel):
-    uuid: Optional[str] = None
+    uuid: str 
     child: Optional[ChildMini2] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
