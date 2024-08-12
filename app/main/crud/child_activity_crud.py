@@ -41,9 +41,9 @@ class CRUDChildActivity(CRUDBase[ChildActivity, ChildActivityCreate, ChildActivi
     
     @classmethod
     def update(cls, db: Session,obj_in: ChildActivityUpdate) -> ChildActivity:
-        child_activity = cls.get_by_activity_uuid_and_child_uuid(db, obj_in.uuid,obj_in.child_uuid)
+        child_activity = cls.get_by_activity_uuid_and_child_uuid(db, obj_in.activity_uuid,obj_in.child_uuid)
         child_activity.activity_time = obj_in.activity_time if obj_in.activity_time else child_activity.activity_time
-        child_activity.activity_uuid = obj_in.activity_uuid if obj_in.activity_uuid else child_activity.activity_uuid
+        # child_activity.activity_uuid = obj_in.activity_uuid if obj_in.activity_uuid else child_activity.activity_uuid
         db.commit()
         db.refresh(child_activity)
         return child_activity

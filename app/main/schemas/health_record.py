@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Optional, List
 from pydantic import BaseModel, ConfigDict
 
-from app.main.models.children import CareType, Route
+from app.main.models.children import CareType, MedicationType, Route
 from app.main.schemas.employee import EmployeSlim
 from app.main.schemas.preregistration import ChildMini2
 
@@ -16,7 +16,7 @@ class HealthRecordBase(BaseModel):
     employee_uuid: Optional[str]
     medication_name: Optional[str]
     observation: Optional[str]= None
-    medication_type: Optional[str]= None
+    medication_type: Optional[MedicationType]= None
     care_type: Optional[CareType]= None
     route: Optional[Route]= None
     time: Optional[datetime]= None

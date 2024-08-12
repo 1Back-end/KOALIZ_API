@@ -41,7 +41,7 @@ def update_child_activity(
 ):
     """ Update child_activity for children """
 
-    child_activity = crud.child_activity.get_by_activity_uuid_and_child_uuid(db, obj_in.uuid)
+    child_activity = crud.child_activity.get_by_activity_uuid_and_child_uuid(db, obj_in.activity_uuid,obj_in.child_uuid)
     if not child_activity:
         raise HTTPException(status_code=404, detail=__("child-activity-not-found"))
 
@@ -101,7 +101,7 @@ def get_child_activitys(
         order_field
     )
 
-@router.get("/{uuid}", response_model=schemas.ChildActivityDetails, status_code=200)
+@router.get("/{activity_uuid}/{child_uuid}", response_model=schemas.ChildActivityDetails, status_code=200)
 def get_child_activity_details(
     activity_uuid: str,
     child_uuid: str,
