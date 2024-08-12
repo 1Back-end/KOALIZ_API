@@ -116,15 +116,15 @@ def read_children_by_nursery(
     filter_date:Optional[date] = None,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
-)->list[schemas.Transmission]:
+):
     if current_team_device.nursery_uuid!=nursery_uuid:
         raise HTTPException(status_code=403, detail=__("not-authorized"))
     
     return crud.nursery.get_children_by_nursery(
         db=db, 
         nursery_uuid=nursery_uuid,
-        child_uuid=child_uuid,  # optional for getting transmission of a single child
-        filter_date=filter_date,
+        child_uuid=child_uuid,
+        filter_date=filter_date
         # page=page,
         # per_page=per_page,
         # order=order,

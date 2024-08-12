@@ -6,7 +6,7 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, Media, NapQuality, Route, StoolType
+from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType
 from app.main.schemas import DataList, NurseryMini
 # from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini

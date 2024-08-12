@@ -273,7 +273,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             # page:int=1,
             # per_page: int=30,
             order_filed: str = "date_added",
-            order: str = "desc",
+            order: str = "desc"
             # keyword:Optional[str] = None
             ) -> List[Child]:
         # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
