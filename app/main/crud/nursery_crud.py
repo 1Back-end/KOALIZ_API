@@ -268,7 +268,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             self,*,
             db: Session, 
             nursery_uuid: str,
-            # child_uuid: Optional[str] = None,
+            child_uuid: Optional[str] = None,
             filter_date: Optional[date] = None,
             # page:int=1,
             # per_page: int=30,

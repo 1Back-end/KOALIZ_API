@@ -25,7 +25,7 @@ class MediaCreate(MediaBase):
 
 
 class MediaUpdate(MediaBase):
-    uuid: Optional[str] = None
+    uuid: str
 
 class Media(BaseModel):
     uuid: Optional[str] = None

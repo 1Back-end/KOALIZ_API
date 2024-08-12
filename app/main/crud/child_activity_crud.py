@@ -1,40 +1,47 @@
 import math
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional,List
 import uuid
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
 from app.main.models import ChildActivity
-from app.main.schemas import ChildActivityCreate, ChildActivityUpdate, ChildActivityList
+from app.main.schemas import ChildActivityCreate, ChildActivityUpdate, ChildActivityList,ChildActivityDetails
 
 
 class CRUDChildActivity(CRUDBase[ChildActivity, ChildActivityCreate, ChildActivityUpdate]):
 
     @classmethod
-    def create(self, db: Session, obj_in: ChildActivityCreate) -> ChildActivity:
-        
+    def create(cls, db: Session, obj_in: ChildActivityCreate):
+        # child_activities:list[ChildActivityDetails] = []
         for child_uuid in obj_in.child_uuids:
-            db_obj = ChildActivity(
-                uuid=str(uuid.uuid4()),
-                activity_time=obj_in.activity_time,
-                added_by_uuid=obj_in.employee_uuid,
-                child_uuid=child_uuid,
-                nursery_uuid=obj_in.nursery_uuid,
-                activity_uuid=obj_in.activity_uuid
-            )
-            db.add(db_obj)
-            db.commit()
-            db.refresh(db_obj)
-        return db_obj
+            db_obj = cls.get_by_activity_uuid_and_child_uuid(db,obj_in.activity_uuid,child_uuid)
+            if db_obj:
+                db_obj.activity_time = obj_in.activity_time
+            else:
+                db_obj = ChildActivity(
+                    activity_time=obj_in.activity_time,
+                    added_by_uuid=obj_in.employee_uuid if obj_in.employee_uuid else None,
+                    child_uuid=child_uuid,
+                    nursery_uuid=obj_in.nursery_uuid if obj_in.nursery_uuid else None,
+                    activity_uuid=obj_in.activity_uuid
+                )
+                db.add(db_obj)
+                db.flush()
+            print("Added-child-activity",db_obj)
+            # child_activities.append(db_obj)
+        db.commit()
+        return db_obj 
     
     @classmethod
-    def get_child_activity_by_uuid(cls, db: Session, child_activity_uuid: str) -> Optional[ChildActivity]:
-        return db.query(ChildActivity).filter(ChildActivity.uuid == child_activity_uuid).first()
+    def get_by_activity_uuid_and_child_uuid(cls, db: Session, activity_uuid: str,child_uuid:str) -> Optional[ChildActivity]:
+        return db.query(ChildActivity).\
+            filter(ChildActivity.activity_uuid == activity_uuid,ChildActivity.child_uuid == child_uuid).\
+                first()
     
     @classmethod
     def update(cls, db: Session,obj_in: ChildActivityUpdate) -> ChildActivity:
-        child_activity = cls.get_child_activity_by_uuid(db, obj_in.uuid)
+        child_activity = cls.get_by_activity_uuid_and_child_uuid(db, obj_in.uuid,obj_in.child_uuid)
         child_activity.activity_time = obj_in.activity_time if obj_in.activity_time else child_activity.activity_time
         child_activity.activity_uuid = obj_in.activity_uuid if obj_in.activity_uuid else child_activity.activity_uuid
         db.commit()

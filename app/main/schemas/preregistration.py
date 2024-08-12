@@ -487,7 +487,8 @@ class Transmission(BaseModel):
     hygiene_changes:Optional[list[HygieneChangeSlim]]
     media:Optional[list[MediaSlim]]
     observations:Optional[list[ObservationSlim]]
-
+    date_added: datetime
+    date_modified: datetime
     model_config = ConfigDict(from_attributes=True)
 
 class ChildTransmissionList(DataList):

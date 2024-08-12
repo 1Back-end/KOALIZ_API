@@ -3,7 +3,7 @@ from app.main import schemas, crud, models
 from app.main.core.i18n import __
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional,List
 
 
 router = APIRouter(prefix="/children_activities", tags=["children_activities"])
@@ -41,7 +41,7 @@ def update_child_activity(
 ):
     """ Update child_activity for children """
 
-    child_activity = crud.child_activity.get_child_activity_by_uuid(db, obj_in.uuid)
+    child_activity = crud.child_activity.get_by_activity_uuid_and_child_uuid(db, obj_in.uuid)
     if not child_activity:
         raise HTTPException(status_code=404, detail=__("child-activity-not-found"))
 
@@ -103,13 +103,14 @@ def get_child_activitys(
 
 @router.get("/{uuid}", response_model=schemas.ChildActivityDetails, status_code=200)
 def get_child_activity_details(
-    uuid: str,
+    activity_uuid: str,
+    child_uuid: str,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
     """ Get child_activity details """
 
-    child_activity = crud.child_activity.get_child_activity_by_uuid(db, uuid)
+    child_activity = crud.child_activity.get_by_activity_uuid_and_child_uuid(db, activity_uuid,child_uuid)
     if not child_activity:
         raise HTTPException(status_code=404, detail=__("child-activity-not-found"))
 

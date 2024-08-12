@@ -29,7 +29,7 @@ class HealthRecordCreate(HealthRecordBase):
 
 
 class HealthRecordUpdate(HealthRecordBase):
-    uuid: Optional[str] = None
+    uuid: str
 
 class HealthRecord(BaseModel):
     uuid: Optional[str] = None
