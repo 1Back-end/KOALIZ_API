@@ -27,6 +27,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
                 nursery_uuid=obj_in.nursery_uuid,
             )
             db.add(db_obj)
+            db.flush()
         db.commit()
         db.refresh(db_obj)
         return db_obj
