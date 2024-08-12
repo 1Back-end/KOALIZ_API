@@ -25,6 +25,7 @@ from .observation_crud import observation
 from .nursery_holidays_crud import nursery_holiday
 from .meal_crud import meal
 from .invoice_crud import invoice
+from .activity_crud import activity
 from .child_planning_crud import child_planning
 from .activity_category_crud import activity_category
 from .child_activity_crud import child_activity

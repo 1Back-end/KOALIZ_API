@@ -9,7 +9,7 @@ from .base import DataList
 
 
 class OccasionalPresenceBase(BaseModel):
-    nursery_uuid: Optional[str] = None
+    nursery_uuid: str
     child_uuid: Optional[str] = None
     employee_uuid: Optional[str] = None
     date: date

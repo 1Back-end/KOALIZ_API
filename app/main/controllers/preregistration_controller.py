@@ -76,7 +76,7 @@ def get_special_folder(
     if owner_uuid != current_user.uuid:
         raise HTTPException(status_code=403, detail=__("dependencies-access-unauthorized"))
 
-    return crud.preregistration.get_by_uuid(db, uuid)
+    return preregistration
 
 @router.get("/detail/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
 def get_special_folder_without_permission(
@@ -156,7 +156,7 @@ def add_meeting_to_special_folder(
     *,
     obj_in: schemas.MeetingType=Body(...),
     db: Session = Depends(get_db),
-    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Add meeting to special folder """
 
