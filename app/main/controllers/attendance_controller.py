@@ -18,19 +18,17 @@ def create_attendance(
 ):
     """ Create attendance for children """
 
-    if obj_in.nursery_uuid:
-        nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
-        if not nursery:
-            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuid_tab)
+    if not childs or len(childs)!=len(obj_in.child_uuid_tab):
+        raise HTTPException(status_code=404, detail=__("child-not-found"))
     
-    if obj_in.child_uuid:
-        child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-        if not child:
-            raise HTTPException(status_code=404, detail=__("child-not-found"))
-    if obj_in.employee_uuid:
-        employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
-        if not employe:
-            raise HTTPException(status_code=404, detail=__("member-not-found"))
+    employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
+    if not employe:
+        raise HTTPException(status_code=404, detail=__("member-not-found"))
 
     return crud.attendance.create(db, obj_in)
 
@@ -48,20 +46,17 @@ def update_attendance(
     if not attendance:
         raise HTTPException(status_code=404, detail=__("attendance-not-found"))
 
-    if obj_in.child_uuid:
-        child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-        if not child:
-            raise HTTPException(status_code=404, detail=__("child-not-found"))
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuid_tab)
+    if not childs or len(childs)!=len(obj_in.child_uuid_tab):
+        raise HTTPException(status_code=404, detail=__("child-not-found"))
     
-    if obj_in.nursery_uuid:
-        nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
-        if not nursery:
-            raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
     
-    if obj_in.employee_uuid:
-        employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
-        if not employe:
-            raise HTTPException(status_code=404, detail=__("member-not-found"))
+    employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
+    if not employe:
+        raise HTTPException(status_code=404, detail=__("member-not-found"))
 
     return crud.attendance.update(db ,obj_in)
 

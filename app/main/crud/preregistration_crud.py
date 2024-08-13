@@ -343,6 +343,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     @classmethod
     def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.ChildDetails]:
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
+    
     @classmethod
     def get_child_by_uuids(cls, db: Session, uuid_tab: list[str]) -> Optional[list[schemas.ChildDetails]]:
         return db.query(models.Child).filter(models.Child.uuid.in_(uuid_tab)).all()

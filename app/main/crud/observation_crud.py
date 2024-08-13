@@ -15,19 +15,18 @@ class CRUDObservation(CRUDBase[Observation, ObservationCreate, ObservationUpdate
 
     @classmethod
     def create(self, db: Session, obj_in: ObservationCreate) -> Observation:
+        for child_uuid in obj_in.child_uuids:
+            db_obj = Observation(
+                uuid=str(uuid.uuid4()),
+                time=obj_in.time,
+                observation=obj_in.observation,
+                added_by_uuid=obj_in.employee_uuid,
+                child_uuid=child_uuid,
+                nursery_uuid=obj_in.nursery_uuid,
+            )
+            db.add(db_obj)
+            db.flush()
 
-        # obj_in_data = jsonable_encoder(obj_in)
-        # obj_in_data["uuid"] = str(uuid.uuid4())
-        # obj_in_data["added_by_uuid"] = obj_in.employee_uuid
-        db_obj = Observation(
-            uuid=str(uuid.uuid4()),
-            time=obj_in.time,
-            observation=obj_in.observation,
-            added_by_uuid=obj_in.employee_uuid,
-            child_uuid=obj_in.child_uuid,
-            nursery_uuid=obj_in.nursery_uuid,
-        )
-        db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         return db_obj
@@ -39,8 +38,15 @@ class CRUDObservation(CRUDBase[Observation, ObservationCreate, ObservationUpdate
     @classmethod
     def update(cls, db: Session,obj_in: ObservationUpdate) -> ObservationMini:
         observation = cls.get_observation_by_uuid(db, obj_in.uuid)
-        observation.time = obj_in.time if obj_in.time else observation.time
-        observation.observation = obj_in.observation if obj_in.observation else observation.observation
+        for child_uuid in obj_in.child_uuids:
+        
+            exist_observation_for_child = db.query(Observation).\
+                filter(Observation.child_uuid == child_uuid, Observation.uuid == observation.uuid).\
+                first()
+            if exist_observation_for_child:
+                observation.time = obj_in.time if obj_in.time else observation.time
+                observation.observation = obj_in.observation if obj_in.observation else observation.observation
+                db.flush()
         db.commit()
         db.refresh(observation)
         return observation

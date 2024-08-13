@@ -11,9 +11,9 @@ from .base import DataList
 
 
 class HealthRecordBase(BaseModel):
-    nursery_uuid: Optional[str]
-    child_uuid: Optional[str]
-    employee_uuid: Optional[str]
+    nursery_uuid: str
+    child_uuids: list[str]
+    employee_uuid: str
     medication_name: Optional[str]
     observation: Optional[str]= None
     medication_type: Optional[MedicationType]= None
