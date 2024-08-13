@@ -9,9 +9,9 @@ from .base import DataList
 
 
 class ObservationBase(BaseModel):
-    nursery_uuid: Optional[str] = None
-    child_uuid: Optional[str] = None
-    employee_uuid: Optional[str] = None
+    nursery_uuid: str
+    child_uuids: list[str]
+    employee_uuid: str
     observation: Optional[str] = None
     time: Optional[datetime] = None
 

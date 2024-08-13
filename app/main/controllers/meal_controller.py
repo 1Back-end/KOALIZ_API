@@ -20,8 +20,8 @@ def create_meal(
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    if not childs or len(childs)!=len(obj_in.child_uuids):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
     
     employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
@@ -46,8 +46,8 @@ def update(
         raise HTTPException(status_code=404, detail="Nursery not found")
 
     # Vérifier l'existence de l'enfant
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    if not childs or len(childs)!=(len(obj_in.child_uuids)):
         raise HTTPException(status_code=404, detail="Child not found")
 
     # Vérifier l'existence de l'employé

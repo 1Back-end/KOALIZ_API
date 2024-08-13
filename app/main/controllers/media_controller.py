@@ -21,8 +21,8 @@ def create_media(
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
-
-    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    print("Creating1",obj_in.child_uuids)
+    childs = crud.preregistration.get_child_by_uuids(db=db, uuid_tab=obj_in.child_uuids)
     if not childs or  len(obj_in.child_uuids)!= len(childs):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 

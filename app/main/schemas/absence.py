@@ -10,7 +10,7 @@ from .base import DataList
 
 class AbsenceBase(BaseModel):
     nursery_uuid: str
-    child_uuid: str
+    child_uuid_tab: list[str]
     employee_uuid: str
     note: Optional[str] = None
     start_time: datetime
