@@ -58,6 +58,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
         exist_folder.status = status
+        exist_folder.quote.status = status if status in [st.value for st in models.QuoteStatusType]
         
         if status in ['REFUSED']:
             exist_folder.refused_date = datetime.now()
