@@ -4,6 +4,7 @@ from datetime import datetime
 
 from app.main.schemas import UserAuthentication, File, DataList
 from app.main.schemas.user import AddedBy
+from app .main.schemas.nursery import Nursery, NurserySlim1
 
 class NurseryMiniSlim(BaseModel):
     uuid: str
@@ -33,7 +34,7 @@ class OwnerWithNursery(BaseModel):
     firstname: Optional[str]
     lastname: str
     status: str
-    nurseries:list[NurseryMiniSlim] =[]
+    nurseries:list[NurserySlim1] =[]
     phone_number: Optional[str]
     is_new_user: Optional[bool] = False
     avatar: Optional[File]

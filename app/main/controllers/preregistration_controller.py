@@ -26,7 +26,7 @@ def create(
     Create preregistration
     """
 
-    return crud.preregistration.create(db, obj_in, background_task=background_task)
+    return crud.preregistration.create(db=db, obj_in=obj_in, background_task=background_task)
 
 
 @router.post("/create/owner", response_model=schemas.ChildDetails, status_code=201)
@@ -34,13 +34,14 @@ def create_by_owner(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.PreregistrationCreate,
+    background_task: BackgroundTasks,
     current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """
     Owner create preregistration
     """
 
-    return crud.preregistration.create(db, obj_in, current_user.uuid)
+    return crud.preregistration.create(db=db, obj_in=obj_in, current_user_uuid=current_user.uuid, background_task=background_task)
 
 
 

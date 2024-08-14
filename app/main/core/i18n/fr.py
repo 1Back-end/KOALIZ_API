@@ -3,7 +3,7 @@ translation = {
     "email-already-used": "Adresse e-mail déjà utilisée",
     "phone_number-already-used": "Numéro de téléphone déjà utilisé",
     "auth-login-failed": "Adresse e-mail ou mot de passe incorrect!",
-    "password-invalid": "Le mot de passe doit comporter au moins 8 caractères et 1 caractère spécial [!@#$%^&*()_+={<}>;/?]",
+    "password-invalid": "Le mot de passe doit comporter au moins 8 caractères, 1 lettre majuscule, 1 lettre minuscule et 1 chiffre",
     "user-created-successfully": "Votre compte a été créé avec succès !",
     "otp-invalid": "Code de validation invalide",
     "otp-expired": "Code de validation expiré",
@@ -113,6 +113,7 @@ translation = {
     "absence-deleted":"periode d'absence supprimée avec succès",
     "occasional-presence-not-found":"présence occasionelle introuvable",
     "occasional-presence-deleted":" presence occasionelle supprimée avec succès",
+    "child-activity-not-found":" activité introuvable",
 
 
 }

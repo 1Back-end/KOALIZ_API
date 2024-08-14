@@ -225,7 +225,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
     @classmethod
     def get_all_uuids_of_same_owner(cls, db: Session, owner_uuid: str, except_uuids: list[str] = []) -> list[dict]:
-        res = db.query(models.Nursery.uuid, models.Nursery.name).filter(models.Nursery.owner_uuid == owner_uuid)
+        res = db.query(models.Nursery.uuid, models.Nursery.name).filter(models.Nursery.owner_uuid == owner_uuid).filter(models.Nursery.status != models.NurseryStatusType.DELETED)
         if except_uuids:
             res = res.filter(models.Nursery.uuid.notin_(except_uuids))
         return res.all()
@@ -273,7 +273,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             # page:int=1,
             # per_page: int=30,
             order_filed: str = "date_added",
-            order: str = "desc",
+            order: str = "desc"
             # keyword:Optional[str] = None
             ) -> List[Child]:
         # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
@@ -305,8 +305,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             Child.is_accepted == True
         )
 
-        if filter_date:
-            for child in children:
+        for child in children:
+            if filter_date:
                 # Step 2: Load filtered relations and assign to the child object
                 child.meals = db.query(models.Meal).\
                     filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == filter_date,
@@ -340,7 +340,42 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                             all()
                 media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
                 child.media = db.query(models.Media).\
-                    filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
+                    filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == filter_date).\
+                    all()
+            else:
+                child.meals = db.query(models.Meal).\
+                    filter(models.Meal.child_uuid == child.uuid, models.Meal.nursery_uuid == nursery_uuid).\
+                    order_by(models.Meal.date_added.desc()).\
+                    all()
+                child.activities = db.query(models.ChildActivity).\
+                    filter(models.ChildActivity.child_uuid == child.uuid,
+                        models.ChildActivity.nursery_uuid == nursery_uuid).\
+                    order_by(models.ChildActivity.date_added.desc()).\
+                    all()
+                child.naps = db.query(models.Nap).\
+                    filter(models.Nap.child_uuid == child.uuid,
+                        models.Nap.nursery_uuid == nursery_uuid).\
+                    order_by(models.Nap.date_added.desc()).\
+                    all()
+                child.health_records = db.query(models.HealthRecord).\
+                    filter(models.HealthRecord.child_uuid == child.uuid, 
+                        models.HealthRecord.nursery_uuid == nursery_uuid).\
+                    order_by(models.HealthRecord.date_added.desc()).\
+                    all()
+                child.hygiene_changes = db.query(models.HygieneChange).\
+                    filter(models.HygieneChange.child_uuid == child.uuid, 
+                        models.HygieneChange.nursery_uuid == nursery_uuid).\
+                    order_by(models.HygieneChange.date_added.desc()).\
+                    all()
+                child.observations = db.query(models.Observation).\
+                    filter(models.Observation.child_uuid == child.uuid, 
+                        models.Observation.nursery_uuid == nursery_uuid).\
+                    order_by(models.Observation.date_added.desc()).\
+                    all()
+                media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
+                child.media = db.query(models.Media).\
+                    filter(models.Media.uuid.in_(media_uuids)).\
+                    order_by(models.Media.date_added.desc()).\
                     all()
 
         # if keyword:
@@ -353,8 +388,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         #         )
         #     )
 
-        # if child_uuid:
-        #     children = children.filter(Child.uuid == child_uuid)
+        if child_uuid:
+            children = children.filter(Child.uuid == child_uuid)
             
         if order == "asc":
             children = children.order_by(getattr(models.Child, order_filed).asc())

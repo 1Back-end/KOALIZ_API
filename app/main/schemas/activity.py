@@ -91,16 +91,16 @@ class ChildActivityBase(BaseModel):
     nursery_uuid : str
     employee_uuid: str
     activity_time: datetime
+
 class ChildActivityCreate(ChildActivityBase):
     pass
 
 class ChildActivityUpdate(BaseModel):
-    uuid: str
+    child_uuid: str
     activity_uuid : str
     activity_time: datetime
 
 class ChildActivityDetails(BaseModel):
-    uuid: str
     activity_time: datetime
     # child: Optional[ChildMini2] = None
     # nursery: Optional[NurserySlim]=None

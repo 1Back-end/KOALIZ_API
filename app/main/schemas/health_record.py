@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Text
 from pydantic import BaseModel, ConfigDict
 
-from app.main.models.children import CareType, Route
+from app.main.models.children import CareType, MedicationType, Route
 from app.main.schemas.employee import EmployeSlim
 from app.main.schemas.preregistration import ChildMini2
 
@@ -11,13 +11,13 @@ from .base import DataList
 
 
 class HealthRecordBase(BaseModel):
-    nursery_uuid: Optional[str]
-    child_uuid: Optional[str]
-    employee_uuid: Optional[str]
-    medication_name: Optional[str]
+    nursery_uuid: str
+    child_uuids: list[str]
+    employee_uuid: str
+    medication_name: Optional[str] = None
     observation: Optional[str]= None
-    medication_type: Optional[str]= None
-    care_type: Optional[CareType]= None
+    medication_type: Optional[MedicationType]= None
+    care_type: CareType
     route: Optional[Route]= None
     time: Optional[datetime]= None
     weight: Optional[float] = 0
@@ -29,7 +29,7 @@ class HealthRecordCreate(HealthRecordBase):
 
 
 class HealthRecordUpdate(HealthRecordBase):
-    uuid: Optional[str] = None
+    uuid: str
 
 class HealthRecord(BaseModel):
     uuid: Optional[str] = None

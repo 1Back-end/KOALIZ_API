@@ -149,7 +149,7 @@ class Nap(Base):
         db = SessionLocal()
         if self.end_time:
             duration = (self.end_time - self.start_time).total_seconds() / 3600  # en heures
-            return duration
+            return int(duration)
         return 0
 
 

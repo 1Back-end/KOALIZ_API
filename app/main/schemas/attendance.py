@@ -10,7 +10,7 @@ from .base import DataList
 
 class AttendanceBase(BaseModel):
     nursery_uuid: str
-    child_uuid: str
+    child_uuid_tab: list[str]
     employee_uuid: str
     date: date
     arrival_time: Optional[datetime] = None
@@ -22,7 +22,7 @@ class AttendanceCreate(AttendanceBase):
 
 
 class AttendanceUpdate(AttendanceBase):
-    uuid: Optional[str] = None
+    uuid: str
 
 class Attendance(BaseModel):
     uuid: Optional[str] = None

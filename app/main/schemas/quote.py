@@ -64,6 +64,7 @@ class QuoteTimetable(BaseModel):
 
 class QuoteDetails(BaseModel):
     uuid: str
+    preregistration_uuid: str
     child: QuoteChildMini
     pre_contract: QuotePreContract
     cmg: Optional[CMG] = None
@@ -115,6 +116,7 @@ class QuoteSlim(BaseModel):
     monthly_cost: float = 0
     total_cost: float = 0
     status: str = None
+    preregistration_uuid: str
     child: QuoteChildSlim
     pre_contract: QuotePreContractSlim
 

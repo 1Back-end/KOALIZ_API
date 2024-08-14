@@ -15,25 +15,28 @@ class CRUDAttendance(CRUDBase[Attendance, AttendanceCreate, AttendanceUpdate]):
     @classmethod
     def create(self, db: Session, obj_in: AttendanceCreate) -> Attendance:
 
-        attendance_record = db.query(Attendance).filter_by(
-            child_uuid=obj_in.child_uuid,
-            date=obj_in.date,
-            nursery_uuid=obj_in.nursery_uuid
-        ).first()
-        if attendance_record:
-            attendance_record.arrival_time = obj_in.arrival_time
-            attendance_record.departure_time = obj_in.departure_time
-        else:
-            attendance_record = Attendance(
-                uuid=str(uuid.uuid4()),
+        for child_uuid in obj_in.child_uuid_tab:
+            attendance_record = db.query(Attendance).filter_by(
+                child_uuid=child_uuid,
                 date=obj_in.date,
-                arrival_time=obj_in.arrival_time,
-                departure_time=obj_in.departure_time,
-                added_by_uuid=obj_in.employee_uuid,
-                child_uuid=obj_in.child_uuid,
                 nursery_uuid=obj_in.nursery_uuid
-            )
-            db.add(attendance_record)
+            ).first()
+
+            if attendance_record:
+                attendance_record.arrival_time = obj_in.arrival_time
+                attendance_record.departure_time = obj_in.departure_time
+            else:
+                attendance_record = Attendance(
+                    uuid=str(uuid.uuid4()),
+                    date=obj_in.date,
+                    arrival_time=obj_in.arrival_time,
+                    departure_time=obj_in.departure_time,
+                    added_by_uuid=obj_in.employee_uuid,
+                    child_uuid=child_uuid,
+                    nursery_uuid=obj_in.nursery_uuid
+                )
+                db.add(attendance_record)
+            db.flush()
         db.commit()
         db.refresh(attendance_record)
         return attendance_record
@@ -45,9 +48,15 @@ class CRUDAttendance(CRUDBase[Attendance, AttendanceCreate, AttendanceUpdate]):
     @classmethod
     def update(cls, db: Session, obj_in: AttendanceUpdate) -> AttendanceMini:
         attendance = cls.get_attendance_by_uuid(db, obj_in.uuid)
-        attendance.arrival_time = obj_in.arrival_time if obj_in.arrival_time else attendance.arrival_time
-        attendance.departure_time = obj_in.departure_time if obj_in.departure_time else attendance.departure_time
-        attendance.date = obj_in.date if obj_in.date else attendance.date
+        for child_uuid in obj_in.child_uuid_tab:
+            attendance = db.query(Attendance).filter_by(
+                child_uuid=child_uuid,
+                date=obj_in.date,
+                nursery_uuid=obj_in.nursery_uuid
+            ).first()
+            attendance.arrival_time = obj_in.arrival_time if obj_in.arrival_time else attendance.arrival_time
+            attendance.departure_time = obj_in.departure_time if obj_in.departure_time else attendance.departure_time
+            attendance.date = obj_in.date if obj_in.date else attendance.date
         db.commit()
         db.refresh(attendance)
         return attendance

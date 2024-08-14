@@ -11,9 +11,9 @@ from .base import DataList
 
 
 class MediaBase(BaseModel):
-    nursery_uuid: Optional[str] = None
-    child_uuids: list[str] = None
-    employee_uuid: Optional[str] = None
+    nursery_uuid: str
+    child_uuids: list[str]
+    employee_uuid: str
     observation: Optional[str] = None
     file_uuid: Optional[str] = None
     media_type: Optional[MediaType] = None
@@ -25,7 +25,7 @@ class MediaCreate(MediaBase):
 
 
 class MediaUpdate(MediaBase):
-    uuid: Optional[str] = None
+    uuid: str
 
 class Media(BaseModel):
     uuid: Optional[str] = None

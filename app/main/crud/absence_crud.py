@@ -14,30 +14,42 @@ class CRUDAbsence(CRUDBase[Absence, AbsenceCreate, AbsenceUpdate]):
 
     @classmethod
     def create(self, db: Session, obj_in: AbsenceCreate) -> Absence:
-        db_obj = Absence(
-            uuid=str(uuid.uuid4()),
-            start_time=obj_in.start_time,
-            end_time=obj_in.end_time,
-            note=obj_in.note,
-            added_by_uuid=obj_in.employee_uuid,
-            child_uuid=obj_in.child_uuid,
-            nursery_uuid=obj_in.nursery_uuid
-        )
-        db.add(db_obj)
-        db.commit()
+        for child_uuid in obj_in.child_uuid_tab:
+            db_obj = Absence(
+                uuid=str(uuid.uuid4()),
+                start_time=obj_in.start_time,
+                end_time=obj_in.end_time,
+                note=obj_in.note,
+                added_by_uuid=obj_in.employee_uuid,
+                child_uuid=child_uuid,
+                nursery_uuid=obj_in.nursery_uuid
+            )
+            db.add(db_obj)
+            db.commit()
         db.refresh(db_obj)
         return db_obj
     
     @classmethod
     def get_absence_by_uuid(cls, db: Session, uuid: str) -> Optional[AbsenceMini]:
         return db.query(Absence).filter(Absence.uuid == uuid).first()
+    @classmethod
+    def get_by_child_and_absence_uuid(cls, db: Session, child_uuid: str,absence_uuid:str) -> Optional[AbsenceMini]:
+        return db.query(Absence).\
+            filter(Absence.uuid == absence_uuid).\
+            filter(Absence.child_uuid == child_uuid).\
+            first()
     
     @classmethod
     def update(cls, db: Session,obj_in: AbsenceUpdate) -> AbsenceMini:
-        absence = cls.get_absence_by_uuid(db, obj_in.uuid)
-        absence.start_time = obj_in.start_time if obj_in.start_time else absence.start_time
-        absence.end_time = obj_in.end_time if obj_in.end_time else absence.end_time
-        absence.note = obj_in.note if obj_in.note else absence.note
+        absence = cls.get_absence_by_uuid(db=db, uuid = obj_in.uuid)
+        absence_uuid = absence.uuid
+        for child_uuid in obj_in.child_uuid_tab:
+            child_absence = cls.get_by_child_and_absence_uuid(db=db, child_uuid=child_uuid,absence_uuid = absence_uuid)
+            if child_absence:
+                absence.start_time = obj_in.start_time if obj_in.start_time else absence.start_time
+                absence.end_time = obj_in.end_time if obj_in.end_time else absence.end_time
+                absence.note = obj_in.note if obj_in.note else absence.note
+            
         db.commit()
         db.refresh(absence)
         return absence

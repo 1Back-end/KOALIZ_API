@@ -6,11 +6,12 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, Media, NapQuality, Route, StoolType
+from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType
 from app.main.schemas import DataList, NurseryMini
+# from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
-from app.main.schemas.user import Storage
+from app.main.schemas.user import  Storage
 from app.main.schemas.file import File
 
 
@@ -415,9 +416,15 @@ class MealSlim(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class ActivitySlim(BaseModel):
-    uuid: str
-    name_fr: str
-    name_en: str
+    added_by_uuid: str
+    # added_by:AddedBy
+    nursery_uuid: str
+    # nursery:NurseryMini
+    child_uuid: str
+    # child: ChildMini2
+    activity_uuid: str
+    # activity:ActivityResponse
+    activity_time: datetime
     date_added: datetime
     date_modified: datetime
 
@@ -495,7 +502,7 @@ class Transmission(BaseModel):
     avatar:Optional[File] = None
     nb_parent: int
     meals:Optional[list[MealSlim]] 
-    activities:Optional[list[ActivitySlim]]
+    # activities:Optional[list[ActivitySlim]]
     naps:Optional[list[NapSlim]]
     health_records:Optional[list[HealthRecordSlim]] 
     hygiene_changes:Optional[list[HygieneChangeSlim]]
