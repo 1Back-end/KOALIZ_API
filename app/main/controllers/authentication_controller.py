@@ -158,7 +158,8 @@ def start_reset_password(
     db.commit()
 
     send_reset_password_option2_email(
-        email_to=user.email, name=user.firstname, token=token, valid_minutes=30, language=input.language
+        email_to=user.email, name=user.firstname, token=token, valid_minutes=30, language=input.language,
+        base_url=Config.ADMIN_RESET_PASSWORD_LINK
     )
 
     return schemas.Msg(message=__("reset-password-started"))

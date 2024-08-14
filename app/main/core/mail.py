@@ -134,8 +134,9 @@ def send_account_creation_email(email_to: str,prefered_language: str, name: str,
         },
     )
 
-def get_template_path_based_on_lang():
-    lang = get_language()
+def get_template_path_based_on_lang(lang: str = "fr"):
+    if not lang:
+        lang = get_language()
     if lang not in ["en", "fr"]:
         lang = "fr"
     return f"{Config.EMAIL_TEMPLATES_DIR}/{lang}"
@@ -191,16 +192,18 @@ def send_account_confirmation_email(email_to: str, name: str, token: str, valid_
     print("----------------------------------------")
     logging.info(f"new send mail task with id {task}")
 
-
-def send_reset_password_option2_email(email_to: str, name: str, token: str, valid_minutes: int = None, language: str = "fr") -> None:
+def send_reset_password_option2_email(email_to: str, name: str, token: str, valid_minutes: int = None,
+                                          language: str = "fr", base_url: str = Config.RESET_PASSWORD_LINK) -> None:
     project_name = Config.PROJECT_NAME
-    subject = f'{project_name} - {__("mail-subject-reset-password")} {name}'
+    subject = f'{project_name} - {__("mail-subject-reset-password", language)} {name}'
 
-    template_path = get_template_path_based_on_lang()
+    template_path = get_template_path_based_on_lang(language)
     with open(Path(template_path) / "reset_password_option2.html") as f:
         template_str = f.read()
 
-    print("=====================================")
+    if not base_url:
+        base_url = Config.RESET_PASSWORD_LINK
+
     task = send_email(
         email_to=email_to,
         subject_template=subject,
@@ -211,8 +214,7 @@ def send_reset_password_option2_email(email_to: str, name: str, token: str, vali
             "email": email_to,
             "valid_hours": Config.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
             "valid_minutes": valid_minutes,
-            "reset_password_link": f"{Config.RESET_PASSWORD_LINK}/{token}".format(language),
+            "reset_password_link": f"{base_url}/{token}".format(language),
         },
     )
-    print("----------------------------------------")
     logging.info(f"new send mail task with id {task}")
