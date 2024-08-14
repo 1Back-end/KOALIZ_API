@@ -203,48 +203,6 @@ def reset_password(
     return schemas.Msg(message=__("password-reset-successfully"))
 
 
-@router.put("/administrator/reset-password", summary="Reset password", response_model=schemas.Msg)
-def reset_password(
-        input: schemas.ResetPasswordStep2,
-        db: Session = Depends(get_db),
-) -> schemas.Msg:
-    """
-    Reset password
-    """
-    user = crud.administrator.get_by_email(db, email=input.email)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=__("user-email-not-found")
-        )
-    elif not crud.administrator.is_active(user):
-        raise HTTPException(status_code=400, detail=__("user-not-activated"))
-
-    user_code: models.AdminActionValidation = db.query(models.AdminActionValidation).filter(models.AdminActionValidation.code==input.otp).filter(
-        models.AdminActionValidation.user_uuid == user.uuid).filter(
-        models.AdminActionValidation.expired_date >= datetime.now()).first()
-    if not user_code:
-        raise HTTPException(
-            status_code=404,
-            detail=__("validation-code-not-found"),
-        )
-    
-    if not is_valid_password(password=input.otp):
-        raise HTTPException(
-            status_code=400,
-            detail=__("password-invalid")
-        )
-    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),user_code.value)
-
-    db.delete(user_code)
-
-    user.password_hash = get_password_hash(input.new_password)
-    db.add(user)
-    db.commit()
-
-    return schemas.Msg(message=__("password-reset-successfully"))
-
-
 @router.post("/owner/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg)
 def start_reset_password(
         input: schemas.ResetPasswordOption2Step1,
