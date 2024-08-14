@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Text
 from pydantic import BaseModel, ConfigDict
 
 from app.main.models.children import CareType, MedicationType, Route
@@ -14,10 +14,10 @@ class HealthRecordBase(BaseModel):
     nursery_uuid: str
     child_uuids: list[str]
     employee_uuid: str
-    medication_name: Optional[str]
+    medication_name: Optional[str] = None
     observation: Optional[str]= None
     medication_type: Optional[MedicationType]= None
-    care_type: Optional[CareType]= None
+    care_type: CareType
     route: Optional[Route]= None
     time: Optional[datetime]= None
     weight: Optional[float] = 0
