@@ -35,8 +35,8 @@ target_metadata = Base.metadata
 # ... etc.
 
 def get_url():
-    # return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://postgres:postgres@localhost:5432/bde_micro_creche_dev')
-    return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
+    return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://postgres:postgres@localhost:5432/bde_micro_creche_dev')
+    # return get_secret("SQLALCHEMY_DATABASE_URL",'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
