@@ -46,7 +46,7 @@ def update(
         current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
-    Update nursery admin status
+    Update admin status
     """
     user = crud.administrator.get_by_uuid(db, uuid)
     if not user:
