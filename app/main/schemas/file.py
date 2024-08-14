@@ -15,6 +15,7 @@ class FileAdd(BaseModel):
     base_64: Any
 
 class File(BaseModel):
+    uuid:str
     file_name: str
     url: str
     mimetype: Optional[str] = None

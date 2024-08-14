@@ -19,6 +19,31 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         return db.query(models.Administrator).filter(models.Administrator.uuid == uuid).first()
     
     @classmethod
+    def confirm_child_for_parent(cls, db: Session, obj_in: schemas.ChildrenConfirmation, added_by: models.Administrator):
+        
+        parent: models.Parent = db.query(models.Parent).filter(models.Parent.email.ilike(obj_in.parent_email)).first()
+
+        parent_child  = db.query(models.ParentChild).\
+            filter(models.ParentChild.parent_email == obj_in.parent_emai).\
+            filter(models.ParentChild.child_uuid == obj_in.child_uuid).\
+            filter(models.ParentChild.nursery_uuid == obj_in.nursery_uuid).\
+            first()
+        if not parent_child:
+            parent_child = models.ParentChild(
+                uuid= str(uuid.uuid4()),
+                parent_email = obj_in.parent_email,
+                nursery_uuid = obj_in.nursery_uuid,
+                child_uuid = obj_in.child_uuid,
+                added_by_uuid = added_by.uuid,
+                parent_uuid = parent.uuid
+            )
+            db.add(parent_child)
+            db.commit()
+            db.refresh(parent_child)
+    
+        return parent_child
+    
+    @classmethod
     def create(cls, db: Session, obj_in: schemas.AdministratorCreate,added_by:models.Administrator) -> models.Administrator:
         password:str = generate_password(8, 8)
         send_account_creation_email(email_to=obj_in.email,prefered_language="en", name=obj_in.firstname,password=password)

@@ -12,7 +12,7 @@ from .base import DataList
 
 class HygieneChangeBase(BaseModel):
     nursery_uuid: str
-    child_uuid: str
+    child_uuids: list[str]
     employee_uuid: str
     time: Optional[datetime]= None
     cleanliness: Optional[Cleanliness]= None
