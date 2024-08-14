@@ -37,6 +37,27 @@ def create(
     
     return crud.administrator.create(db, obj_in,added_by=current_user)
 
+
+@router.put("/{uuid}/status", response_model=schemas.AdministratorResponse, status_code=200)
+def update(
+        uuid: str,
+        status: str = Query(..., enum=[st.value for st in models.UserStatusType if st.value != models.UserStatusType.DELETED]),
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+):
+    """
+    Update nursery admin status
+    """
+    user = crud.administrator.get_by_uuid(db, uuid)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    if user.status == status:
+        return user
+
+    return crud.administrator.update_status(db, user, status)
+
+
 @router.post("/", response_model=schemas.AdministratorResponse, status_code=201)
 def update(
     *,

@@ -51,6 +51,12 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         db.commit()
         db.refresh(administrator)
         return administrator
+
+    @classmethod
+    def update_status(cls, db: Session, admin: models.Administrator, status: models.UserStatusType) -> models.Administrator:
+        admin.status = status
+        db.commit()
+        return admin
     
     @classmethod
     def delete(cls,db:Session, uuid) -> models.Administrator:
