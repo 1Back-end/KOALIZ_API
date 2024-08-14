@@ -129,7 +129,7 @@ def get_current_user(
     return current_user
 
 
-@router.post("/adminstrator/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg)
+@router.post("/adminstrator/start-reset-password", summary="Start reset password", response_model=schemas.Msg)
 def start_reset_password(
         input: schemas.ResetPasswordOption2Step1,
         db: Session = Depends(get_db),
@@ -194,26 +194,13 @@ def reset_password(
             detail=__("password-invalid")
         )
 
-    code = generate_randon_key(length=5)
+    db.delete(user_code)
 
-    # user.otp_password = "00000"
-    # user.otp_password_expired_at = datetime.now() + timedelta(minutes=5)
-
-    user_code = models.AdminActionValidation(
-        uuid=str(uuid.uuid4()),
-        code=str(code),
-        user_uuid=user.uuid,
-        value=get_password_hash(input.new_password),
-        expired_date=datetime.now() + timedelta(minutes=5)
-    )
-    db.add(user_code)
+    user.password_hash = get_password_hash(input.new_password)
+    db.add(user)
     db.commit()
 
-    send_reset_password_email(
-        email_to=user.email, name=user.firstname, token=code, valid_minutes=5
-    )
-
-    return schemas.Msg(message=__("reset-password-started"))
+    return schemas.Msg(message=__("password-reset-successfully"))
 
 
 @router.put("/administrator/reset-password", summary="Reset password", response_model=schemas.Msg)
