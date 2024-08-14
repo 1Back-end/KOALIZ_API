@@ -16,19 +16,21 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
     @classmethod
     def create(self, db: Session, obj_in: HygieneChangeCreate) -> HygieneChange:
 
-        db_obj = HygieneChange(
-            uuid=str(uuid.uuid4()),
-            time=obj_in.time,
-            cleanliness=obj_in.cleanliness,
-            pipi=obj_in.pipi,
-            stool_type=obj_in.stool_type,
-            additional_care=obj_in.additional_care,
-            observation=obj_in.observation,
-            child_uuid=obj_in.child_uuid,
-            nursery_uuid=obj_in.nursery_uuid,
-            added_by_uuid=obj_in.employee_uuid
-        )
-        db.add(db_obj)
+        for child_uuid in obj_in.child_uuids:
+            db_obj = HygieneChange(
+                uuid=str(uuid.uuid4()),
+                time=obj_in.time,
+                cleanliness=obj_in.cleanliness,
+                pipi=obj_in.pipi,
+                stool_type=obj_in.stool_type,
+                additional_care=obj_in.additional_care,
+                observation=obj_in.observation,
+                child_uuid=child_uuid,
+                nursery_uuid=obj_in.nursery_uuid,
+                added_by_uuid=obj_in.employee_uuid
+            )
+            db.add(db_obj)
+            db.flush()
         db.commit()
         db.refresh(db_obj)
         return db_obj
@@ -40,15 +42,23 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
     @classmethod
     def update(cls, db: Session,obj_in: HygieneChangeUpdate) -> HygieneChangeMini:
         hygiene_change = cls.get_hygiene_change_by_uuid(db, obj_in.uuid)
-        hygiene_change.time = obj_in.time if obj_in.time else hygiene_change.time
-        hygiene_change.cleanliness = obj_in.cleanliness if obj_in.cleanliness else hygiene_change.cleanliness
-        if obj_in.pipi == False:
-            hygiene_change.pipi = False
-        if obj_in.pipi == True:
-            hygiene_change.pipi = True
-        hygiene_change.stool_type = obj_in.stool_type if obj_in.stool_type else hygiene_change.stool_type
-        hygiene_change.additional_care = obj_in.additional_care if obj_in.additional_care else hygiene_change.additional_care
-        hygiene_change.observation = obj_in.observation if obj_in.observation else hygiene_change.observation
+        for child_uuid in obj_in.child_uuids:
+            exist_hygiene_change_for_child = db.query(HygieneChange).\
+                filter(HygieneChange.uuid == hygiene_change.uuid).\
+                filter(HygieneChange.child_uuid == child_uuid).\
+                first()
+        
+            hygiene_change.time = obj_in.time if obj_in.time else hygiene_change.time
+            hygiene_change.cleanliness = obj_in.cleanliness if obj_in.cleanliness else hygiene_change.cleanliness
+            if obj_in.pipi == False:
+                hygiene_change.pipi = False
+            if obj_in.pipi == True:
+                hygiene_change.pipi = True
+            hygiene_change.stool_type = obj_in.stool_type if obj_in.stool_type else hygiene_change.stool_type
+            hygiene_change.additional_care = obj_in.additional_care if obj_in.additional_care else hygiene_change.additional_care
+            hygiene_change.observation = obj_in.observation if obj_in.observation else hygiene_change.observation
+            db.flush()
+            
         db.commit()
         db.refresh(hygiene_change)
         return hygiene_change

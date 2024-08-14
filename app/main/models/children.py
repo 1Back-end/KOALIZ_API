@@ -2,89 +2,13 @@ from dataclasses import dataclass
 from enum import Enum
 from datetime import date, datetime
 from sqlalchemy.sql import func
-from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, String, Integer, DateTime, Table, Text, types
+from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, String, Integer, DateTime, Table, Text, Time, types
 from sqlalchemy import event
 from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.main.models.db.base_class import Base
 from app.main.models.db.session import SessionLocal
-
-
-@dataclass
-class Year(Base):
-
-    """ Year Model for storing years related details """
-
-    __tablename__ = "years"
-
-    uuid = Column(String, primary_key=True, unique=True)
-
-    year: int = Column(Integer, nullable=False, default=2024)
-
-    date_added: any = Column(DateTime, server_default=func.now())
-    date_modified: any = Column(DateTime, server_default=func.now())
-
-
-@dataclass
-class Month(Base):
-
-    """ Month Model for storing months related details """
-
-    __tablename__ = "months"
-
-    uuid = Column(String, primary_key=True, unique=True)
-    start_date: date = Column(Date, nullable=False)
-    end_date: date = Column(Date, nullable=False)
-
-    year_uuid: str = Column(String, ForeignKey('years.uuid'), nullable=True)
-    year = relationship("Year", foreign_keys=[year_uuid], uselist=False)
-
-    date_added: any = Column(DateTime, server_default=func.now())
-    date_modified: any = Column(DateTime, server_default=func.now())
-
-
-@dataclass
-class Week(Base):
-
-    """ Week Model for storing weeks related details """
-
-    __tablename__ = "weeks"
-
-    uuid = Column(String, primary_key=True, unique=True)
-    start_date: date = Column(Date, nullable=False)
-    end_date: date = Column(Date, nullable=False)
-    week_index: int = Column(Integer, nullable=False)
-
-    month_uuid: str = Column(String, ForeignKey('months.uuid'), nullable=True)
-    month = relationship("Month", foreign_keys=[month_uuid], uselist=False)
-
-    date_added: any = Column(DateTime, server_default=func.now())
-    date_modified: any = Column(DateTime, server_default=func.now())
-
-
-@dataclass
-class Day(Base):
-
-    """ Day Model for storing days related details """
-
-    __tablename__ = "days"
-
-    uuid = Column(String, primary_key=True, unique=True)
-    day: date = Column(Date, nullable=False)
-    day_of_week: str = Column(String, nullable=False)
-
-    month_uuid: str = Column(String, ForeignKey('months.uuid'), nullable=True)
-    month = relationship("Month", foreign_keys=[month_uuid], uselist=False)
-
-    year_uuid: str = Column(String, ForeignKey('years.uuid'), nullable=True)
-    year = relationship("Year", foreign_keys=[year_uuid], uselist=False)
-
-    week_uuid: str = Column(String, ForeignKey('weeks.uuid'), nullable=True)
-    week = relationship("Week", foreign_keys=[week_uuid], uselist=False)
-
-    date_added: any = Column(DateTime, server_default=func.now())
-    date_modified: any = Column(DateTime, server_default=func.now())
 
 
 class MealQuality(str, Enum):
@@ -167,7 +91,7 @@ class ChildActivity(Base):
 
     """ ChildActivity model representing the many-to-many relationship between children and activities """
 
-    __tablename__ = "child_activities"
+    __tablename__ = "children_activities"
 
     child_uuid = Column(String, ForeignKey('children.uuid'), primary_key=True)
     child = relationship("Child", back_populates="activities")
@@ -225,7 +149,7 @@ class Nap(Base):
         db = SessionLocal()
         if self.end_time:
             duration = (self.end_time - self.start_time).total_seconds() / 3600  # en heures
-            return duration
+            return int(duration)
         return 0
 
 
@@ -331,8 +255,8 @@ class MediaType(str, Enum):
     VIDEO = "VIDEO"
 
 children_media = Table('children_media', Base.metadata,
-    Column('child_uuid', String, ForeignKey('children.uuid')),
-    Column('media_uuid', String, ForeignKey('media.uuid'))
+    Column('child_uuid', String, ForeignKey('children.uuid',ondelete='CASCADE',onupdate='CASCADE')),
+    Column('media_uuid', String, ForeignKey('media.uuid',ondelete='CASCADE',onupdate='CASCADE'))
 )
 
 @dataclass
@@ -380,6 +304,88 @@ class Observation(Base):
 
     time = Column(DateTime, nullable=False, default=datetime.now())
     observation = Column(Text, nullable=False)
+
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added = Column(DateTime, server_default=func.now())
+    date_modified = Column(DateTime, server_default=func.now())
+
+
+''' Attendance Table : Gère les horaires d'arrivée et de départ. '''
+@dataclass
+class Attendance(Base):
+
+    """ Attendance model representing attendances of children """
+
+    __tablename__ = "attendances"
+
+    uuid = Column(String, primary_key=True, unique=True)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False, back_populates="attendances")
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    date = Column(Date, nullable=False)
+    arrival_time = Column(DateTime, nullable=True)
+    departure_time = Column(DateTime, nullable=True)
+
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added = Column(DateTime, server_default=func.now())
+    date_modified = Column(DateTime, server_default=func.now())
+
+
+''' Absences Table : Permet de noter les absences avec une plage de temps et une note. '''
+@dataclass
+class Absence(Base):
+
+    """ Absence model representing absences of children """
+
+    __tablename__ = "absences"
+
+    uuid = Column(String, primary_key=True, unique=True)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    note = Column(Text, nullable=True)
+
+    added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
+    added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added = Column(DateTime, server_default=func.now())
+    date_modified = Column(DateTime, server_default=func.now())
+
+
+""" OccasionalPresence Table : Permet d'enregistrer les présences occasionnelles avec des détails spécifiques."""
+@dataclass
+class OccasionalPresence(Base):
+
+    """ OccasionalPresence model representing occasional presence of children """
+
+    __tablename__ = "occasional_presences"
+
+    uuid = Column(String, primary_key=True, unique=True)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    date = Column(Date, nullable=False)
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
+    note = Column(Text, nullable=True)
 
     added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
     added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)

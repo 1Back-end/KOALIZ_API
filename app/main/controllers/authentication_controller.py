@@ -9,7 +9,7 @@ from starlette.requests import Request
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
-from app.main.core.mail import send_account_confirmation_email, send_reset_password_email, send_reset_password_option2_email
+from app.main.core.mail import send_account_confirmation_email, send_reset_password_email, send_reset_password_option2_email,send_password_reset_succes_email,send_account_created_succes_email
 from app.main.core.security import create_access_token, generate_code, get_password_hash, verify_password, is_valid_password, \
     decode_access_token
 from app.main.core.config import Config
@@ -39,13 +39,13 @@ async def login_parent(
     if not crud.parent.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -72,13 +72,13 @@ async def login_administrator(
     if not crud.administrator.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -105,13 +105,13 @@ async def login_owner(
     if not crud.owner.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -194,6 +194,61 @@ def reset_password(
             detail=__("password-invalid")
         )
 
+    code = generate_randon_key(length=5)
+
+    # user.otp_password = "00000"
+    # user.otp_password_expired_at = datetime.now() + timedelta(minutes=5)
+
+    user_code = models.AdminActionValidation(
+        uuid=str(uuid.uuid4()),
+        code=str(code),
+        user_uuid=user.uuid,
+        value=get_password_hash(input.new_password),
+        expired_date=datetime.now() + timedelta(minutes=5)
+    )
+    db.add(user_code)
+    db.commit()
+
+    send_reset_password_email(
+        email_to=user.email, name=user.firstname, token=code, valid_minutes=5
+    )
+
+    return schemas.Msg(message=__("reset-password-started"))
+
+
+@router.put("/administrator/reset-password", summary="Reset password", response_model=schemas.Msg)
+def reset_password(
+        input: schemas.ResetPasswordStep2,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Reset password
+    """
+    user = crud.administrator.get_by_email(db, email=input.email)
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail=__("user-email-not-found")
+        )
+    elif not crud.administrator.is_active(user):
+        raise HTTPException(status_code=400, detail=__("user-not-activated"))
+
+    user_code: models.AdminActionValidation = db.query(models.AdminActionValidation).filter(models.AdminActionValidation.code==input.otp).filter(
+        models.AdminActionValidation.user_uuid == user.uuid).filter(
+        models.AdminActionValidation.expired_date >= datetime.now()).first()
+    if not user_code:
+        raise HTTPException(
+            status_code=404,
+            detail=__("validation-code-not-found"),
+        )
+    
+    if not is_valid_password(password=input.otp):
+        raise HTTPException(
+            status_code=400,
+            detail=__("password-invalid")
+        )
+    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),user_code.value)
+
     db.delete(user_code)
 
     user.password_hash = get_password_hash(input.new_password)
@@ -267,6 +322,7 @@ def reset_password(
             status_code=400,
             detail=__("password-invalid")
         )
+    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),user_code.value)
 
     db.delete(user_code)
 
@@ -297,6 +353,8 @@ async def update_current_user_password(
 
     if not is_valid_password(password=new_password):
         raise HTTPException(status_code=400, detail=__("invalid-password"))
+    
+    send_password_reset_succes_email(current_user.email,(current_user.firstname +" "+ current_user.lastname),new_password)
 
     current_user.password_hash = get_password_hash(new_password)
     if current_user.is_new_user:
@@ -345,13 +403,13 @@ async def verify_otp(
     db.commit()
     db.refresh(user)
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -373,11 +431,17 @@ async def create_parent_on_system(
 
     code = generate_code(length=12)
     code= str(code[0:6]) 
-
+    
+    if not is_valid_password(password=input.password):
+        raise HTTPException(
+            status_code=400,
+            detail=__("password-invalid")
+        )
+    
     if user:
         if crud.parent.is_active(user):
             raise HTTPException(status_code=400, detail=__("user-email-taken"))
-        
+
         user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
         models.ParentActionValidation.user_uuid == user.uuid)
 
@@ -414,12 +478,6 @@ def validate_account(
     user = crud.parent.get_by_email(db, email=input.email)
     if not user:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
-
-    # if user.otp != input.token:
-    #     raise HTTPException(status_code=400, detail=__("otp-invalid"))
-
-    # if user.otp_expired_at < datetime.now():
-    #     raise HTTPException(status_code=400, detail=__("otp-expired"))
     
     user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
         models.ParentActionValidation.code == input.token).filter(
@@ -435,17 +493,17 @@ def validate_account(
     user.status = models.UserStatusType.ACTIVED
     # user.otp = None
     # user.otp_expired_at = None
-
+    send_account_created_succes_email(user.email,(user.firstname + " " +user.lastname))
     db.commit()
     db.refresh(user)
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -585,6 +643,7 @@ def reset_password(
         )
 
     db.delete(user_code)
+    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),input.new_password)
 
     user.password_hash = get_password_hash(input.new_password)
     db.add(user)
@@ -621,6 +680,8 @@ def restore_password(
             status_code=400,
             detail=__("password-invalid")
         )
+
+    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),input.new_password)
 
     db.delete(user_code)
 

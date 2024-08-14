@@ -17,9 +17,9 @@ class MealBase(BaseModel):
     breastfeeding_duration_minutes: Optional[int] = 0
     meal_quality: Optional[MealQuality]=None
     observation: Optional[str] = None
-    nursery_uuid: Optional[str] = None
-    child_uuid: Optional[str] = None
-    employee_uuid : Optional[str] = None
+    nursery_uuid: str
+    child_uuids: list[str]
+    employee_uuid : str
 
 
 class MealCreate(MealBase):
@@ -32,9 +32,9 @@ class MealUpdate(BaseModel):
     breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
     observation: Optional[str] = None
-    nursery_uuid: Optional[str] = None
-    child_uuid: Optional[str] = None
-    employee_uuid: Optional[str] = None  
+    nursery_uuid: str
+    child_uuids: list[str]
+    employee_uuid: str 
 
 
 class MealResponse(BaseModel):

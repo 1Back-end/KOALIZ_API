@@ -73,18 +73,20 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
 
 
     def create_meal(self,*,db:Session, obj_in:schemas.MealCreate):
-        db_meal = models.Meal(
-            uuid=str(uuid.uuid4()),
-            meal_time=obj_in.meal_time,
-            bottle_milk_ml=obj_in.bottle_milk_ml,
-            breastfeeding_duration_minutes=obj_in.breastfeeding_duration_minutes,
-            meal_quality=obj_in.meal_quality,
-            observation=obj_in.observation,
-            nursery_uuid=obj_in.nursery_uuid,
-            child_uuid=obj_in.child_uuid,
-            added_by_uuid=obj_in.employee_uuid
-        )
-        db.add(db_meal)
+        for child_uuid in obj_in.child_uuids:
+            db_meal = models.Meal(
+                uuid=str(uuid.uuid4()),
+                meal_time=obj_in.meal_time,
+                bottle_milk_ml=obj_in.bottle_milk_ml,
+                breastfeeding_duration_minutes=obj_in.breastfeeding_duration_minutes,
+                meal_quality=obj_in.meal_quality,
+                observation=obj_in.observation,
+                nursery_uuid=obj_in.nursery_uuid,
+                child_uuid=child_uuid,
+                added_by_uuid=obj_in.employee_uuid
+            )
+            db.add(db_meal)
+            db.flush()
         db.commit()
         db.refresh(db_meal)
         return db_meal
@@ -98,16 +100,17 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
         if not db_meal:
             raise HTTPException(status_code=404, detail="Meal not found")
 
-        # Mettre à jour les attributs du repas uniquement si les valeurs sont fournies
-        if obj_in.bottle_milk_ml is not None:
-            db_meal.bottle_milk_ml = obj_in.bottle_milk_ml
-        if obj_in.breastfeeding_duration_minutes is not None:
-            db_meal.breastfeeding_duration_minutes = obj_in.breastfeeding_duration_minutes
-        if obj_in.meal_quality is not None:
-            db_meal.meal_quality = obj_in.meal_quality
-        if obj_in.observation is not None:
-            db_meal.observation = obj_in.observation
-
+        for child_uuid in obj_in.child_uuids:
+            exist_meal_for_child = db.query(models.Meal).\
+            filter(models.Meal.child_uuid == child_uuid).\
+            filter(models.Meal.uuid== db_meal.uuid).\
+            first()
+            if exist_meal_for_child:
+                exist_meal_for_child.bottle_milk_ml = obj_in.bottle_milk_ml if obj_in.bottle_milk_ml else exist_meal_for_child.bottle_milk_ml
+                exist_meal_for_child.breastfeeding_duration_minutes = obj_in.breastfeeding_duration_minutes if obj_in.breastfeeding_duration_minutes else exist_meal_for_child.breastfeeding_duration_minutes
+                exist_meal_for_child.meal_quality = obj_in.meal_quality if obj_in.meal_quality else exist_meal_for_child.meal_quality
+                exist_meal_for_child.observation = obj_in.observation if obj_in.observation else exist_meal_for_child.observation
+                db.flush()
         # Commit the changes to the database
         db.commit()
         db.refresh(db_meal)

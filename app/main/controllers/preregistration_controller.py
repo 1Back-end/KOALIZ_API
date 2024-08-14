@@ -68,7 +68,15 @@ def get_special_folder(
 ):
     """ Get a special folder """
 
-    return crud.preregistration.get_by_uuid(db, uuid)
+    preregistration = crud.preregistration.get_by_uuid(db, uuid)
+    if not preregistration:
+        raise HTTPException(status_code=404, detail=__("folder-not-found"))
+    
+    owner_uuid = preregistration.nursery.owner_uuid if preregistration.nursery and preregistration.nursery.owner_uuid else None
+    if owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=403, detail=__("dependencies-access-unauthorized"))
+
+    return preregistration
 
 @router.get("/detail/{uuid}", response_model=schemas.PreregistrationDetails, status_code=200)
 def get_special_folder_without_permission(
@@ -89,6 +97,14 @@ def change_status_of_special_folder(
     current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Change status of a special folder """
+
+    preregistration = crud.preregistration.get_by_uuid(db, uuid)
+    if not preregistration:
+        raise HTTPException(status_code=404, detail=__("folder-not-found"))
+    
+    owner_uuid = preregistration.nursery.owner_uuid if preregistration.nursery and preregistration.nursery.owner_uuid else None
+    if owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=403, detail=__("dependencies-access-unauthorized"))
 
     return crud.preregistration.change_status_of_a_special_folder(db, folder_uuid=uuid, status=status, performed_by_uuid=current_user.uuid, background_task=background_task)
 
@@ -140,7 +156,7 @@ def add_meeting_to_special_folder(
     *,
     obj_in: schemas.MeetingType=Body(...),
     db: Session = Depends(get_db),
-    # current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """ Add meeting to special folder """
 
@@ -239,11 +255,11 @@ def get_many(
         keyword,
         tag_uuid
     )
-@router.get("/transmission/child/{uuid}", response_model=schemas.Transmission, status_code=200)
+@router.get("/transmission/child", response_model=schemas.Transmission, status_code=200)
 def get_child_transmission(
-        uuid: str,
+        child_uuid: str,
         nursery_uuid: str,
-        date:date = datetime.now().date(),
+        date:date = None,
         db: Session = Depends(get_db),
         current_team_device: models.TeamDevice = Depends(dependencies.TeamTokenRequired())
 ):
@@ -254,9 +270,10 @@ def get_child_transmission(
         raise HTTPException(status_code=403, detail=__("not-authorized"))
     
     return crud.preregistration.get_transmission(
-        uuid,
-        db,
-        date
+        child_uuid=child_uuid,
+        db=db,
+        date=date,
+        nursery_uuid=nursery_uuid
     )
 
 # 8d54df37-9954-44a3-8733-9be1f9f5a148
