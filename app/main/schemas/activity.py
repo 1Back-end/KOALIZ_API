@@ -104,7 +104,7 @@ class ChildActivityDetails(BaseModel):
     activity_time: datetime
     # child: Optional[ChildMini2] = None
     # nursery: Optional[NurserySlim]=None
-    # added_by: Optional[EmployeSlim] = None    
+    # added_by: Optional[EmployeSlim] = None
     date_added: datetime
     date_modified: datetime
 
