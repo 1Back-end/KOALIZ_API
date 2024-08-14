@@ -129,7 +129,7 @@ def get_current_user(
     return current_user
 
 
-@router.post("/adminstrator/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg)
+@router.post("/adminstrator/start-reset-password", summary="Start reset password", response_model=schemas.Msg)
 def start_reset_password(
         input: schemas.ResetPasswordOption2Step1,
         db: Session = Depends(get_db),
@@ -193,61 +193,6 @@ def reset_password(
             status_code=400,
             detail=__("password-invalid")
         )
-
-    code = generate_randon_key(length=5)
-
-    # user.otp_password = "00000"
-    # user.otp_password_expired_at = datetime.now() + timedelta(minutes=5)
-
-    user_code = models.AdminActionValidation(
-        uuid=str(uuid.uuid4()),
-        code=str(code),
-        user_uuid=user.uuid,
-        value=get_password_hash(input.new_password),
-        expired_date=datetime.now() + timedelta(minutes=5)
-    )
-    db.add(user_code)
-    db.commit()
-
-    send_reset_password_email(
-        email_to=user.email, name=user.firstname, token=code, valid_minutes=5
-    )
-
-    return schemas.Msg(message=__("reset-password-started"))
-
-
-@router.put("/administrator/reset-password", summary="Reset password", response_model=schemas.Msg)
-def reset_password(
-        input: schemas.ResetPasswordStep2,
-        db: Session = Depends(get_db),
-) -> schemas.Msg:
-    """
-    Reset password
-    """
-    user = crud.administrator.get_by_email(db, email=input.email)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=__("user-email-not-found")
-        )
-    elif not crud.administrator.is_active(user):
-        raise HTTPException(status_code=400, detail=__("user-not-activated"))
-
-    user_code: models.AdminActionValidation = db.query(models.AdminActionValidation).filter(models.AdminActionValidation.code==input.otp).filter(
-        models.AdminActionValidation.user_uuid == user.uuid).filter(
-        models.AdminActionValidation.expired_date >= datetime.now()).first()
-    if not user_code:
-        raise HTTPException(
-            status_code=404,
-            detail=__("validation-code-not-found"),
-        )
-    
-    if not is_valid_password(password=input.otp):
-        raise HTTPException(
-            status_code=400,
-            detail=__("password-invalid")
-        )
-    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),user_code.value)
 
     db.delete(user_code)
 
