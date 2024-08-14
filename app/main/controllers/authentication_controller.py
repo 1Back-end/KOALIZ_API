@@ -131,7 +131,7 @@ def get_current_user(
 
 @router.post("/adminstrator/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg)
 def start_reset_password(
-        input: schemas.ResetPasswordStep1,
+        input: schemas.ResetPasswordOption2Step1,
         db: Session = Depends(get_db),
 ) -> schemas.Msg:
     """
@@ -140,6 +140,50 @@ def start_reset_password(
     user = crud.administrator.get_by_email(db=db, email=input.email)
     if not user:
         raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    elif not crud.administrator.is_active(user):
+        raise HTTPException(status_code=400, detail=__("user-not-activated"))
+
+    token = create_access_token(
+                user.uuid, expires_delta=timedelta(minutes=30)
+            )
+
+    user_code = models.AdminActionValidation(
+        uuid=str(uuid.uuid4()),
+        code=token,
+        user_uuid=user.uuid,
+        expired_date=datetime.now() + timedelta(minutes=30)
+    )
+    db.add(user_code)
+    db.commit()
+
+    send_reset_password_option2_email(
+        email_to=user.email, name=user.firstname, token=token, valid_minutes=30, language=input.language
+    )
+
+    return schemas.Msg(message=__("reset-password-started"))
+
+
+@router.put("/adminstrator/reset-password", summary="Reset password", response_model=schemas.Msg)
+def reset_password(
+        input: schemas.ResetPasswordOption2Step2,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Reset password
+    """
+    token_data = decode_access_token(input.token)
+    if not token_data:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+
+    user = crud.administrator.get_by_uuid(db, token_data["sub"])
+
+    user_code: models.AdminActionValidation = db.query(models.AdminActionValidation).filter(
+        models.AdminActionValidation.code == input.token).filter(
+        models.AdminActionValidation.user_uuid == user.uuid).filter(
+        models.AdminActionValidation.expired_date >= datetime.now()).first()
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
 
     elif not crud.administrator.is_active(user):
         raise HTTPException(status_code=400, detail=__("user-not-activated"))
@@ -207,7 +251,7 @@ def reset_password(
 
     db.delete(user_code)
 
-    user.password_hash = user_code.value
+    user.password_hash = get_password_hash(input.new_password)
     db.add(user)
     db.commit()
 
