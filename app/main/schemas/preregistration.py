@@ -510,3 +510,7 @@ class ChildTransmissionList(DataList):
     data: list[Transmission] = []
 
     model_config = ConfigDict(from_attributes=True)
+class ChildDetailsList(DataList):
+    data: list[ChildDetails] = []
+
+    model_config = ConfigDict(from_attributes=True)
