@@ -167,6 +167,33 @@ def send_reset_password_email(email_to: str, name: str, token: str, valid_minute
     print("----------------------------------------")
     logging.info(f"new send mail task with id {task}")
 
+
+def send_password_reset_succes_email(email_to: str, name: str, token: str) -> None:
+    project_name = Config.PROJECT_NAME
+    subject = f'{project_name} - {__("mail-subject-password-reset-succes")} {name}'
+
+    template_path = get_template_path_based_on_lang()
+    with open(Path(template_path) / "password_reset_success.html") as f:
+        template_str = f.read()
+
+    print("=====================================")
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": Config.PROJECT_NAME,
+            "name": name,
+            "email": email_to,
+            # "valid_hours": Config.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
+            # "valid_minutes": valid_minutes,
+            "code": token,
+        },
+    )
+    print("----------------------------------------")
+    logging.info(f"new send mail task with id {task}")
+
+
 def send_account_confirmation_email(email_to: str, name: str, token: str, valid_minutes: int = None) -> None:
     project_name = Config.PROJECT_NAME
     subject = f'{project_name} - {__("mail-subject-account-confirmation-email")} {name}'
