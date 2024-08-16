@@ -151,3 +151,26 @@ class QuoteSettingsUpdate(BaseModel):
     adaptation_package_days: int = 0
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CMGAmountRange(BaseModel):
+    uuid: str
+    lower: float
+    upper: float
+    family_type: models.FamilyType
+    number_children: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CMGAmount(BaseModel):
+    uuid: str
+    child_age_lower: int
+    child_age_upper: int
+    tranche_1_amount: float
+    tranche_2_amount: float
+    tranche_3_amount: float
+    govt_update_of: Optional[date]
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)

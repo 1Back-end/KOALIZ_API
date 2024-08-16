@@ -112,6 +112,18 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
         return quote_obj
 
 
+    @classmethod
+    def get_cmg_range(cls, db: Session) -> list[models.CMGAmountRange]:
+
+        return db.query(models.CMGAmountRange).all()
+
+
+    @classmethod
+    def get_cmg(cls, db: Session) -> list[models.CMGAmount]:
+
+        return db.query(models.CMGAmount).all()
+
+
 quote = CRUDQuote(models.Quote)
 
 
