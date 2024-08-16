@@ -225,6 +225,149 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
             current_page =page,
             data =record_query
         )
+    
+    @classmethod
+    def get_children(
+        cls,
+        db:Session,
+        page:int = 1,
+        per_page:int = 30,
+        order:Optional[str] = None,
+        parent_uuid:Optional[str] = None,
+        order_filed:Optional[str] = None,
+        keyword:Optional[str]= None
+    ):
+        # Get parent children
+        parent_children: models.ParentChild = db.query(models.ParentChild).\
+            filter(models.ParentChild.parent_uuid==parent_uuid).\
+            all()
+
+        record_query = db.query(models.Child).\
+            filter(models.Child.uuid.in_([parent_child.child_uuid for parent_child in parent_children]))
+        
+        if keyword:
+            record_query = record_query.filter(
+                or_(
+                    models.Child.firstname.ilike('%' + str(keyword) + '%'),
+                    models.Child.birthplace.ilike('%' + str(keyword) + '%'),
+                    models.Child.lastname.ilike('%' + str(keyword) + '%')
+                )
+            )
+
+        if order and order.lower() == "asc":
+            record_query = record_query.order_by(getattr(models.Child, order_filed).asc())
+        else:
+            record_query = record_query.order_by(getattr(models.Child, order_filed).desc())
+
+        total = record_query.count()
+        record_query = record_query.offset((page - 1) * per_page).limit(per_page)
+
+        return schemas.ChildDetailsList(
+            total = total,
+            pages = math.ceil(total/per_page),
+            per_page = per_page,
+            current_page = page,
+            data = record_query
+        )
+    
+    @classmethod
+    def get_children_media(
+        cls,
+        db:Session,
+        page:int = 1,
+        per_page:int = 30,
+        order:Optional[str] = None,
+        parent_uuid:Optional[str] = None,
+        order_filed:Optional[str] = None,
+        keyword:Optional[str]= None,
+        media_type:Optional[str]= None
+    ):
+        # Get parent children
+        parent_children: models.ParentChild = db.query(models.ParentChild).\
+            filter(models.ParentChild.parent_uuid==parent_uuid).\
+            all()
+        
+        media = db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([parent_child.child_uuid for parent_child in parent_children])).all()
+        
+        record_query = db.query(models.Media).\
+            filter(models.Media.uuid.in_([md.media_uuid for md in media]))
+        
+        if keyword:
+            record_query = record_query.filter(
+                or_(
+                    models.Media.observation.ilike('%' + str(keyword) + '%')
+                )
+            )
+
+        if media_type:
+            record_query = record_query.filter(models.Media.media_type == media_type)
+
+        if order and order.lower() == "asc":
+            record_query = record_query.order_by(getattr(models.Child, order_filed).asc())
+        else:
+            record_query = record_query.order_by(getattr(models.Child, order_filed).desc())
+
+        total = record_query.count()
+        record_query = record_query.offset((page - 1) * per_page).limit(per_page)
+
+        return schemas.MediaList(
+            total = total,
+            pages = math.ceil(total/per_page),
+            per_page = per_page,
+            current_page = page,
+            data = record_query
+        )
+
+    @classmethod
+    def get_invoices(
+        cls, db: Session, page: int = 1, per_page: int = 30,
+        order: Optional[str] = None, order_filed: Optional[str] = None,
+        keyword: Optional[str] = None, status: Optional[str] = None,
+        reference: str = None, month: int = None, year: int = None,
+        child_uuid: str = None, parent_uuid: str =None
+    ):
+        # Get parent children
+        parent_children: models.ParentChild = db.query(models.ParentChild).\
+            filter(models.ParentChild.parent_uuid==parent_uuid).\
+            all()
+        
+        record_query = db.query(models.Invoice).filter(models.Invoice.child_uuid.in_([parent_child.child_uuid for parent_child in parent_children]))
+
+        if status:
+            record_query = record_query.filter(models.Invoice.status == status)
+
+        if reference:
+            record_query = record_query.filter(models.Invoice.reference == reference)
+
+        if keyword:
+            record_query = record_query.filter(models.Invoice.child.has(
+                or_(
+                    models.Child.firstname.ilike('%' + str(keyword) + '%'),
+                    models.Child.lastname.ilike('%' + str(keyword) + '%'),
+                ))
+            )
+        if year and month:
+            record_query = record_query.filter(models.Invoice.date_to >= f"{year}-{month}-01").filter(
+                models.Invoice.date_to <= f"{year}-{month}-31")
+
+        if child_uuid:
+            record_query = record_query.filter(models.Invoice.child_uuid == child_uuid)
+
+        if order == "asc":
+            record_query = record_query.order_by(getattr(models.Invoice, order_filed).asc())
+        else:
+            record_query = record_query.order_by(getattr(models.Invoice, order_filed).desc())
+
+        total = record_query.count()
+        record_query = record_query.offset((page - 1) * per_page).limit(per_page)
+
+        return schemas.InvoiceList(
+            total=total,
+            pages=math.ceil(total / per_page),
+            per_page=per_page,
+            current_page=page,
+            data=record_query
+        )
 
     @classmethod
     def password_confirmation(cls, db: Session, password1: str,password2:str) -> bool:

@@ -15,7 +15,9 @@ router = APIRouter(prefix="/devices", tags=["devices"])
 
 @router.post("/login", response_model=schemas.TeamDeviceAuthentication, status_code=200)
 def team_device_login(
+    *,
     code: str,
+    name: Optional[str]=None,
     db: Session = Depends(get_db),
 ):
     """
@@ -27,6 +29,7 @@ def team_device_login(
 
     token = create_access_token(team_device.uuid)
     team_device.token = token
+    team_device.name = name if name else team_device.name
     db.commit()
 
     return {
@@ -88,12 +91,11 @@ def add_new_team_device(
 ):
     """ Add new team device: owner """
 
-    exist_device = crud.team_device.get_by_team_device_name_for_nursery(db, obj_in.name, obj_in.nursery_uuid)
-    if exist_device:
-        raise HTTPException(status_code=409, detail=__("device-already-found"))
+    # exist_device = crud.team_device.get_device_by_nursery_uuid(db, obj_in.nursery_uuid)
+    # if exist_device:
+    #     raise HTTPException(status_code=409, detail=__("device-already-found"))
 
     device = crud.team_device.create(db=db, obj_in=schemas.TeamDeviceCreate(
-        name=obj_in.name,
         nursery_uuid=obj_in.nursery_uuid
     ))
 

@@ -11,7 +11,7 @@ class TeamDevice(Base):
 
     uuid = Column(String, primary_key=True, unique=True)
     token = Column(String, nullable=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=True)
     code = Column(String, nullable=True)
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)

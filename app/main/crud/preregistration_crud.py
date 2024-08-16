@@ -352,13 +352,14 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     def determine_cmg(db: Session, dependent_children: int, family_type: models.FamilyType,
                       annual_income: float, birthdate: date, quote_uuid: str) -> Optional[models.QuoteCMG]:
 
+        cmg_dependent_children = dependent_children
         if dependent_children < 1:
-            dependent_children = 1
+            cmg_dependent_children = 1
         if dependent_children > 4:
-            dependent_children = 4
+            cmg_dependent_children = 4
 
         cmg_amount_range: models.CMGAmountRange = db.query(models.CMGAmountRange).filter(
-            models.CMGAmountRange.number_children == dependent_children).filter(
+            models.CMGAmountRange.number_children == cmg_dependent_children).filter(
             models.CMGAmountRange.family_type == family_type).first()
         if not cmg_amount_range:
             return None

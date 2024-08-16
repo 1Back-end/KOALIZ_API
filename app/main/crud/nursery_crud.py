@@ -225,7 +225,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
     @classmethod
     def get_all_uuids_of_same_owner(cls, db: Session, owner_uuid: str, except_uuids: list[str] = []) -> list[dict]:
-        res = db.query(models.Nursery.uuid, models.Nursery.name).filter(models.Nursery.owner_uuid == owner_uuid)
+        res = db.query(models.Nursery.uuid, models.Nursery.name).filter(models.Nursery.owner_uuid == owner_uuid).filter(models.Nursery.status != models.NurseryStatusType.DELETED)
         if except_uuids:
             res = res.filter(models.Nursery.uuid.notin_(except_uuids))
         return res.all()
