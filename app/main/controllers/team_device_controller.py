@@ -15,8 +15,9 @@ router = APIRouter(prefix="/devices", tags=["devices"])
 
 @router.post("/login", response_model=schemas.TeamDeviceAuthentication, status_code=200)
 def team_device_login(
+    *,
     code: str,
-    name: str,
+    name: Optional[str]=None,
     db: Session = Depends(get_db),
 ):
     """
@@ -28,7 +29,7 @@ def team_device_login(
 
     token = create_access_token(team_device.uuid)
     team_device.token = token
-    team_device.name = name
+    team_device.name = name if name else team_device.name
     db.commit()
 
     return {
@@ -68,18 +69,18 @@ def logout(
     raise HTTPException(status_code=200, detail=None)
 
 
-# @router.get("/details", response_model=schemas.TeamDevice, status_code=200)
-# def get_team_device_details(
-#     name: str,
-#     db: Session = Depends(get_db),
-# ):
-#     """ Get device details """
+@router.get("/details", response_model=schemas.TeamDevice, status_code=200)
+def get_team_device_details(
+    name: str,
+    db: Session = Depends(get_db),
+):
+    """ Get device details """
 
-#     exist_device = crud.team_device.get_by_team_device_name(db, name)
-#     if not exist_device:
-#         raise HTTPException(status_code=404, detail=__("device-not-found"))
+    exist_device = crud.team_device.get_by_team_device_name(db, name)
+    if not exist_device:
+        raise HTTPException(status_code=404, detail=__("device-not-found"))
 
-#     return exist_device
+    return exist_device
 
 
 @router.post("", response_model=schemas.TeamDevice, status_code=201)
