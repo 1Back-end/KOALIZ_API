@@ -27,8 +27,8 @@ def team_device_login(
     if not team_device:
         raise HTTPException(status_code=404, detail=__("device-not-found"))
     
-    if team_device.name:
-        raise HTTPException(status_code=404, detail=__("device-already-use"))
+    if team_device.name or team_device.is_actived==True:
+        raise HTTPException(status_code=400, detail=__("device-already-use"))
 
     token = create_access_token(team_device.uuid)
     team_device.token = token
@@ -70,6 +70,7 @@ def logout(
     if team_device:
         team_device.token = None
         team_device.name = None
+        team_device.is_actived = False
     db.commit()
     raise HTTPException(status_code=200, detail=None)
 
