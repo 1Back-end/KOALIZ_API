@@ -40,6 +40,30 @@ def get(
     )
 
 
+@router.get("/cmg-range", response_model=list[schemas.CMGAmountRange], status_code=200)
+def update_settings(
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+):
+    """
+    Get quote cmg range
+    """
+
+    return crud.quote.get_cmg_range(db)
+
+
+@router.get("/cmg", response_model=list[schemas.CMGAmount], status_code=200)
+def update_settings(
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+):
+    """
+    Get quote cmg
+    """
+
+    return crud.quote.get_cmg(db)
+
+
 @router.get("/{uuid}", response_model=schemas.QuoteDetails, status_code=200)
 def get_details(
         uuid: str,
