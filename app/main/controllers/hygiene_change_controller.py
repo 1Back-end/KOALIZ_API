@@ -22,8 +22,8 @@ def create_hygiene_change(
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    if not childs or len(childs)!=len(childs):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
     employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
@@ -45,8 +45,8 @@ def update_hygiene_change(
     if not hygiene_change:
         raise HTTPException(status_code=404, detail=__("hygiene-change-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
+    if not childs or len(childs)!= len(obj_in.child_uuids):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)

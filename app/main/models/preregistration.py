@@ -78,6 +78,7 @@ class Child(Base):
     hygiene_changes: Mapped[list[any]] = relationship("HygieneChange", back_populates="child", uselist=True) # Hygienes
     media: Mapped[list[any]] = relationship("Media", secondary=children_media, back_populates="children", uselist=True) # Media
     observations: Mapped[list[any]] = relationship("Observation", back_populates="child", uselist=True) # Observations
+    attendances: Mapped[list[any]] = relationship("Attendance", back_populates="child", uselist=True) # Attendances (Presences)
 
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)
@@ -97,8 +98,6 @@ class Child(Base):
     
     @hybrid_property
     def age(self):
-        print("birthdate: ", self.birthdate)
-        # current_date = datetime.now().date()
         current_year = datetime.now().date().year
         birthday_year = self.birthdate.year
 
@@ -164,6 +163,44 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 
 
 @event.listens_for(PreContract, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
+class ParentChild(Base):
+
+    """ database model for storing parent children cases related details """
+
+    __tablename__ = 'parent_children'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+
+    parent_uuid = Column(String, ForeignKey('parents.uuid'), nullable=True)
+    parent: Mapped[any] = relationship("Parent", foreign_keys=parent_uuid, uselist=False)
+
+    parent_email = Column(String, nullable=False)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
+
+    added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
+    added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(ParentChild, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+@event.listens_for(ParentChild, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()

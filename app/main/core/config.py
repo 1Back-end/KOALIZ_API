@@ -26,7 +26,7 @@ class ConfigClass(BaseSettings):
     PREFERRED_LANGUAGE: str = get_secret("PREFERRED_LANGUAGE", 'fr')
     API_STR: str = get_secret("API_STR", "/api/v1")
 
-    # 60 minutes * 24 hours * 355 days = 365 days
+    # 60 minutes * 24 hours * 356 days = 365 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(get_secret("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 365))
 
    # Minio
