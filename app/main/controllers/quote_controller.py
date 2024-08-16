@@ -43,7 +43,7 @@ def get(
 @router.get("/cmg-amount-range", response_model=list[schemas.CMGAmountRange], status_code=200)
 def list_cmg_amount_range(
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Get quote cmg range
@@ -57,7 +57,7 @@ def update_cmg_amount_range(
         cmg_amount_range_uuid: str,
         obj_in: schemas.CMGAmountRangeUpdate,
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Update quote cmg amount range
@@ -73,7 +73,7 @@ def update_cmg_amount_range(
 @router.get("/cmg-amount", response_model=list[schemas.CMGAmount], status_code=200)
 def list_cmg_amount(
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Get quote cmg amount
@@ -87,7 +87,7 @@ def update_cmg_amount(
         cmg_amount_uuid: str,
         obj_in: schemas.CMGAmountUpdate,
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Update quote cmg amount
