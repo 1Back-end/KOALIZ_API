@@ -163,6 +163,15 @@ class CMGAmountRange(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CMGAmountRangeUpdate(BaseModel):
+    lower: float
+    upper: float
+    family_type: models.FamilyType
+    number_children: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class CMGAmount(BaseModel):
     uuid: str
     child_age_lower: int
@@ -172,5 +181,16 @@ class CMGAmount(BaseModel):
     tranche_3_amount: float
     govt_update_of: Optional[date]
     date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CMGAmountUpdate(BaseModel):
+    child_age_lower: int
+    child_age_upper: int
+    tranche_1_amount: float
+    tranche_2_amount: float
+    tranche_3_amount: float
+    govt_update_of: Optional[date] = None
 
     model_config = ConfigDict(from_attributes=True)
