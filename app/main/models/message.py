@@ -1,15 +1,20 @@
 from dataclasses import dataclass
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, ForeignKey, String, DateTime, event
+from sqlalchemy import Column, ForeignKey, String, DateTime, event, types
 from sqlalchemy.sql.sqltypes import Boolean
-
+from enum import Enum
 from app.main import models
 from app.main.models.db.session import SessionLocal
 from .db.base_class import Base
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.dialects.postgresql import JSONB
 
-
+class MessageType(str, Enum):
+    RESERVATION = "RESERVATION"
+    MESSAGE = "LITTLE_SLEEP"
+    ABSENCE = "ABSENCE"
+    LATE = "LATE"
 
 @dataclass
 class Message(Base):
@@ -17,7 +22,9 @@ class Message(Base):
     uuid = Column(String, primary_key=True, unique=True)
     conversation_uuid: str = Column(String, ForeignKey("conversations.uuid", ondelete='CASCADE'))
     content: str = Column(String, unique=False, nullable=False)
+    message_type: str = Column(types.Enum(MessageType), nullable=True, default=MessageType.MESSAGE)
     is_read: bool = Column(Boolean, nullable=False, default=False)
+    payload_json: dict = Column(JSONB, nullable=True)
     is_file: bool = Column(Boolean, nullable=True, default=False)
     is_image: bool = Column(Boolean, nullable=True, default=False)
     sender_uuid: str = Column(String, nullable=False)
@@ -41,7 +48,6 @@ class Message(Base):
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.sending_date = datetime.now()
-
 
 
 @dataclass
@@ -70,7 +76,7 @@ class Conversation(Base):
         db = SessionLocal()
         user = db.query(models.Administrator).filter(models.Administrator.uuid==self.receiver_uuid).first()
         if not user:
-            user = db.query(models.Parent).filter(models.Parent.uuid==self.receiver_uuid)
+            user = db.query(models.Parent).filter(models.Parent.uuid==self.receiver_uuid).first()
         return user
 
     def __repr__(self):

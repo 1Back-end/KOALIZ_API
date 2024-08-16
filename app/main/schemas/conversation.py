@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
+from typing import Any, Optional, List
 from .user import AddedBy
 from .base import DataList, Token
 from .file import File
@@ -17,6 +17,18 @@ class MessageBase(BaseModel):
 
 class MessageCreate(MessageBase):
     pass
+class ReservationMessageCreate(BaseModel):
+    receiver_uuid: str
+    begin: datetime
+    end: datetime
+class AbsenceMessageCreate(BaseModel):
+    receiver_uuid: str
+    begin: datetime
+    end: datetime
+    note: str
+class LateMessageCreate(BaseModel):
+    receiver_uuid: str
+    duration: str
 
 
 class MessageUpdate(MessageBase):
@@ -35,9 +47,11 @@ class Conversation(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class Message(MessageBase):
-    uuid: Optional[str] = None
+    uuid: str
     is_read: bool = False
     is_file: bool = False
+    message_type: str = None
+    payload_json: Any = None
     is_image: bool = False
     sender: Optional[AddedBy]=None
     file: Optional[File]=None

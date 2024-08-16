@@ -25,6 +25,82 @@ def get_children_transmissions(
     return crud.parent.get_children_transmissions(db=db, current_parent=current_parent, date=date)
 
 
+@router.get("/children", response_model=schemas.ChildDetailsList)
+def get(
+    *,
+    db: Session = Depends(get_db),
+    page: int = 1,
+    per_page: int = 30,
+    order: str = Query("desc", enum =["asc", "desc"]),
+    order_filed: str = "date_added",
+    keyword: Optional[str] = None,
+    current_user: models.Parent = Depends(TokenRequired(roles=["parent"]))
+):
+    """
+    get children with filters
+    """
+    return crud.parent.get_children(
+        db,
+        page,
+        per_page,
+        order,
+        order_filed,
+        keyword,
+        parent_uuid=current_user.uuid
+    )
+
+@router.get("/media", response_model=schemas.MediaList)
+def get(
+    *,
+    db: Session = Depends(get_db),
+    page: int = 1,
+    per_page: int = 30,
+    order: str = Query("desc", enum =["asc", "desc"]),
+    order_filed: str = "date_added",
+    media_type: str = Query(None, enum=[st.value for st in models.MediaType]),
+    keyword: Optional[str] = None,
+    current_user: models.Parent = Depends(TokenRequired(roles=["parent"]))
+):
+    """
+    get children media with filters
+    """
+    return crud.parent.get_children_media(
+        db,
+        page,
+        per_page,
+        order,
+        order_filed,
+        keyword,
+        parent_uuid=current_user.uuid,
+        media_type=media_type
+    )
+
+@router.get("/invoices", response_model=schemas.InvoiceList)
+def get(*,
+        db: Session = Depends(get_db),
+        page: int = 1,
+        per_page: int = 30,
+        order: str = Query("asc", enum=["asc", "desc"]),
+        order_filed: str = "date_to",
+        keyword: Optional[str] = None,
+        status: Optional[str] = Query(None, enum=[st.value for st in models.InvoiceStatusType]),
+        month: Optional[int] = None,
+        year: Optional[int] = None,
+        reference: Optional[str] = None,
+        child_uuid: Optional[str] = None,
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    get invoices with filters
+    """
+    return crud.parent.get_invoices(
+        db=db, page=page, per_page=per_page, order=order,
+        order_filed=order_filed, keyword=keyword, status=status, reference=reference, month=month, year=year,
+        child_uuid=child_uuid,
+        parent_uuid=current_user.uuid
+    )
+
+
 @router.post("",response_model =schemas.Parent ,status_code=201)
 def create(
     *,

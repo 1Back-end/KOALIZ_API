@@ -63,6 +63,7 @@ async def get_enums(
 
     return {
         "status": [t.name for t in models.UserStatusType],
+        "message_type": [t.name for t in models.MessageType],
         "gender": [t.name for t in models.Gender],
         "parent_relationship": [t.name for t in models.ParentRelationship],
         "cleanliness": [t.name for t in models.Cleanliness],

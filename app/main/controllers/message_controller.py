@@ -6,6 +6,7 @@ from sqlalchemy import and_, or_
 from app.main.core.i18n import __
 from app.main.core import dependencies
 from app.main import models, schemas
+from app.main.models.message import MessageType
 from app.main.utils.helper import convert_dates_to_strings
 from app.main.utils.notification_client import notificationPublisher
 
@@ -55,7 +56,6 @@ def fetch_all_conversations(
 
     return conversations
 
-
 @router.post("", response_model=schemas.Message)
 def send_message(
     *,
@@ -97,6 +97,7 @@ def send_message(
         new_message = models.Message(
             conversation_uuid=exist_conversation.uuid,
             content=content,
+            message_type=MessageType.MESSAGE,
             sender_uuid=current_user.uuid,
             uuid=str(uuid.uuid4())
         )
@@ -108,6 +109,7 @@ def send_message(
         new_message = models.Message(
             conversation_uuid=exist_conversation.uuid,
             content=content,
+            message_type=MessageType.MESSAGE,
             sender_uuid=current_user.uuid,
             uuid=str(uuid.uuid4())
         )
@@ -121,7 +123,6 @@ def send_message(
 
     # Notification
     # notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)
-
 
     return new_message
 
@@ -170,6 +171,7 @@ def send_message_file(
             conversation_uuid=exist_conversation.uuid,
             content=file_name if file_name else storage.url,
             sender_uuid=current_user.uuid,
+            message_type=MessageType.MESSAGE,
             is_file=False if storage and storage.mimetype.split("/")[0] in ["image"] else True,
             is_image=True if storage and storage.mimetype.split("/")[0] in ["image"] else False,
             file_uuid=storage.uuid if storage else None,
@@ -183,6 +185,7 @@ def send_message_file(
             conversation_uuid=exist_conversation.uuid,
             content=file_name if file_name else storage.url,
             sender_uuid=current_user.uuid,
+            message_type=MessageType.MESSAGE,
             is_file=False if storage and storage.mimetype.split("/")[0] in ["image"] else True,
             is_image=True if storage and storage.mimetype.split("/")[0] in ["image"] else False,
             file_uuid=storage.uuid if storage else None,
@@ -195,6 +198,237 @@ def send_message_file(
     # Get the messsage schema
     message = schemas.Message.model_validate(new_message).model_dump()
     message_schema = convert_dates_to_strings(message)
+
+    # Notification
+    # notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)
+
+    return new_message
+
+@router.post("/reservation", response_model=schemas.Message)
+def create_a_reservation(
+    *,
+    db: Session = Depends(dependencies.get_db),
+    obj_in: schemas.ReservationMessageCreate = Body(...),
+    current_user: any = Depends(dependencies.TokenRequired(roles=None)),
+) -> Any:
+
+    ''' Create a reservation '''
+
+
+    exist_conversation: models.Conversation = db.query(models.Conversation)\
+            .filter(
+                or_(
+                    and_(models.Conversation.sender_uuid == current_user.uuid, models.Conversation.receiver_uuid == obj_in.receiver_uuid),
+                    and_(models.Conversation.sender_uuid == obj_in.receiver_uuid, models.Conversation.receiver_uuid == current_user.uuid),
+                )
+            )\
+            .first()
+
+    if not exist_conversation:
+        exist_conversation = models.Conversation(
+            uuid=str(uuid.uuid4()),
+            sender_uuid=current_user.uuid,
+            receiver_uuid=obj_in.receiver_uuid,
+            last_message=MessageType.RESERVATION,
+            is_read=False,
+            last_sender_uuid=current_user.uuid
+        )
+        db.add(exist_conversation)
+        db.commit()
+
+        # Notification
+        notification = schemas.Conversation.model_validate(exist_conversation).model_dump()
+        conversation_schema = convert_dates_to_strings(notification)
+        # notificationPublisher.publish(channel=receiver_uuid, type="EVENT_NEW_CONVERSATION", data= conversation_schema)
+
+        new_message = models.Message(
+            conversation_uuid=exist_conversation.uuid,
+            content=MessageType.RESERVATION,
+            message_type=MessageType.RESERVATION,
+            payload_json={
+                "begin": obj_in.begin,
+                "end": obj_in.end
+            },
+            sender_uuid=current_user.uuid,
+            uuid=str(uuid.uuid4())
+        )
+    else:
+        exist_conversation.last_message = MessageType.RESERVATION
+        exist_conversation.last_sender_id = current_user.uuid
+
+
+        new_message = models.Message(
+            conversation_uuid=exist_conversation.uuid,
+            content=MessageType.RESERVATION,
+            message_type=MessageType.RESERVATION,
+            payload_json={
+                "begin": obj_in.begin,
+                "end": obj_in.end
+            },
+            sender_uuid=current_user.uuid,
+            uuid=str(uuid.uuid4())
+        )
+    db.add(new_message)
+    db.commit()
+
+    # Get the messsage schema
+    message = schemas.Message.model_validate(new_message).model_dump()
+    message_schema = convert_dates_to_strings(message)
+    print(message_schema)
+
+    # Notification
+    # notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)
+
+    return new_message
+
+@router.post("/absence", response_model=schemas.Message)
+def create_a_absence(
+    *,
+    db: Session = Depends(dependencies.get_db),
+    obj_in: schemas.AbsenceMessageCreate = Body(...),
+    current_user: any = Depends(dependencies.TokenRequired(roles=None)),
+) -> Any:
+
+    ''' Create a absence '''
+
+
+    exist_conversation: models.Conversation = db.query(models.Conversation)\
+            .filter(
+                or_(
+                    and_(models.Conversation.sender_uuid == current_user.uuid, models.Conversation.receiver_uuid == obj_in.receiver_uuid),
+                    and_(models.Conversation.sender_uuid == obj_in.receiver_uuid, models.Conversation.receiver_uuid == current_user.uuid),
+                )
+            )\
+            .first()
+
+    if not exist_conversation:
+        exist_conversation = models.Conversation(
+            uuid=str(uuid.uuid4()),
+            sender_uuid=current_user.uuid,
+            receiver_uuid=obj_in.receiver_uuid,
+            last_message=MessageType.ABSENCE,
+            is_read=False,
+            last_sender_uuid=current_user.uuid
+        )
+        db.add(exist_conversation)
+        db.commit()
+
+        # Notification
+        notification = schemas.Conversation.model_validate(exist_conversation).model_dump()
+        conversation_schema = convert_dates_to_strings(notification)
+        # notificationPublisher.publish(channel=receiver_uuid, type="EVENT_NEW_CONVERSATION", data= conversation_schema)
+
+        new_message = models.Message(
+            conversation_uuid=exist_conversation.uuid,
+            content=MessageType.ABSENCE,
+            message_type=MessageType.ABSENCE,
+            payload_json={
+                "begin": obj_in.begin,
+                "end": obj_in.end,
+                "note": obj_in.note
+            },
+            sender_uuid=current_user.uuid,
+            uuid=str(uuid.uuid4())
+        )
+    else:
+        exist_conversation.last_message = MessageType.ABSENCE
+        exist_conversation.last_sender_id = current_user.uuid
+
+
+        new_message = models.Message(
+            conversation_uuid=exist_conversation.uuid,
+            content=MessageType.ABSENCE,
+            message_type=MessageType.ABSENCE,
+            payload_json={
+                "begin": obj_in.begin,
+                "end": obj_in.end,
+                "note": obj_in.note
+            },
+            sender_uuid=current_user.uuid,
+            uuid=str(uuid.uuid4())
+        )
+    db.add(new_message)
+    db.commit()
+
+    # Get the messsage schema
+    message = schemas.Message.model_validate(new_message).model_dump()
+    message_schema = convert_dates_to_strings(message)
+    print(message_schema)
+
+    # Notification
+    # notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)
+
+    return new_message
+
+@router.post("/late", response_model=schemas.Message)
+def create_a_late(
+    *,
+    db: Session = Depends(dependencies.get_db),
+    obj_in: schemas.AbsenceCreate = Body(...),
+    current_user: any = Depends(dependencies.TokenRequired(roles=None)),
+) -> Any:
+
+    ''' Create a late '''
+
+
+    exist_conversation: models.Conversation = db.query(models.Conversation)\
+            .filter(
+                or_(
+                    and_(models.Conversation.sender_uuid == current_user.uuid, models.Conversation.receiver_uuid == obj_in.receiver_uuid),
+                    and_(models.Conversation.sender_uuid == obj_in.receiver_uuid, models.Conversation.receiver_uuid == current_user.uuid),
+                )
+            )\
+            .first()
+
+    if not exist_conversation:
+        exist_conversation = models.Conversation(
+            uuid=str(uuid.uuid4()),
+            sender_uuid=current_user.uuid,
+            receiver_uuid=obj_in.receiver_uuid,
+            last_message=MessageType.LATE,
+            is_read=False,
+            last_sender_uuid=current_user.uuid
+        )
+        db.add(exist_conversation)
+        db.commit()
+
+        # Notification
+        notification = schemas.Conversation.model_validate(exist_conversation).model_dump()
+        conversation_schema = convert_dates_to_strings(notification)
+        # notificationPublisher.publish(channel=receiver_uuid, type="EVENT_NEW_CONVERSATION", data= conversation_schema)
+
+        new_message = models.Message(
+            conversation_uuid=exist_conversation.uuid,
+            content=MessageType.LATE,
+            message_type=MessageType.LATE,
+            payload_json={
+                "duration": obj_in.duration
+            },
+            sender_uuid=current_user.uuid,
+            uuid=str(uuid.uuid4())
+        )
+    else:
+        exist_conversation.last_message = MessageType.LATE
+        exist_conversation.last_sender_id = current_user.uuid
+
+
+        new_message = models.Message(
+            conversation_uuid=exist_conversation.uuid,
+            content=MessageType.LATE,
+            message_type=MessageType.LATE,
+            payload_json={
+                "duration": obj_in.duration
+            },
+            sender_uuid=current_user.uuid,
+            uuid=str(uuid.uuid4())
+        )
+    db.add(new_message)
+    db.commit()
+
+    # Get the messsage schema
+    message = schemas.Message.model_validate(new_message).model_dump()
+    message_schema = convert_dates_to_strings(message)
+    print(message_schema)
 
     # Notification
     # notificationPublisher.publish(channel="{}-{}".format(exist_conversation.sender_uuid, exist_conversation.receiver_uuid), type="EVENT_NEW_MESSAGE_IN_CONVERSATION", data = message_schema)

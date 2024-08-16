@@ -14,8 +14,8 @@ class TeamDeviceBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TeamDeviceCreate(TeamDeviceBase):
-    pass
+class TeamDeviceCreate(BaseModel):
+     nursery_uuid: Optional[str] = None
 
 
 class TeamDeviceUpdate(TeamDeviceBase):
