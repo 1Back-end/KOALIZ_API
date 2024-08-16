@@ -26,10 +26,14 @@ def team_device_login(
     team_device = crud.team_device.get_by_team_device_code(db, code)
     if not team_device:
         raise HTTPException(status_code=404, detail=__("device-not-found"))
+    
+    if team_device.name:
+        raise HTTPException(status_code=404, detail=__("device-already-use"))
 
     token = create_access_token(team_device.uuid)
     team_device.token = token
     team_device.name = name if name else team_device.name
+    team_device.is_actived = True
     db.commit()
 
     return {
@@ -54,7 +58,7 @@ def current_team_device(
 def logout(
     *,
     db: Session = Depends(dependencies.get_db),
-    current_team_device: any = Depends(dependencies.TeamTokenRequired(roles=[])),
+    current_team_device: models.TeamDevice = Depends(dependencies.TeamTokenRequired(roles=[])),
     token: str = Query(...),
 ) -> Any:
     """
@@ -65,22 +69,23 @@ def logout(
     team_device = db.query(models.TeamDevice).filter(models.TeamDevice.token==token).first()
     if team_device:
         team_device.token = None
+        team_device.name = None
     db.commit()
     raise HTTPException(status_code=200, detail=None)
 
 
-@router.get("/details", response_model=schemas.TeamDevice, status_code=200)
-def get_team_device_details(
-    name: str,
-    db: Session = Depends(get_db),
-):
-    """ Get device details """
+# @router.get("/details", response_model=schemas.TeamDevice, status_code=200)
+# def get_team_device_details(
+#     name: str,
+#     db: Session = Depends(get_db),
+# ):
+#     """ Get device details """
 
-    exist_device = crud.team_device.get_by_team_device_name(db, name)
-    if not exist_device:
-        raise HTTPException(status_code=404, detail=__("device-not-found"))
+#     exist_device = crud.team_device.get_by_team_device_name(db, name)
+#     if not exist_device:
+#         raise HTTPException(status_code=404, detail=__("device-not-found"))
 
-    return exist_device
+#     return exist_device
 
 
 @router.post("", response_model=schemas.TeamDevice, status_code=201)
