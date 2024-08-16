@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from sqlalchemy import Column, ForeignKey, String, DateTime,event
+from sqlalchemy import Boolean, Column, ForeignKey, String, DateTime,event
 from datetime import datetime
 from .db.base_class import Base
 from sqlalchemy.orm import relationship, Mapped
