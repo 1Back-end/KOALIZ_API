@@ -24,7 +24,7 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
         parent: models.Parent = db.query(models.Parent).filter(models.Parent.email.ilike(obj_in.parent_email)).first()
 
         parent_child  = db.query(models.ParentChild).\
-            filter(models.ParentChild.parent_email == obj_in.parent_emai).\
+            filter(models.ParentChild.parent_email == obj_in.parent_email).\
             filter(models.ParentChild.child_uuid == obj_in.child_uuid).\
             filter(models.ParentChild.nursery_uuid == obj_in.nursery_uuid).\
             first()

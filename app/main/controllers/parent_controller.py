@@ -16,7 +16,7 @@ router = APIRouter(prefix="/parents", tags=["parents"])
 
 @router.get("/children-transmissions", response_model=schemas.ParentTransmissionsList, status_code=200)
 def get_children_transmissions(
-    date: date = datetime.now().date(),
+    date: date = None,
     db: Session = Depends(get_db),
     current_parent: models.Parent = Depends(TokenRequired(roles=["parent"]))
 ):
