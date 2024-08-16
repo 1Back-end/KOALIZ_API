@@ -89,7 +89,19 @@ def read_nursery_close_hour(
         raise HTTPException(status_code=404, detail="Nursery close hour not found")
     return db_close_hour
 
-
-
+@router.put("/status/update")
+def update_status(
+    uuids : List[str],
+    status: bool = None,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    crud.nursery_close_hour.update_status(
+        db=db,
+        uuids=uuids,
+        status=status,
+        owner_uuid=current_user.uuid
+    )
+    return {"message": __("Close Hour status updated successfully")}
 
     

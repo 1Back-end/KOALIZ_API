@@ -159,6 +159,19 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
             "close_hours": close_hours_data,
             "holidays": holidays_data
         }
+    @classmethod
+    def update_status(cls, uuids:List[str], status: bool, db: Session):
+        records = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.uuid.in_(uuids)).all()
+        for record in records:
+            record.is_active = status
+            db.commit()
+            db.refresh(record)
+        
+        
+
+   
+
+
 
     
 

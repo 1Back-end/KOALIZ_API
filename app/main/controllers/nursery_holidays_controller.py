@@ -79,11 +79,6 @@ def get(
         keyword=keyword
     )
 
-
-
-
-
-
 @router.delete("/nursery_holidays/{uuid}",response_model=schemas.Msg)
 def delete_nursery_holiday(
     holiday_uuid: str,
@@ -99,3 +94,18 @@ def delete_nursery_holiday(
     return {"message": __("Holiday deleted successfully")}
 
     
+@router.put("/status/update")
+def update_status(
+    uuids : List[str],
+    status: bool = None,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    # Appeler la méthode CRUD pour mettre à jour le statut
+    crud.nursery_holiday.update_status(
+        db=db,
+        uuids=uuids,
+        status=status,
+        owner_uuid=current_user.uuid
+    )
+    return {"message": __("Holidays status updated successfully")}

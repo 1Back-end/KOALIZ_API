@@ -132,9 +132,17 @@ class NuseryHolidayCRUD(CRUDBase[models.NuseryHoliday,schemas.NurseryHolidayCrea
         db.delete(db_holiday)
         db.commit()
        
-
+    def update_status(self, uuids:List[str], status: bool, db: Session):
+        # Check if the holidays exist
+        db_holidays = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.uuid.in_(uuids)).all()
+        if not db_holidays:
+            raise HTTPException(status_code=404, detail="Holidays not found")
         
-            
+        # Update the status of the holidays
+        for holiday in db_holidays:
+            holiday.is_active = status
+            db.commit()
+            db.refresh(holiday)  
 
     
     

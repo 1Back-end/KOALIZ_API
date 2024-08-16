@@ -114,9 +114,9 @@ async def create_activity(
             datas = json.load(f)
             
             for data in datas:
-                activity = crud.activity.get_by_uuid(db=db, uuid=data["uuid"])
+                activity = crud.activity.get_activity_by_uuid(db=db, uuid=data["uuid"])
                 if activity:
-                    crud.activity.update_activity(db, schemas.ActivityUpdate(**data))
+                    crud.activity.update(db, schemas.ActivityUpdate(**data))
                 else:
                     activity = models.Activity(
                         name_fr=data["name_fr"],

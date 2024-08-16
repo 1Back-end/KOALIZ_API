@@ -14,7 +14,7 @@ from app.main import crud, schemas, models
 import uuid
 
 
-class CRUDTypeActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.ActivityUpdate]):
+class CRUDActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.ActivityUpdate]):
 
     @classmethod
     def get_many(
@@ -95,10 +95,6 @@ class CRUDTypeActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.A
     def get_activity_by_uuid(cls,activity_uuid:str,db:Session):
         return db.query(models.Activity).filter(models.Activity.uuid == activity_uuid).first()
     
-    @classmethod
-    def delete(cls,db:Session, uuids:list[str]):
-        db.query(models.Activity).filter(models.Activity.uuid.in_(uuids)).delete()
-        db.commit()
 
     @classmethod
     def update(cls,db: Session, obj_in: schemas.ActivityUpdate):
@@ -135,16 +131,20 @@ class CRUDTypeActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.A
         db.commit()
         db.refresh(db_obj)
         return db_obj
-            
+    
 
-   
+    @classmethod
+    def delete(cls,db:Session, uuids:list[str]):
+        db.query(models.activity_category_table).filter(models.activity_category_table.c.activity_uuid.in_(uuids)).delete()
+        db.query(models.Activity).filter(models.Activity.uuid.in_(uuids)).delete()
+        db.commit()
 
-
+    
     
         
        
 
-activity =  CRUDTypeActivity(models.Activity)
+activity =  CRUDActivity(models.Activity)
 
 
 
