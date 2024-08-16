@@ -88,6 +88,8 @@ translation = {
     "hygiene-change-deleted": "hygiene change deleted successfully.",
     "health-record-not-found": "Medical record not found",
     "health-record-deleted": "Medical record successfully deleted",
+    "cmg-amount-range-not-found": "CMG amount range not found",
+    "cmg-amount-not-found": "CMG amount not found",
 
 
 

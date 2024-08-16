@@ -98,4 +98,6 @@ translation = {
     "hygiene-change-deleted": "Changement d'hygiène supprimé avec succès",
     "health-record-not-found": "Dossier médical non trouvé",
     "health-record-deleted": "Dossier médical supprimé avec succès",
+    "cmg-amount-range-not-found": "Plage de montant CMG non trouvée",
+    "cmg-amount-not-found": "Montant CMG non trouvé",
 }

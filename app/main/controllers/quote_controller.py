@@ -40,10 +40,10 @@ def get(
     )
 
 
-@router.get("/cmg-range", response_model=list[schemas.CMGAmountRange], status_code=200)
-def update_settings(
+@router.get("/cmg-amount-range", response_model=list[schemas.CMGAmountRange], status_code=200)
+def list_cmg_amount_range(
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
 ):
     """
     Get quote cmg range
@@ -52,16 +52,53 @@ def update_settings(
     return crud.quote.get_cmg_range(db)
 
 
-@router.get("/cmg", response_model=list[schemas.CMGAmount], status_code=200)
-def update_settings(
+@router.put("/cmg-amount-range/{cmg_amount_range_uuid}", response_model=schemas.CMGAmountRange, status_code=200)
+def update_cmg_amount_range(
+        cmg_amount_range_uuid: str,
+        obj_in: schemas.CMGAmountRangeUpdate,
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
 ):
     """
-    Get quote cmg
+    Update quote cmg amount range
+    """
+    # check if cmg amount range exists
+    cmg_amount_range = crud.quote.get_cmg_range_by_uuid(db, cmg_amount_range_uuid)
+    if not cmg_amount_range:
+        raise HTTPException(status_code=404, detail=__("cmg-amount-range-not-found"))
+
+    return crud.quote.update_cmg_amount_range(db, cmg_amount_range, obj_in)
+
+
+@router.get("/cmg-amount", response_model=list[schemas.CMGAmount], status_code=200)
+def list_cmg_amount(
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
+):
+    """
+    Get quote cmg amount
     """
 
     return crud.quote.get_cmg(db)
+
+
+@router.put("/cmg-amount/{cmg_amount_uuid}", response_model=schemas.CMGAmount, status_code=200)
+def update_cmg_amount(
+        cmg_amount_uuid: str,
+        obj_in: schemas.CMGAmountUpdate,
+        db: Session = Depends(get_db),
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
+):
+    """
+    Update quote cmg amount
+    """
+    # check if cmg amount exists
+    cmg_amount = crud.quote.get_cmg_amount_by_uuid(db, cmg_amount_uuid)
+    if not cmg_amount:
+        raise HTTPException(status_code=404, detail=__("cmg-amount-not-found"))
+
+    return crud.quote.update_cmg_amount(db, cmg_amount, obj_in)
+
 
 
 @router.get("/{uuid}", response_model=schemas.QuoteDetails, status_code=200)
