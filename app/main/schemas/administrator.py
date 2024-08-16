@@ -26,6 +26,9 @@ class Avatar(BaseModel):
     date_added:Any
     date_modified:Any
 
+    model_config = ConfigDict(from_attributes=True)
+
+
 class Roleslim(BaseModel):
     uuid:str
     title_fr:str

@@ -2,40 +2,47 @@ from datetime import datetime
 from typing import Any, Optional, List
 from pydantic import BaseModel, ConfigDict
 
+from app.main.models.children import MediaType
+from app.main.schemas.file import File
 from app.main.schemas.preregistration import ChildMini2
 
 from .nursery import NurserySlim
 from .base import DataList
 
 
-class ObservationBase(BaseModel):
+class MediaBase(BaseModel):
     nursery_uuid: str
     child_uuids: list[str]
     employee_uuid: str
     observation: Optional[str] = None
+    file_uuid: Optional[str] = None
+    media_type: Optional[MediaType] = None
     time: Optional[datetime] = None
 
 
-class ObservationCreate(ObservationBase):
+class MediaCreate(MediaBase):
     pass
 
-class ObservationUpdate(ObservationBase):
-    uuid: Optional[str] = None
 
-class Observation(BaseModel):
+class MediaUpdate(MediaBase):
+    uuid: str
+
+class Media(BaseModel):
     uuid: Optional[str] = None
-    child: Optional[ChildMini2] = None
+    children: list[ChildMini2] = None
     time: Optional[datetime] = None
+    media_type: Optional[MediaType] = None
+    file: Optional[File] = None
     observation: Optional[str] = None
     nursery: Optional[NurserySlim]=None
     date_added: datetime
     date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-class ObservationMini(BaseModel):
+class MediaMini(BaseModel):
     uuid: Optional[str] = None
     time: Optional[datetime] = None
+    media_type: Optional[MediaType] = None
     observation: Optional[str] = None
     date_added: datetime
     date_modified: datetime
@@ -44,6 +51,6 @@ class ObservationMini(BaseModel):
 
 
 
-class ObservationList(DataList):
+class MediaList(DataList):
 
-    data: List[Observation] = []
+    data: List[Media] = []

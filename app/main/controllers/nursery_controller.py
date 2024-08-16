@@ -103,15 +103,34 @@ def get(
     )
 
 
-@router.get("/children", response_model=List[ChildResponse])
+@router.get("/children", response_model=list[schemas.Transmission])
 def read_children_by_nursery(
     *,
     nursery_uuid:str,
-    filter_date:Optional[date]=None,
+    child_uuid: Optional[str] = None,
+    # page: int = 1,
+    # per_page: int = 30,
+    # order: str = Query("desc", enum=["asc", "desc"]),
+    # order_filed: str = "date_added",
+    # keyword: Optional[str] = None,
+    filter_date:Optional[date] = None,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
-    return crud.nursery.get_children_by_nursery(db=db, nursery_uuid=nursery_uuid,filter_date=filter_date)
+    if current_team_device.nursery_uuid!=nursery_uuid:
+        raise HTTPException(status_code=403, detail=__("not-authorized"))
+    
+    return crud.nursery.get_children_by_nursery(
+        db=db, 
+        nursery_uuid=nursery_uuid,
+        child_uuid=child_uuid,
+        filter_date=filter_date
+        # page=page,
+        # per_page=per_page,
+        # order=order,
+        # order_filed=order_filed,
+        # keyword=keyword
+        )
 
 
 @router.get("/all/slim", response_model=list[schemas.OtherNurseryByGuest], status_code=200)

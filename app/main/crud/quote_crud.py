@@ -51,11 +51,11 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             TagAlias = aliased(models.Tags)
             TagElementAlias = aliased(models.TagElement)
             record_query = record_query.join(
-                TagElementAlias, models.Quote.uuid == TagElementAlias.element_uuid
+                TagElementAlias, models.Quote.preregistration_uuid == TagElementAlias.element_uuid
             ).join(
                 TagAlias, TagElementAlias.tag_uuid == TagAlias.uuid
             ).filter(
-                TagAlias.type == models.TagTypeEnum.QUOTE,
+                TagAlias.type == models.TagTypeEnum.PRE_ENROLLMENT,
                 TagAlias.uuid == tag_uuid,
             )
 
@@ -110,6 +110,44 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
 
         db.commit()
         return quote_obj
+
+
+    @classmethod
+    def get_cmg_range(cls, db: Session) -> list[models.CMGAmountRange]:
+
+        return db.query(models.CMGAmountRange).all()
+
+    def get_cmg_range_by_uuid(cls, db: Session, uuid: str) -> Optional[models.CMGAmountRange]:
+        return db.query(models.CMGAmountRange).filter(models.CMGAmountRange.uuid == uuid).first()
+
+    @classmethod
+    def update_cmg_amount_range(cls, db: Session, db_obj: models.CMGAmountRange, obj_in: schemas.CMGAmountRangeUpdate) -> models.CMGAmountRange:
+        db_obj.lower = obj_in.lower
+        db_obj.upper = obj_in.upper
+        db_obj.family_type = obj_in.family_type
+        db_obj.number_children = obj_in.number_children
+
+        db.commit()
+        return db_obj
+
+    def get_cmg_amount_by_uuid(cls, db: Session, uuid: str) -> Optional[models.CMGAmount]:
+        return db.query(models.CMGAmount).filter(models.CMGAmount.uuid == uuid).first()
+
+    def update_cmg_amount(cls, db: Session, db_obj: models.CMGAmount, obj_in: schemas.CMGAmountUpdate) -> models.CMGAmount:
+        db_obj.child_age_lower = obj_in.child_age_lower
+        db_obj.child_age_upper = obj_in.child_age_upper
+        db_obj.tranche_1_amount = obj_in.tranche_1_amount
+        db_obj.tranche_2_amount = obj_in.tranche_2_amount
+        db_obj.tranche_3_amount = obj_in.tranche_3_amount
+        db_obj.govt_update_of = obj_in.govt_update_of
+
+        db.commit()
+        return db_obj
+
+    @classmethod
+    def get_cmg(cls, db: Session) -> list[models.CMGAmount]:
+
+        return db.query(models.CMGAmount).all()
 
 
 quote = CRUDQuote(models.Quote)

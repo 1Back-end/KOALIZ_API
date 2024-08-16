@@ -6,47 +6,47 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 
-router = APIRouter(prefix="/observations", tags=["observations"])
+router = APIRouter(prefix="/absences", tags=["absences"])
 
-@router.post("",response_model =schemas.Observation ,status_code=201)
-def create_observation(
+@router.post("",response_model =schemas.Absence ,status_code=201)
+def create_absence(
     *,
     db: Session = Depends(get_db),
-    obj_in: schemas.ObservationCreate,
+    obj_in: schemas.AbsenceCreate,
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 
 ):
-    """ Create observation for children """
-
+    """ Create absence for children """
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
-    if not childs or len(childs)!=len(obj_in.child_uuids):
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuid_tab)
+    if not childs or len(childs)!=len(obj_in.child_uuid_tab):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
     employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
     if not employe:
         raise HTTPException(status_code=404, detail=__("member-not-found"))
 
-    return crud.observation.create(db, obj_in)
+    return crud.absence.create(db, obj_in)
 
 
-@router.put("", response_model=schemas.Observation, status_code=200)
-def update_observation(
-    obj_in: schemas.ObservationUpdate,
+@router.put("", response_model=schemas.Absence, status_code=200)
+def update_absence(
+    obj_in: schemas.AbsenceUpdate,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
-    """ Update observation for children """
+    """ Update absence for children """
 
-    observation = crud.observation.get_observation_by_uuid(db, obj_in.uuid)
-    if not observation:
-        raise HTTPException(status_code=404, detail=__("observation-not-found"))
+    absence = crud.absence.get_absence_by_uuid(db, obj_in.uuid)
+    print("absence-updated",absence)
+    if not absence:
+        raise HTTPException(status_code=404, detail=__("absence-not-found"))
 
-    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuids)
-    if not childs or len(childs)!=len(obj_in.child_uuids):
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuid_tab)
+    if not childs or len(childs)!=len(obj_in.child_uuid_tab):
         raise HTTPException(status_code=404, detail=__("child-not-found"))
 
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
@@ -57,24 +57,23 @@ def update_observation(
     if not employe:
         raise HTTPException(status_code=404, detail=__("member-not-found"))
 
-    return crud.observation.update(db ,obj_in)
+    return crud.absence.update(db ,obj_in)
 
 
 @router.delete("", response_model=schemas.Msg)
-def delete_observation(
+def delete_absence(
     *,
     db: Session = Depends(get_db),
     uuids: list[str],
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles =[]))
 ):
     """ Delete many(or one) """
-
-    crud.observation.delete(db, uuids)
-    return {"message": __("observation-deleted")}
+    crud.absence.delete(db, uuids)
+    return {"message": __("absence-deleted")}
 
 
 @router.get("", response_model=None)
-def get_observations(
+def get_absences(
     *,
     db: Session = Depends(get_db),
     page: int = 1,
@@ -84,13 +83,13 @@ def get_observations(
     employee_uuid: Optional[str] = None,
     nursery_uuid: Optional[str] = None,
     child_uuid: Optional[str] = None,
-    keyword: Optional[str] = "",
+    keyword: Optional[str] = None,
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
     """
     get all with filters
     """
-    return crud.observation.get_multi(
+    return crud.absence.get_multi(
         db,
         page,
         per_page,
@@ -102,16 +101,16 @@ def get_observations(
         keyword
     )
 
-@router.get("/{uuid}", response_model=schemas.Observation, status_code=201)
-def get_observation_details(
+@router.get("/{uuid}", response_model=schemas.Absence, status_code=200)
+def get_absence_details(
         uuid: str,
         db: Session = Depends(get_db),
         current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
-    """ Get observation details """
+    """ Get absence details """
 
-    observation = crud.observation.get_observation_by_uuid(db, uuid)
-    if not observation:
-        raise HTTPException(status_code=404, detail=__("observation-not-found"))
+    absence = crud.absence.get_absence_by_uuid(db, uuid)
+    if not absence:
+        raise HTTPException(status_code=404, detail=__("absence-not-found"))
 
-    return observation
+    return absence

@@ -2,49 +2,46 @@ from datetime import datetime
 from typing import Any, Optional, List
 from pydantic import BaseModel, ConfigDict
 
-from app.main.models.children import NapQuality
 from app.main.schemas.preregistration import ChildMini2
 
 from .nursery import NurserySlim
 from .base import DataList
 
 
-class NapBase(BaseModel):
-    nursery_uuid: Optional[str] = None
-    child_uuid_tab: Optional[list[str]]
-    employee_uuid: Optional[str] = None
-    observation: Optional[str] = None
-    quality: Optional[NapQuality] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+class AbsenceBase(BaseModel):
+    nursery_uuid: str
+    child_uuid_tab: list[str]
+    employee_uuid: str
+    note: Optional[str] = None
+    start_time: datetime
+    end_time: datetime
 
 
-class NapCreate(NapBase):
+class AbsenceCreate(AbsenceBase):
     pass
 
 
-class NapUpdate(NapBase):
+class AbsenceUpdate(AbsenceBase):
     uuid: str
 
-class Nap(BaseModel):
-    uuid: Optional[str] = None
+
+class Absence(BaseModel):
+    uuid: str 
     child: Optional[ChildMini2] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
-    quality: Optional[NapQuality] = None
-    observation: Optional[str] = None
-    duration: Optional[int] = 0
+    note: Optional[str] = None
     nursery: Optional[NurserySlim]=None
     date_added: datetime
     date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
-class NapMini(BaseModel):
+
+class AbsenceMini(BaseModel):
     uuid: Optional[str] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
-    quality: Optional[NapQuality] = None
-    observation: Optional[str] = None
+    note: Optional[str] = None
     duration: Optional[int] = 0
     date_added: datetime
     date_modified: datetime
@@ -52,7 +49,6 @@ class NapMini(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AbsenceList(DataList):
 
-class NapList(DataList):
-
-    data: List[Nap] = []
+    data: List[Absence] = []

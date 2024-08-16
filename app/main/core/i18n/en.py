@@ -23,7 +23,7 @@ translation = {
     "change-password-required": "Please change your password to fully access your account",
     "incorrect-current-password": "The current password is incorrect!",
     "different-password-required": "The new password must not be the same as the old one!",
-    "invalid-password": "The new password must contain at least 8 characters, 1 upper case letter, 1 lower case letter, 1 special character!",
+    "invalid-password": "The new password must contain at least 8 characters, 1 upper case letter, 1 lower case letter and 1 number!",
     "invalid-time-format": "Invalid time format. Use ISO format (HH:MM).",
     "to-not-greater-from": "Opening time must be before closing time.",
     "token-invalid": "Invalid token.",
@@ -96,17 +96,14 @@ translation = {
     "account-created":"Your account has been created successfully",
     "activity-type-not-found":"activity(ies) type not found",
     "category-activity-deleted-successfully":"activity category(ies) deleted.",
-    "category-activity-not-found":"activity category not found"
-
-
-
-
-
-
-
-
-
-
-
-
+    "category-activity-not-found":"activity category not found",
+    "attendance-deleted":"Attendance deleted successfully",
+    "attendance-not-found":"Attendance not found.",
+    "absence-not-found":"Absence record not found",
+    "absence-deleted":"Absence record deleted successfully",
+    "occasional-presence-not-found":"occasional presence record not found",
+    "occasional-presence-deleted":" occasional presence record deleted successfully",
+    "child-activity-not-found":" Child activity not found",
+    "cmg-amount-range-not-found": "CMG amount range not found",
+    "cmg-amount-not-found": "CMG amount not found",
 }

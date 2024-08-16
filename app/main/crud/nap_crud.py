@@ -15,17 +15,19 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
 
     @classmethod
     def create(self, db: Session, obj_in: NapCreate) -> Nap:
-        db_obj = Nap(
-            uuid=str(uuid.uuid4()),
-            start_time=obj_in.start_time,
-            end_time=obj_in.end_time,
-            quality=obj_in.quality,
-            observation=obj_in.observation,
-            added_by_uuid=obj_in.employee_uuid,
-            child_uuid=obj_in.child_uuid,
-            nursery_uuid=obj_in.nursery_uuid,
-        )
-        db.add(db_obj)
+        for child_uuid in obj_in.child_uuid_tab:
+            db_obj = Nap(
+                uuid=str(uuid.uuid4()),
+                start_time=obj_in.start_time,
+                end_time=obj_in.end_time,
+                quality=obj_in.quality,
+                observation=obj_in.observation,
+                added_by_uuid=obj_in.employee_uuid,
+                child_uuid=child_uuid,
+                nursery_uuid=obj_in.nursery_uuid,
+            )
+            db.add(db_obj)
+            db.flush()
         db.commit()
         db.refresh(db_obj)
         return db_obj

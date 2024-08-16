@@ -88,7 +88,7 @@ class CRUDActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.Activ
         
         return db_obj
     @classmethod
-    def get_category_activity_by_uuid(cls,uuid: str, db: Session):
+    def get_category_activity_by_uuid(cls, uuid: str, db: Session):
         return db.query(models.ActivityCategory).filter(models.ActivityCategory.uuid == uuid).first()
     
     @classmethod

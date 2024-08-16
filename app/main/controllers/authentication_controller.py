@@ -39,13 +39,13 @@ async def login_parent(
     if not crud.parent.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -72,13 +72,13 @@ async def login_administrator(
     if not crud.administrator.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -105,13 +105,13 @@ async def login_owner(
     if not crud.owner.is_active(user):
         raise HTTPException(status_code=402, detail=__("user-not-activated"))
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -129,9 +129,9 @@ def get_current_user(
     return current_user
 
 
-@router.post("/adminstrator/start-reset-password", summary="Start reset password with phone number", response_model=schemas.Msg)
+@router.post("/adminstrator/start-reset-password", summary="Start reset password", response_model=schemas.Msg)
 def start_reset_password(
-        input: schemas.ResetPasswordStep1,
+        input: schemas.ResetPasswordOption2Step1,
         db: Session = Depends(get_db),
 ) -> schemas.Msg:
     """
@@ -144,70 +144,60 @@ def start_reset_password(
     elif not crud.administrator.is_active(user):
         raise HTTPException(status_code=400, detail=__("user-not-activated"))
 
+    token = create_access_token(
+                user.uuid, expires_delta=timedelta(minutes=30)
+            )
+
+    user_code = models.AdminActionValidation(
+        uuid=str(uuid.uuid4()),
+        code=token,
+        user_uuid=user.uuid,
+        expired_date=datetime.now() + timedelta(minutes=30)
+    )
+    db.add(user_code)
+    db.commit()
+
+    send_reset_password_option2_email(
+        email_to=user.email, name=user.firstname, token=token, valid_minutes=30, language=input.language,
+        base_url=Config.ADMIN_RESET_PASSWORD_LINK
+    )
+
+    return schemas.Msg(message=__("reset-password-started"))
+
+
+@router.put("/adminstrator/reset-password", summary="Reset password", response_model=schemas.Msg)
+def reset_password(
+        input: schemas.ResetPasswordOption2Step2,
+        db: Session = Depends(get_db),
+) -> schemas.Msg:
+    """
+    Reset password
+    """
+    token_data = decode_access_token(input.token)
+    if not token_data:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+
+    user = crud.administrator.get_by_uuid(db, token_data["sub"])
+
+    user_code: models.AdminActionValidation = db.query(models.AdminActionValidation).filter(
+        models.AdminActionValidation.code == input.token).filter(
+        models.AdminActionValidation.user_uuid == user.uuid).filter(
+        models.AdminActionValidation.expired_date >= datetime.now()).first()
+    if not user_code:
+        raise HTTPException(status_code=403, detail=__("token-invalid"))
+
+    elif not crud.administrator.is_active(user):
+        raise HTTPException(status_code=400, detail=__("user-not-activated"))
+
     if not is_valid_password(password=input.new_password):
         raise HTTPException(
             status_code=400,
             detail=__("password-invalid")
         )
 
-    code = generate_randon_key(length=5)
-
-    # user.otp_password = "00000"
-    # user.otp_password_expired_at = datetime.now() + timedelta(minutes=5)
-
-    user_code = models.AdminActionValidation(
-        uuid=str(uuid.uuid4()),
-        code=str(code),
-        user_uuid=user.uuid,
-        value=get_password_hash(input.new_password),
-        expired_date=datetime.now() + timedelta(minutes=5)
-    )
-    db.add(user_code)
-    db.commit()
-
-    send_reset_password_email(
-        email_to=user.email, name=user.firstname, token=code, valid_minutes=5
-    )
-
-    return schemas.Msg(message=__("reset-password-started"))
-
-
-@router.put("/administrator/reset-password", summary="Reset password", response_model=schemas.Msg)
-def reset_password(
-        input: schemas.ResetPasswordStep2,
-        db: Session = Depends(get_db),
-) -> schemas.Msg:
-    """
-    Reset password
-    """
-    user = crud.administrator.get_by_email(db, email=input.email)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=__("user-email-not-found")
-        )
-    elif not crud.administrator.is_active(user):
-        raise HTTPException(status_code=400, detail=__("user-not-activated"))
-
-    user_code: models.AdminActionValidation = db.query(models.AdminActionValidation).filter(models.AdminActionValidation.code==input.otp).filter(
-        models.AdminActionValidation.user_uuid == user.uuid).filter(
-        models.AdminActionValidation.expired_date >= datetime.now()).first()
-    if not user_code:
-        raise HTTPException(
-            status_code=404,
-            detail=__("validation-code-not-found"),
-        )
-    
-    if not is_valid_password(password=input.otp):
-        raise HTTPException(
-            status_code=400,
-            detail=__("password-invalid")
-        )
-    send_password_reset_succes_email(user.email,(user.firstname +" "+ user.lastname),user_code.value)
-
     db.delete(user_code)
 
-    user.password_hash = user_code.value
+    user.password_hash = get_password_hash(input.new_password)
     db.add(user)
     db.commit()
 
@@ -359,13 +349,13 @@ async def verify_otp(
     db.commit()
     db.refresh(user)
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
@@ -397,7 +387,7 @@ async def create_parent_on_system(
     if user:
         if crud.parent.is_active(user):
             raise HTTPException(status_code=400, detail=__("user-email-taken"))
-        
+
         user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
         models.ParentActionValidation.user_uuid == user.uuid)
 
@@ -453,13 +443,13 @@ def validate_account(
     db.commit()
     db.refresh(user)
 
-    access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
         "user": user,
         "token": {
             "access_token": create_access_token(
-                user.uuid, expires_delta=access_token_expires
+                user.uuid
             ),
             "token_type": "bearer",
         }
