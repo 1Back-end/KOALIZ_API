@@ -6,7 +6,7 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.schemas import DataList, NurseryMini
+from app.main.schemas import DataList, NurseryMini, Tag
 from app.main.schemas.base import Items
 from app.main.schemas.file import File
 
@@ -62,9 +62,14 @@ class QuoteTimetable(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class QuotePreregistrationMini(BaseModel):
+    uuid: str
+    tags: Optional[list[Tag]] = []
+    model_config = ConfigDict(from_attributes=True)
+
+
 class QuoteDetails(BaseModel):
     uuid: str
-    preregistration_uuid: str
     child: QuoteChildMini
     pre_contract: QuotePreContract
     cmg: Optional[CMG] = None
@@ -87,6 +92,7 @@ class QuoteDetails(BaseModel):
     weeks_in_smoothing: Optional[float]
     deductible_weeks: Optional[float]
     total_closing_days: Optional[int]
+    preregistration: QuotePreregistrationMini
 
     timetables: list[QuoteTimetable] = []
 
