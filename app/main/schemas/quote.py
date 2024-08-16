@@ -32,6 +32,13 @@ class QuoteChildMini(BaseModel):
     lastname: str
     gender: models.Gender
     birthdate: date
+    birthplace: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class QuoteNurseryMini(BaseModel):
+    uuid: str
+    name: str
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -71,6 +78,7 @@ class QuotePreregistrationMini(BaseModel):
 class QuoteDetails(BaseModel):
     uuid: str
     child: QuoteChildMini
+    nursery: QuoteNurseryMini
     pre_contract: QuotePreContract
     cmg: Optional[CMG] = None
     status: str = None
