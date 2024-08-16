@@ -16,6 +16,7 @@ router = APIRouter(prefix="/devices", tags=["devices"])
 @router.post("/login", response_model=schemas.TeamDeviceAuthentication, status_code=200)
 def team_device_login(
     code: str,
+    name: str,
     db: Session = Depends(get_db),
 ):
     """
@@ -27,6 +28,7 @@ def team_device_login(
 
     token = create_access_token(team_device.uuid)
     team_device.token = token
+    team_device.name = name
     db.commit()
 
     return {
@@ -66,18 +68,18 @@ def logout(
     raise HTTPException(status_code=200, detail=None)
 
 
-@router.get("/details", response_model=schemas.TeamDevice, status_code=200)
-def get_team_device_details(
-    name: str,
-    db: Session = Depends(get_db),
-):
-    """ Get device details """
+# @router.get("/details", response_model=schemas.TeamDevice, status_code=200)
+# def get_team_device_details(
+#     name: str,
+#     db: Session = Depends(get_db),
+# ):
+#     """ Get device details """
 
-    exist_device = crud.team_device.get_by_team_device_name(db, name)
-    if not exist_device:
-        raise HTTPException(status_code=404, detail=__("device-not-found"))
+#     exist_device = crud.team_device.get_by_team_device_name(db, name)
+#     if not exist_device:
+#         raise HTTPException(status_code=404, detail=__("device-not-found"))
 
-    return exist_device
+#     return exist_device
 
 
 @router.post("", response_model=schemas.TeamDevice, status_code=201)
@@ -88,12 +90,11 @@ def add_new_team_device(
 ):
     """ Add new team device: owner """
 
-    exist_device = crud.team_device.get_by_team_device_name_for_nursery(db, obj_in.name, obj_in.nursery_uuid)
-    if exist_device:
-        raise HTTPException(status_code=409, detail=__("device-already-found"))
+    # exist_device = crud.team_device.get_device_by_nursery_uuid(db, obj_in.nursery_uuid)
+    # if exist_device:
+    #     raise HTTPException(status_code=409, detail=__("device-already-found"))
 
     device = crud.team_device.create(db=db, obj_in=schemas.TeamDeviceCreate(
-        name=obj_in.name,
         nursery_uuid=obj_in.nursery_uuid
     ))
 
