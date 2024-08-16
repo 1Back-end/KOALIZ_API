@@ -11,7 +11,7 @@ class TeamDevice(Base):
 
     uuid = Column(String, primary_key=True, unique=True)
     token = Column(String, nullable=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=True)
     code = Column(String, nullable=True)
     is_actived: bool = Column(Boolean, default=False, nullable=True)
 
