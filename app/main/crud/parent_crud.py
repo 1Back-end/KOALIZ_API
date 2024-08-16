@@ -25,52 +25,84 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
     ):
         # Get parent children
         parent_children: models.ParentChild = db.query(models.ParentChild).\
-            filter(models.ParentChild.uuid==current_parent.uuid).\
+            filter(models.ParentChild.parent_uuid==current_parent.uuid).\
             all()
 
         children = db.query(models.Child).\
             filter(models.Child.uuid.in_([parent_child.child_uuid for parent_child in parent_children])).\
             all()
 
-        meals = db.query(models.Meal).\
-            filter(models.Meal.child_uuid.in_([child.uuid for child in children]), models.Meal.date_added == date).\
-            order_by(models.Meal.date_added.desc()).\
-            all()
-        activities = db.query(models.ChildActivity).\
-            filter(models.ChildActivity.child_uuid.in_([child.uuid for child in children]), models.ChildActivity.date_added == date).\
-            order_by(models.ChildActivity.date_added.desc()).\
-            all()
-        naps = db.query(models.Nap).\
-            filter(models.Nap.child_uuid.in_([child.uuid for child in children]), models.Nap.date_added == date).\
-            order_by(models.Nap.date_added.desc()).\
-            all()
-        health_records = db.query(models.HealthRecord).\
-            filter(models.HealthRecord.child_uuid.in_([child.uuid for child in children]), models.HealthRecord.date_added == date).\
-            order_by(models.HealthRecord.date_added.desc()).\
-            all()
-        hygiene_changes = db.query(models.HygieneChange).\
-            filter(models.HygieneChange.child_uuid.in_([child.uuid for child in children]), models.HygieneChange.date_added == date).\
-            order_by(models.HygieneChange.date_added.desc()).\
-            all()
-        observations = db.query(models.Observation).\
-            filter(models.Observation.child_uuid.in_([child.uuid for child in children]), models.Observation.date_added == date).\
-            order_by(models.Observation.date_added.desc()).\
-            all()
-        media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([child.uuid for child in children])).all()]
-        media = db.query(models.Media).\
-            filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
-            order_by(models.Media.date_added.desc()).\
-            all()
+        if date:
+            meals = db.query(models.Meal).\
+                filter(models.Meal.child_uuid.in_([child.uuid for child in children]), models.Meal.date_added == date).\
+                order_by(models.Meal.date_added.desc()).\
+                all()
+            activities = db.query(models.ChildActivity).\
+                filter(models.ChildActivity.child_uuid.in_([child.uuid for child in children]), models.ChildActivity.date_added == date).\
+                order_by(models.ChildActivity.date_added.desc()).\
+                all()
+            naps = db.query(models.Nap).\
+                filter(models.Nap.child_uuid.in_([child.uuid for child in children]), models.Nap.date_added == date).\
+                order_by(models.Nap.date_added.desc()).\
+                all()
+            health_records = db.query(models.HealthRecord).\
+                filter(models.HealthRecord.child_uuid.in_([child.uuid for child in children]), models.HealthRecord.date_added == date).\
+                order_by(models.HealthRecord.date_added.desc()).\
+                all()
+            hygiene_changes = db.query(models.HygieneChange).\
+                filter(models.HygieneChange.child_uuid.in_([child.uuid for child in children]), models.HygieneChange.date_added == date).\
+                order_by(models.HygieneChange.date_added.desc()).\
+                all()
+            observations = db.query(models.Observation).\
+                filter(models.Observation.child_uuid.in_([child.uuid for child in children]), models.Observation.date_added == date).\
+                order_by(models.Observation.date_added.desc()).\
+                all()
+            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([child.uuid for child in children])).all()]
+            media = db.query(models.Media).\
+                filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
+                order_by(models.Media.date_added.desc()).\
+                all()
+        else:
+            meals = db.query(models.Meal).\
+                filter(models.Meal.child_uuid.in_([child.uuid for child in children])).\
+                order_by(models.Meal.date_added.desc()).\
+                all()
+            activities = db.query(models.ChildActivity).\
+                filter(models.ChildActivity.child_uuid.in_([child.uuid for child in children])).\
+                order_by(models.ChildActivity.date_added.desc()).\
+                all()
+            naps = db.query(models.Nap).\
+                filter(models.Nap.child_uuid.in_([child.uuid for child in children])).\
+                order_by(models.Nap.date_added.desc()).\
+                all()
+            health_records = db.query(models.HealthRecord).\
+                filter(models.HealthRecord.child_uuid.in_([child.uuid for child in children])).\
+                order_by(models.HealthRecord.date_added.desc()).\
+                all()
+            hygiene_changes = db.query(models.HygieneChange).\
+                filter(models.HygieneChange.child_uuid.in_([child.uuid for child in children])).\
+                order_by(models.HygieneChange.date_added.desc()).\
+                all()
+            observations = db.query(models.Observation).\
+                filter(models.Observation.child_uuid.in_([child.uuid for child in children])).\
+                order_by(models.Observation.date_added.desc()).\
+                all()
+            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([child.uuid for child in children])).all()]
+            media = db.query(models.Media).\
+                filter(models.Media.uuid.in_(media_uuids)).\
+                order_by(models.Media.date_added.desc()).\
+                all()
+        
 
-        return {
-            "meals": meals,
-            "activities": activities,
-            "naps": naps,
-            "health_records": health_records,
-            "hygiene_changes": hygiene_changes,
-            "observations": observations,
-            "media": media
-        }
+        return schemas.ParentTransmissionsList(
+            meals=meals,
+            activities=activities,
+            naps=naps,
+            health_records=health_records,
+            hygiene_changes=hygiene_changes,
+            observations=observations,
+            media=media
+        )
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Union[models.Parent, None]:
