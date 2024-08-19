@@ -46,7 +46,7 @@ def get(
         order,
         order_filed,
         keyword,
-        parent_uuid=current_user.uuid
+        current_user.uuid
     )
 
 @router.get("/media", response_model=schemas.MediaList)

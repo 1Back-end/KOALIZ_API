@@ -308,6 +308,7 @@ class PreRegistration(Base):
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
+    is_deleted = Column(Boolean, default=False, nullable=True)
     pre_contract_uuid: str = Column(String, ForeignKey('pre_contracts.uuid'), nullable=True)
     pre_contract: Mapped[any] = relationship("PreContract", foreign_keys=pre_contract_uuid, uselist=False)
 

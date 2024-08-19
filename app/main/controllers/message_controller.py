@@ -1,6 +1,7 @@
 import uuid
 from fastapi import APIRouter, Body, Depends, HTTPException
 from typing import List, Any
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from app.main.core.i18n import __
@@ -246,8 +247,8 @@ def create_a_reservation(
             content=MessageType.RESERVATION,
             message_type=MessageType.RESERVATION,
             payload_json={
-                "begin": obj_in.begin,
-                "end": obj_in.end
+                "begin": jsonable_encoder(obj_in.begin),
+                "end": jsonable_encoder(obj_in.end)
             },
             sender_uuid=current_user.uuid,
             uuid=str(uuid.uuid4())
@@ -262,8 +263,8 @@ def create_a_reservation(
             content=MessageType.RESERVATION,
             message_type=MessageType.RESERVATION,
             payload_json={
-                "begin": obj_in.begin,
-                "end": obj_in.end
+                "begin": jsonable_encoder(obj_in.begin),
+                "end": jsonable_encoder(obj_in.end)
             },
             sender_uuid=current_user.uuid,
             uuid=str(uuid.uuid4())
@@ -323,9 +324,8 @@ def create_a_absence(
             content=MessageType.ABSENCE,
             message_type=MessageType.ABSENCE,
             payload_json={
-                "begin": obj_in.begin,
-                "end": obj_in.end,
-                "note": obj_in.note
+                "begin": jsonable_encoder(obj_in.begin),
+                "end": jsonable_encoder(obj_in.end)
             },
             sender_uuid=current_user.uuid,
             uuid=str(uuid.uuid4())
@@ -340,8 +340,8 @@ def create_a_absence(
             content=MessageType.ABSENCE,
             message_type=MessageType.ABSENCE,
             payload_json={
-                "begin": obj_in.begin,
-                "end": obj_in.end,
+                "begin": jsonable_encoder(obj_in.begin),
+                "end": jsonable_encoder(obj_in.end),
                 "note": obj_in.note
             },
             sender_uuid=current_user.uuid,
@@ -447,17 +447,23 @@ def fetch_conversation_messages(
 
     messages = []
 
-    conds = [models.Conversation.sender_uuid == current_user.uuid,
-            models.Conversation.receiver_uuid == current_user.uuid]
+    exist_conversation = db.query(models.Conversation)\
+    .filter(
+        models.Conversation.uuid == conversation_uuid,
+        or_(
+            models.Conversation.sender_uuid == current_user.uuid,
+            models.Conversation.receiver_uuid == current_user.uuid
+        )
+    )\
+    .first()
+    # print("exist_conversation11",exist_conversation)
 
-    exist_conversation = db.query(models.Conversation).filter(models.Conversation.uuid==conversation_uuid)\
-                        .filter(or_(*conds))\
-                        .first()
     if not exist_conversation:
         raise HTTPException(
             status_code=404,
             detail=__("conversation-not-found")
         )
+    
 
     if current_user.uuid != exist_conversation.last_sender_uuid:
         exist_conversation.is_read = True
