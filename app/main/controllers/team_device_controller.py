@@ -17,7 +17,7 @@ router = APIRouter(prefix="/devices", tags=["devices"])
 def team_device_login(
     *,
     code: str,
-    name: Optional[str]=None,
+    name: str,
     db: Session = Depends(get_db),
 ):
     """
