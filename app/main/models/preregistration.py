@@ -17,6 +17,7 @@ class PreRegistrationStatusType(str, Enum):
     ACCEPTED = "ACCEPTED"
     PENDING = "PENDING"
     REFUSED = "REFUSED"
+    DELETED = "DELETED"
 
 
 class Gender(str, Enum):
@@ -317,7 +318,6 @@ class PreRegistration(Base):
     tracking_cases = relationship("TrackingCase", order_by="TrackingCase.date_added", back_populates="preregistration")
     # logs = relationship("Log", order_by="Log.date_added", back_populates="preregistration")
 
-    is_deleted:bool = Column(Boolean,nullable = True, default=False)
     refused_date: datetime = Column(DateTime, nullable=True, default=None)
     accepted_date: datetime = Column(DateTime, nullable=True, default=None)
 

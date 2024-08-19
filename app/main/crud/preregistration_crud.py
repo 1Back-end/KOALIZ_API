@@ -22,8 +22,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
         return db.query(models.PreRegistration).\
             filter(models.PreRegistration.uuid == uuid,
-                   models.PreRegistration.is_deleted!= True
-            ).first()
+                   models.PreRegistration.status!= models.PreRegistrationStatusType.DELETED).\
+            first()
 
     @classmethod
     def delete_a_special_folder(cls, db: Session, folder_uuid: str, performed_by_uuid: str):
@@ -43,7 +43,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             after_changes={}
         )
 
-        folder.is_deleted = True
+        folder.status = models.PreRegistrationStatusType.DELETED
         db.commit()
 
     @classmethod
@@ -675,7 +675,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
     @classmethod
     def get_by_code(cls, db: Session, code: str) -> Optional[schemas.PreregistrationDetails]:
-        return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
+        return db.query(models.PreRegistration).\
+            filter(models.PreRegistration.code == code).first()
 
 
     def get_many(self,
@@ -691,7 +692,10 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         keyword: Optional[str] = None,
         tag_uuid=None,
     ):
-        record_query = db.query(models.PreRegistration).filter(models.PreRegistration.nursery_uuid==nursery_uuid)        
+        record_query = db.query(models.PreRegistration).\
+            filter(models.PreRegistration.nursery_uuid==nursery_uuid,
+                   models.PreRegistration.status!=models.PreRegistrationStatusType.DELETED
+                )        
         if status:
             record_query = record_query.filter(models.PreRegistration.status==status)
 
