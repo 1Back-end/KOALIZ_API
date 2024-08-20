@@ -88,13 +88,24 @@ translation = {
     "hygiene-change-deleted": "hygiene change deleted successfully.",
     "health-record-not-found": "Medical record not found",
     "health-record-deleted": "Medical record successfully deleted",
+    "observation-not-found": "Observation file not found.",
+    "observation-deleted":"Observation file deleted successfully",
+    "mail-subject-account-confirmation-email":"finalisation of account creation",
+    "mail-subject-account-created":"Account creation.",
+    "mail-subject-password-reset-succes":"Password reset.",
+    "account-created":"Your account has been created successfully",
+    "activity-type-not-found":"activity(ies) type not found",
+    "category-activity-deleted-successfully":"activity category(ies) deleted.",
+    "category-activity-not-found":"activity category not found",
+    "attendance-deleted":"Attendance deleted successfully",
+    "attendance-not-found":"Attendance not found.",
+    "absence-not-found":"Absence record not found",
+    "absence-deleted":"Absence record deleted successfully",
+    "occasional-presence-not-found":"occasional presence record not found",
+    "occasional-presence-deleted":" occasional presence record deleted successfully",
+    "child-activity-not-found":" Child activity not found",
     "cmg-amount-range-not-found": "CMG amount range not found",
     "cmg-amount-not-found": "CMG amount not found",
     "cmg-amount-range-exists": "A range of amounts with this type of family and this number of children already exists.",
     "client-account-not-found": "Client account not found",
-
-
-
-
-
 }

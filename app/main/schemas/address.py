@@ -30,3 +30,17 @@ class AddressCreate(AddressBase):
 class AddressUpdate(AddressCreate):
     pass
 
+class AddressSLim(BaseModel):
+    uuid: str
+    street: str
+    city: str
+    state: Optional[str] = None
+    zipcode: str
+    country: str
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+
+
+

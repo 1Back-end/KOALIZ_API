@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from sqlalchemy import Column, ForeignKey, String, DateTime,event
+from sqlalchemy import Boolean, Column, ForeignKey, String, DateTime,event
 from datetime import datetime
 from .db.base_class import Base
 from sqlalchemy.orm import relationship, Mapped
@@ -11,8 +11,9 @@ class TeamDevice(Base):
 
     uuid = Column(String, primary_key=True, unique=True)
     token = Column(String, nullable=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=True)
     code = Column(String, nullable=True)
+    is_actived: bool = Column(Boolean, default=False, nullable=True)
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)

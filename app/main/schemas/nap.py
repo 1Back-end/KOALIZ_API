@@ -11,7 +11,7 @@ from .base import DataList
 
 class NapBase(BaseModel):
     nursery_uuid: Optional[str] = None
-    child_uuid: Optional[str] = None
+    child_uuid_tab: Optional[list[str]]
     employee_uuid: Optional[str] = None
     observation: Optional[str] = None
     quality: Optional[NapQuality] = None
@@ -24,7 +24,7 @@ class NapCreate(NapBase):
 
 
 class NapUpdate(NapBase):
-    uuid: Optional[str] = None
+    uuid: str
 
 class Nap(BaseModel):
     uuid: Optional[str] = None

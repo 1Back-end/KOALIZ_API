@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
 import uuid
+from datetime import date, datetime, timedelta
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
@@ -8,11 +8,21 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.main.core.mail import send_account_confirmation_email
-from app.main.core.security import generate_code, get_password_hash
+from app.main.core.security import generate_code
 
 
 router = APIRouter(prefix="/parents", tags=["parents"])
 
+
+@router.get("/children-transmissions", response_model=schemas.ParentTransmissionsList, status_code=200)
+def get_children_transmissions(
+    date: date = None,
+    db: Session = Depends(get_db),
+    current_parent: models.Parent = Depends(TokenRequired(roles=["parent"]))
+):
+    """ Get children transmissions """
+
+    return crud.parent.get_children_transmissions(db=db, current_parent=current_parent, date=date)
 
 
 @router.post("",response_model =schemas.Parent ,status_code=201)

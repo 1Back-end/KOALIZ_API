@@ -5,8 +5,9 @@ from app.main.core.config import Config
 from fastapi import APIRouter, Depends, Body, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
-router = APIRouter(prefix="/administrators", tags=["administrators"])
 
+
+router = APIRouter(prefix="/administrators", tags=["administrators"])
 
 @router.post("/create", response_model=schemas.AdministratorResponse, status_code=201)
 def create(
@@ -106,6 +107,7 @@ def delete(
 
     crud.administrator.soft_delete(db, uuid)
     return {"message": __("user-deleted")}
+
 
 @router.get("/", response_model=None)
 def get(

@@ -6,6 +6,7 @@ from datetime import datetime, time
 
 from app.main.core.i18n import __
 from app.main.schemas import File, DataList, Address, AddressCreate, AddressUpdate
+from app.main.schemas.address import AddressSLim
 from app.main.schemas.nursery_close_hours import NurseryCloseHourDetails
 from app.main.schemas.nursery_holidays import NurseryHolidaysDetails
 from app.main.schemas.user import AddedBy
@@ -18,6 +19,7 @@ class NurseryMini(BaseModel):
     total_places: int = 0
     phone_number: str
     status: str
+    is_actived:Optional[bool]=None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -40,6 +42,7 @@ class Nursery(BaseModel):
     total_places: int = 0
     phone_number: str
     status: str
+    is_actived:Optional[bool]=None
     website: Optional[str] = None
     slug: Optional[str] = None
     logo: Optional[File]
@@ -56,7 +59,18 @@ class Nursery(BaseModel):
 class NurserySlim(BaseModel):
     uuid: str
     name: str
+    is_actived:Optional[bool]=None
     memberships:Optional[list[Membership1]]=[]
+
+    model_config = ConfigDict(from_attributes=True)
+
+class NurserySlim1(BaseModel):
+    uuid: str
+    name: str
+    logo: Optional[File]
+    address: AddressSLim
+    is_actived:Optional[bool]=None
+    # memberships:Optional[list[Membership1]]=[]
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -181,7 +195,7 @@ class EmployeeHomePageList(BaseModel):
     opening_hours: list[OpeningHoursDetails]
     close_hours: list[NurseryCloseHourDetails]
     holidays: list[NurseryHolidaysDetails]
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 

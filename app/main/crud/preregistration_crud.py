@@ -20,11 +20,14 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
-        return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+        return db.query(models.PreRegistration).\
+            filter(models.PreRegistration.uuid == uuid,
+                   models.PreRegistration.status!= models.PreRegistrationStatusType.DELETED).\
+            first()
 
     @classmethod
     def delete_a_special_folder(cls, db: Session, folder_uuid: str, performed_by_uuid: str):
-        folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
+        folder = cls.get_by_uuid(db, folder_uuid)
         if not folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
@@ -40,14 +43,14 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             after_changes={}
         )
 
-        db.delete(folder)
+        folder.status = models.PreRegistrationStatusType.DELETED
         db.commit()
 
     @classmethod
     def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, performed_by_uuid: str,
                                           background_task=None) -> Optional[schemas.PreregistrationDetails]:
 
-        exist_folder:models.PreRegistration = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
+        exist_folder = cls.get_by_uuid(db,folder_uuid)
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
@@ -58,7 +61,9 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
         exist_folder.status = status
-        
+        if exist_folder.quote:
+            exist_folder.quote.status = status if status in [st.value for st in models.QuoteStatusType] else exist_folder.quote.status
+
         if status in ['REFUSED']:
             exist_folder.refused_date = datetime.now()
 
@@ -114,6 +119,12 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
                 crud.invoice.generate_invoice(db, exist_folder.quote.uuid, exist_folder.contract_uuid)
 
+            db.flush()
+
+            # Insert planning for child
+            # background_task.add_task(crud.child_planning.insert_planning, exist_folder.nursery, exist_folder.child, db)
+            crud.child_planning.insert_planning(db=db, child=exist_folder.child, nursery=exist_folder.nursery)
+
         db.commit()
 
         after_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
@@ -143,7 +154,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
     @classmethod
     def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str, performed_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
-        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == obj_in.preregistration_uuid).first()
+        exist_folder = cls.get_by_uuid(db,obj_in.preregistration_uuid)
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
@@ -173,9 +184,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     @classmethod
     def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate, performed_by_uuid: str) -> models.Child:
 
-        preregistration = db.query(models.PreRegistration).\
-            filter(models.PreRegistration.uuid==obj_in.uuid).\
-            first()
+        preregistration = cls.get_by_uuid(db, obj_in.uuid)
 
         # Before update the data
         before_changes = schemas.PreregistrationDetails.model_validate(preregistration).model_dump()
@@ -265,12 +274,11 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         )
 
         return child
+
     @classmethod
     def update_pre_registration(cls, db: Session, obj_in: schemas.PreregistrationUpdate) -> models.Child:
 
-        preregistration = db.query(models.PreRegistration).\
-            filter(models.PreRegistration.uuid==obj_in.uuid).\
-            first()
+        preregistration = cls.get_by_uuid(db,obj_in.uuid)
 
         # Before update the data
         before_changes = schemas.PreregistrationDetails.model_validate(preregistration).model_dump()
@@ -364,17 +372,22 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.ChildDetails]:
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
 
+    @classmethod
+    def get_child_by_uuids(cls, db: Session, uuid_tab: list[str]) -> Optional[list[schemas.ChildDetails]]:
+        return db.query(models.Child).filter(models.Child.uuid.in_(uuid_tab)).all()
+
     @staticmethod
     def determine_cmg(db: Session, dependent_children: int, family_type: models.FamilyType,
                       annual_income: float, birthdate: date, quote_uuid: str) -> Optional[models.QuoteCMG]:
 
+        cmg_dependent_children = dependent_children
         if dependent_children < 1:
-            dependent_children = 1
+            cmg_dependent_children = 1
         if dependent_children > 4:
-            dependent_children = 4
+            cmg_dependent_children = 4
 
         cmg_amount_range: models.CMGAmountRange = db.query(models.CMGAmountRange).filter(
-            models.CMGAmountRange.number_children == dependent_children).filter(
+            models.CMGAmountRange.number_children == cmg_dependent_children).filter(
             models.CMGAmountRange.family_type == family_type).first()
         if not cmg_amount_range:
             return None
@@ -624,7 +637,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             added_by_uuid=current_user_uuid
         )
         db.add(child)
-
+        db.flush()
         contract = models.PreContract(
             uuid=str(uuid.uuid4()),
             begin_date=obj_in.pre_contract.begin_date,
@@ -632,6 +645,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
         )
         db.add(contract)
+        db.flush()
 
         child.pre_contract_uuid = contract.uuid
 
@@ -658,6 +672,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 child_uuid=child.uuid
             )
             db.add(parent_guest)
+            db.flush()
 
         preregistration_uuids: list[str] = []
         code = cls.code_unicity(code=generate_slug(f"{child.firstname} {child.lastname}"), db=db)
@@ -672,6 +687,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 status=models.PreRegistrationStatusType.PENDING
             )
             db.add(new_preregistration)
+            db.flush()
+
             preregistration_uuids.append(new_preregistration.uuid)
 
         db.commit()
@@ -684,7 +701,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
     @classmethod
     def get_by_code(cls, db: Session, code: str) -> Optional[schemas.PreregistrationDetails]:
-        return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
+        return db.query(models.PreRegistration).\
+            filter(models.PreRegistration.code == code).first()
 
 
     def get_many(self,
@@ -700,7 +718,10 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         keyword: Optional[str] = None,
         tag_uuid=None,
     ):
-        record_query = db.query(models.PreRegistration).filter(models.PreRegistration.nursery_uuid==nursery_uuid)
+        record_query = db.query(models.PreRegistration).\
+            filter(models.PreRegistration.nursery_uuid==nursery_uuid,
+                   models.PreRegistration.status!=models.PreRegistrationStatusType.DELETED
+                )
         if status:
             record_query = record_query.filter(models.PreRegistration.status==status)
 
@@ -741,24 +762,46 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             current_page=page,
             data=record_query
         )
+
     def get_transmission(
         self,
         child_uuid: str,
         db:Session,
-        date:date = None,
+        nursery_uuid:str,
+        date:date = None
     ):
         child = db.query(models.Child).filter(models.Child.uuid == child_uuid).first()
 
-        if child:
+        if date:
             # Step 2: Load filtered relations and assign to the child object
-            child.meals = db.query(models.Meal).filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == date).all()
-            child.activities = db.query(models.ChildActivity).filter(models.ChildActivity.child_uuid == child.uuid, models.ChildActivity.date_added == date).all()
-            child.naps = db.query(models.Nap).filter(models.Nap.child_uuid == child.uuid, models.Nap.date_added == date).all()
-            child.health_records = db.query(models.HealthRecord).filter(models.HealthRecord.child_uuid == child.uuid, models.HealthRecord.date_added == date).all()
-            child.hygiene_changes = db.query(models.HygieneChange).filter(models.HygieneChange.child_uuid == child.uuid, models.HygieneChange.date_added == date).all()
-            child.observations = db.query(models.Observation).filter(models.Observation.child_uuid == child.uuid, models.Observation.date_added == date).all()
-            # child.media = db.query(models.Media).filter(models.Media.child_uuid == child.uuid, models.Observation.date_added == date).all()
-
+            child.meals = db.query(models.Meal).\
+                filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == date).\
+                filter(models.Meal.nursery_uuid == nursery_uuid).\
+                all()
+            child.activities = db.query(models.ChildActivity).\
+                filter(models.ChildActivity.child_uuid == child.uuid, models.ChildActivity.date_added == date).\
+                filter(models.ChildActivity.nursery_uuid == nursery_uuid).\
+                all()
+            child.naps = db.query(models.Nap).\
+                filter(models.Nap.child_uuid == child.uuid, models.Nap.date_added == date).\
+                filter(models.Nap.nursery_uuid == nursery_uuid).\
+                all()
+            child.health_records = db.query(models.HealthRecord).\
+                filter(models.HealthRecord.child_uuid == child.uuid, models.HealthRecord.date_added == date).\
+                filter(models.HealthRecord.nursery_uuid == nursery_uuid).\
+                all()
+            child.hygiene_changes = db.query(models.HygieneChange).\
+                filter(models.HygieneChange.child_uuid == child.uuid, models.HygieneChange.date_added == date).\
+                filter(models.HygieneChange.nursery_uuid == nursery_uuid).\
+                all()
+            child.observations = db.query(models.Observation).\
+                filter(models.Observation.child_uuid == child.uuid, models.Observation.date_added == date).\
+                filter(models.Observation.nursery_uuid == nursery_uuid).\
+                all()
+            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
+            child.media = db.query(models.Media).\
+                filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
+                all()
 
         return child
 
