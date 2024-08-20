@@ -340,7 +340,6 @@ class CMGAmountRange(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     UniqueConstraint("family_type", "number_children", name="family_type_number_children_unique")
-    UniqueConstraint("family_type", "number_children", name="family_type_number_children_unique")
 
 
 @event.listens_for(CMGAmountRange, 'before_insert')

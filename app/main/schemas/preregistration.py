@@ -519,3 +519,33 @@ class ChildTransmissionList(DataList):
     data: list[Transmission] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ClientAccount(BaseModel):
+    name: str
+    account_number: str = ""
+    entity_name: str = ""
+    iban: str = ""
+    address: str
+    zip_code: str
+    city: str
+    country: str
+    phone_number: str
+    email: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ClientAccountUpdate(BaseModel):
+    name: str
+    account_number: str = ""
+    entity_name: str = ""
+    iban: str = ""
+    address: str
+    zip_code: str
+    city: str
+    country: str
+    phone_number: str
+    email: str
+
+    model_config = ConfigDict(from_attributes=True)
