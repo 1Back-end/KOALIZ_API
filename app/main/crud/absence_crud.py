@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import Absence
+from app.main.models import Absence,AbsenceStatusEnum
 from app.main.schemas import AbsenceCreate, AbsenceUpdate, AbsenceList, AbsenceMini
 
 
@@ -31,11 +31,15 @@ class CRUDAbsence(CRUDBase[Absence, AbsenceCreate, AbsenceUpdate]):
     
     @classmethod
     def get_absence_by_uuid(cls, db: Session, uuid: str) -> Optional[AbsenceMini]:
-        return db.query(Absence).filter(Absence.uuid == uuid).first()
+        return db.query(Absence).filter(Absence.uuid == uuid,Absence.status!= AbsenceStatusEnum.DELETED).first()
+    @classmethod
+    def get_absence_by_uuids(cls, db: Session, uuids: list[str]) -> Optional[AbsenceMini]:
+        return db.query(Absence).filter(Absence.uuid.in_(uuids),Absence.status!= AbsenceStatusEnum.DELETED).all()
+    
     @classmethod
     def get_by_child_and_absence_uuid(cls, db: Session, child_uuid: str,absence_uuid:str) -> Optional[AbsenceMini]:
         return db.query(Absence).\
-            filter(Absence.uuid == absence_uuid).\
+            filter(Absence.uuid == absence_uuid,Absence.status!= AbsenceStatusEnum.DELETED).\
             filter(Absence.child_uuid == child_uuid).\
             first()
     
@@ -55,8 +59,15 @@ class CRUDAbsence(CRUDBase[Absence, AbsenceCreate, AbsenceUpdate]):
         return absence
     
     @classmethod
-    def delete(cls,db:Session, uuids:list[str]) -> AbsenceMini:
+    def delete(cls,db:Session, uuids:list[str]):
         db.query(Absence).filter(Absence.uuid.in_(uuids)).delete()
+        db.commit()
+
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        absence_tab = cls.get_absence_by_uuids(db, uuids)
+        for absence in absence_tab:
+            absence.status = AbsenceStatusEnum.DELETED
         db.commit()
 
     @classmethod
@@ -72,7 +83,7 @@ class CRUDAbsence(CRUDBase[Absence, AbsenceCreate, AbsenceUpdate]):
         order_field:Optional[str] = 'date_added',
         keyword:Optional[str]= None,
     ):
-        record_query = db.query(Absence)
+        record_query = db.query(Absence).filter(Absence.status!=AbsenceStatusEnum.DELETED)
 
         if keyword:
             record_query = record_query.filter(
