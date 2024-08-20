@@ -57,6 +57,7 @@ class InvoiceParentGuest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class InvoiceClientAccount(BaseModel):
+    uuid: Optional[str]
     name: Optional[str]
     account_number: Optional[str]
     entity_name: Optional[str]

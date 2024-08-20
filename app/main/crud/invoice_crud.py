@@ -100,7 +100,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         return last_invoice.id + 1 if last_invoice else 1
 
 
-    def generate_invoice(self, db: Session, quote_uuid: str, contract_uuid: str = None) -> None:
+    def generate_invoice(self, db: Session, quote_uuid: str, contract_uuid: str = None, client_account_uuid: str = None) -> None:
         quote = crud.quote.get_by_uuid(db, quote_uuid)
         if not quote:
             raise HTTPException(status_code=404, detail=__("quote-not-found"))
@@ -124,7 +124,8 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 quote_uuid=quote_uuid,
                 nursery_uuid=quote.nursery_uuid,
                 parent_guest_uuid=quote.parent_guest_uuid,
-                contract_uuid=contract_uuid
+                contract_uuid=contract_uuid,
+                client_account_uuid=client_account_uuid
             )
             db.add(new_invoice)
             ref_number += 1

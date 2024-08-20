@@ -86,7 +86,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                     uuid=str(uuid.uuid4()),
                     name=f"{exist_folder.child.paying_parent.firstname} {exist_folder.child.paying_parent.lastname}" if not exist_folder.child.paying_parent.has_company_contract else exist_folder.child.paying_parent.company_name,
                     account_number="",
-                    entity_name = "Physical" if not exist_folder.child.paying_parent.has_company_contract else "company",
+                    entity_name = "physical" if not exist_folder.child.paying_parent.has_company_contract else "company",
                     iban="",
                     address="",
                     zip_code=exist_folder.child.paying_parent.zip_code,
@@ -117,7 +117,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             if exist_folder.quote and exist_folder.quote.status != models.QuoteStatusType.ACCEPTED:
                 exist_folder.quote.status = models.QuoteStatusType.ACCEPTED
                 crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
-                crud.invoice.generate_invoice(db, exist_folder.quote.uuid, exist_folder.contract_uuid)
+                crud.invoice.generate_invoice(db, exist_folder.quote.uuid, exist_folder.contract_uuid, client_account.uuid if client_account else None)
 
             db.flush()
 
