@@ -114,6 +114,6 @@ translation = {
     "occasional-presence-not-found":"présence occasionelle introuvable",
     "occasional-presence-deleted":" presence occasionelle supprimée avec succès",
     "child-activity-not-found":" activité introuvable",
-
-
+    "cmg-amount-range-not-found": "Plage de montant CMG non trouvée",
+    "cmg-amount-not-found": "Montant CMG non trouvé",
 }

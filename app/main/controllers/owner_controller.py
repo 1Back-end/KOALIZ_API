@@ -1,11 +1,40 @@
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 router = APIRouter(prefix="/owners", tags=["owners"])
 
+
+
+@router.post("/children-confirmation", response_model=schemas.ChildMini, status_code=201)
+def confirm_child_for_parent(
+    *,
+    db: Session = Depends(get_db),
+    obj_in: schemas.ChildrenConfirmation = Body(...),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Confirm child for parent """
+
+    if not obj_in.nursery_uuid  in [current_nursery.uuid for current_nursery in current_user.nurseries]:
+        raise HTTPException(status_code = 400,detail = __("nursery-owner-not-authorized"))
+    
+    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
+    if not child:
+        raise HTTPException(status_code=404, detail=__("child-not-found"))
+    
+    parent = db.query(models.Parent).filter(models.Parent.email.ilike(obj_in.parent_email)).first()
+    if not parent:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    crud.administrator.confirm_child_for_parent(db=db, obj_in=obj_in, added_by=current_user)
+
+    return child
 
 @router.post("/create", response_model=schemas.Owner, status_code=201)
 def create(

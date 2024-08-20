@@ -104,21 +104,6 @@ translation = {
     "occasional-presence-not-found":"occasional presence record not found",
     "occasional-presence-deleted":" occasional presence record deleted successfully",
     "child-activity-not-found":" Child activity not found",
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    "cmg-amount-range-not-found": "CMG amount range not found",
+    "cmg-amount-not-found": "CMG amount not found",
 }

@@ -6,7 +6,7 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.schemas import DataList, NurseryMini
+from app.main.schemas import DataList, NurseryMini, Tag
 from app.main.schemas.base import Items
 from app.main.schemas.file import File
 
@@ -32,6 +32,13 @@ class QuoteChildMini(BaseModel):
     lastname: str
     gender: models.Gender
     birthdate: date
+    birthplace: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class QuoteNurseryMini(BaseModel):
+    uuid: str
+    name: str
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -62,10 +69,16 @@ class QuoteTimetable(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class QuotePreregistrationMini(BaseModel):
+    uuid: str
+    tags: Optional[list[Tag]] = []
+    model_config = ConfigDict(from_attributes=True)
+
+
 class QuoteDetails(BaseModel):
     uuid: str
-    preregistration_uuid: str
     child: QuoteChildMini
+    nursery: QuoteNurseryMini
     pre_contract: QuotePreContract
     cmg: Optional[CMG] = None
     status: str = None
@@ -87,6 +100,7 @@ class QuoteDetails(BaseModel):
     weeks_in_smoothing: Optional[float]
     deductible_weeks: Optional[float]
     total_closing_days: Optional[int]
+    preregistration: QuotePreregistrationMini
 
     timetables: list[QuoteTimetable] = []
 
@@ -149,5 +163,48 @@ class QuoteSettingsUpdate(BaseModel):
     adaptation_hours_number: int = 0
     adaptation_package_costs: float = 0
     adaptation_package_days: int = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CMGAmountRange(BaseModel):
+    uuid: str
+    lower: float
+    upper: float
+    family_type: models.FamilyType
+    number_children: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CMGAmountRangeUpdate(BaseModel):
+    lower: float
+    upper: float
+    family_type: models.FamilyType
+    number_children: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CMGAmount(BaseModel):
+    uuid: str
+    child_age_lower: int
+    child_age_upper: int
+    tranche_1_amount: float
+    tranche_2_amount: float
+    tranche_3_amount: float
+    govt_update_of: Optional[date]
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CMGAmountUpdate(BaseModel):
+    child_age_lower: int
+    child_age_upper: int
+    tranche_1_amount: float
+    tranche_2_amount: float
+    tranche_3_amount: float
+    govt_update_of: Optional[date] = None
 
     model_config = ConfigDict(from_attributes=True)

@@ -85,6 +85,9 @@ def get_special_folder_without_permission(
     db: Session = Depends(get_db),
 ):
     """ Get a special folder without authentication"""
+    exist_pre_registration = crud.preregistration.get_by_uuid(db, uuid)
+    if not exist_pre_registration:
+        raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
     return crud.preregistration.get_by_uuid(db, uuid)
 
@@ -126,6 +129,11 @@ def update_special_folder_without_permission(
     db: Session = Depends(get_db),
 ):
     """ Update a special folder without authentication """
+    
+    preregistration = crud.preregistration.get_by_uuid(db, obj_in.uuid)
+    if not preregistration:
+        raise HTTPException(status_code=404, detail=__("folder-not-found"))
+
 
     return crud.preregistration.update_pre_registration(db, obj_in=obj_in)
 
