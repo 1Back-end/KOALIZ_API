@@ -20,11 +20,14 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.PreregistrationDetails]:
-        return db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+        return db.query(models.PreRegistration).\
+            filter(models.PreRegistration.uuid == uuid,
+                   models.PreRegistration.status!= models.PreRegistrationStatusType.DELETED).\
+            first()
 
     @classmethod
     def delete_a_special_folder(cls, db: Session, folder_uuid: str, performed_by_uuid: str):
-        folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
+        folder = cls.get_by_uuid(db, folder_uuid)
         if not folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
@@ -40,14 +43,14 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             after_changes={}
         )
 
-        db.delete(folder)
+        folder.status = models.PreRegistrationStatusType.DELETED
         db.commit()
 
     @classmethod
     def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, performed_by_uuid: str,
                                           background_task=None) -> Optional[schemas.PreregistrationDetails]:
 
-        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
+        exist_folder = cls.get_by_uuid(db,folder_uuid)
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
@@ -125,7 +128,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
     @classmethod
     def add_tracking_case(cls, db: Session, obj_in: schemas.TrackingCase, interaction_type: str, performed_by_uuid: str) -> Optional[schemas.PreregistrationDetails]:
-        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == obj_in.preregistration_uuid).first()
+        exist_folder = cls.get_by_uuid(db,obj_in.preregistration_uuid)
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
@@ -155,9 +158,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     @classmethod
     def update(cls, db: Session, obj_in: schemas.PreregistrationUpdate, performed_by_uuid: str) -> models.Child:
 
-        preregistration = db.query(models.PreRegistration).\
-            filter(models.PreRegistration.uuid==obj_in.uuid).\
-            first()
+        preregistration = cls.get_by_uuid(db, obj_in.uuid)
 
         # Before update the data
         before_changes = schemas.PreregistrationDetails.model_validate(preregistration).model_dump()
@@ -247,12 +248,11 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         )
 
         return child
+    
     @classmethod
     def update_pre_registration(cls, db: Session, obj_in: schemas.PreregistrationUpdate) -> models.Child:
 
-        preregistration = db.query(models.PreRegistration).\
-            filter(models.PreRegistration.uuid==obj_in.uuid).\
-            first()
+        preregistration = cls.get_by_uuid(db,obj_in.uuid)
 
         # Before update the data
         before_changes = schemas.PreregistrationDetails.model_validate(preregistration).model_dump()
@@ -675,7 +675,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
     @classmethod
     def get_by_code(cls, db: Session, code: str) -> Optional[schemas.PreregistrationDetails]:
-        return db.query(models.PreRegistration).filter(models.PreRegistration.code == code).first()
+        return db.query(models.PreRegistration).\
+            filter(models.PreRegistration.code == code).first()
 
 
     def get_many(self,
@@ -691,7 +692,10 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         keyword: Optional[str] = None,
         tag_uuid=None,
     ):
-        record_query = db.query(models.PreRegistration).filter(models.PreRegistration.nursery_uuid==nursery_uuid)
+        record_query = db.query(models.PreRegistration).\
+            filter(models.PreRegistration.nursery_uuid==nursery_uuid,
+                   models.PreRegistration.status!=models.PreRegistrationStatusType.DELETED
+                )        
         if status:
             record_query = record_query.filter(models.PreRegistration.status==status)
 
