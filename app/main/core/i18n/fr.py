@@ -94,7 +94,7 @@ translation = {
     "Nursery-holiday-not-found":"Vacances à la crèche introuvables",
     "Holiday-deleted-successfully":"Jours fériés supprimés avec succès",
     "Meal-not-found": "Repas introuvable",
-    "Meals-successfully-soft-deleted-fr": "Repas supprimés en douceur avec succès",
+    "Meals-successfully-soft-deleted": "Repas supprimés en douceur avec succès",
     "Close-Hour-status-updated-successfully": "Statut de l'heure de fermeture mis à jour avec succès",
     "Close-Hours-soft-deleted-successfully": "Heures de fermeture supprimées en douceur avec succès",
     "Holidays-soft-deleted-successfully": "Vacances supprimées en douceur avec succès",
