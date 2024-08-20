@@ -116,4 +116,5 @@ translation = {
     "child-activity-not-found":" activité introuvable",
     "cmg-amount-range-not-found": "Plage de montant CMG non trouvée",
     "cmg-amount-not-found": "Montant CMG non trouvé",
+    "receiver-not-found":"Destinataire introuvable"
 }
