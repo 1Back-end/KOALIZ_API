@@ -32,6 +32,8 @@ class Meal(Base):
     breastfeeding_duration_minutes = Column(Integer, nullable=True) # Allaitement
     meal_quality = Column(types.Enum(MealQuality), nullable=False) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     observation = Column(Text, nullable=True) # Observation
+    is_deleted: bool = Column(Boolean, default=False)
+
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
@@ -62,6 +64,8 @@ class ActivityCategory(Base):
     uuid = Column(String, primary_key=True, unique=True)
     name_fr = Column(String, nullable=False)
     name_en = Column(String, nullable=False)
+    is_deleted: bool = Column(Boolean, default=False)
+
 
     activities = relationship("Activity", secondary=activity_category_table, back_populates="activity_categories")
 
@@ -78,6 +82,8 @@ class Activity(Base):
     uuid = Column(String, primary_key=True, unique=True)
     name_fr = Column(String, nullable=False)
     name_en = Column(String, nullable=False)
+    is_deleted: bool = Column(Boolean, default=False)
+
 
     children = relationship("ChildActivity", back_populates="activity")
     activity_categories = relationship("ActivityCategory", secondary=activity_category_table, back_populates="activities")
@@ -274,7 +280,7 @@ class Media(Base):
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
     
-    media_type = Column(types.Enum(MediaType), nullable=False) # media type (photos, vidéo)
+    media_type:str = Column(String, nullable=False) # media type (photos, vidéo)
     time = Column(DateTime, nullable=False, default=datetime.now())
     observation = Column(Text, nullable=True)
 

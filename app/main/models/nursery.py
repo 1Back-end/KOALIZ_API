@@ -86,6 +86,8 @@ class NurseryOpeningHour(Base):
     day_of_week: int = Column(Integer, nullable=False)
     from_time: str = Column(String(5), nullable=False)
     to_time: str = Column(String(5), nullable=False)
+    is_deleted: bool = Column(Boolean, default=False)
+
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)
     nursery = relationship("Nursery", foreign_keys=[nursery_uuid], uselist=False)
@@ -129,6 +131,9 @@ class NuseryHoliday(Base):
     day: int = Column(Integer, nullable=True)
     month: int = Column(Integer, nullable=True)
     is_active: bool = Column(Boolean, default=False, nullable=False)  # Ajout de la colonne is_active
+    is_deleted: bool = Column(Boolean, default=False)
+
+
 
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)

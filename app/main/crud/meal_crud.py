@@ -16,7 +16,7 @@ import uuid
 class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
 
     def get_meal_by_nursery(self, *,db: Session, nursery_uuid: str):
-        return db.query(models.Meal).filter(models.Meal.nursery_uuid == nursery_uuid).all()
+        return db.query(models.Meal).filter(models.Meal.nursery_uuid == nursery_uuid,models.Meal.is_deleted==False).all()
     
     def get_meal_by_uuid(self,*, db: Session, uuid: str):
         return db.query(models.Meal).filter(models.Meal.uuid == uuid).first()
@@ -33,7 +33,7 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
             meal_quality:Optional[str]= None
 
     ):
-        record_query = db.query(models.Meal)
+        record_query = db.query(models.Meal).filter(models.Meal.is_deleted==False)
 
         if order and order.lower() == "asc":
             record_query = record_query.order_by(models.Meal.date_added.asc())
@@ -98,7 +98,7 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
 
         # Vérifier si le repas existe
         if not db_meal:
-            raise HTTPException(status_code=404, detail="Meal not found")
+            raise HTTPException(status_code=404, detail="Meal-not-found")
 
         for child_uuid in obj_in.child_uuids:
             exist_meal_for_child = db.query(models.Meal).\
@@ -123,12 +123,20 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
         db_meal = db.query(models.Meal).filter(models.Meal.uuid == uuid).first()
         # Vérifier si le repas existe
         if not db_meal:
-            raise HTTPException(status_code=404, detail="Meal not found")
+            raise HTTPException(status_code=404, detail="Meal-not-found")
         # Supprimer le repas de la base de données
         db.delete(db_meal)
         db.commit()
 
+    @classmethod
+    def soft_delete(cls,uuids:List[str],db:Session):
+        db_meals = db.query(models.Meal).filter(models.Meal.uuid.in_(uuids)).all()
+        for db_meal in db_meals:
+            db_meal.is_deleted=True
+        db.commit()
+
 
 meal = CRUDMeal(models.Meal)
+
         
         

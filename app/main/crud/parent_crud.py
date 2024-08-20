@@ -226,6 +226,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
             data =record_query
         )
     
+
     @classmethod
     def get_children(
         cls,
@@ -234,7 +235,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         per_page:int = 30,
         order:Optional[str] = None,
         parent_uuid:Optional[str] = None,
-        order_filed:Optional[str] = None,
+        order_filed:Optional[str] = "date_added",
         keyword:Optional[str]= None
     ):
         # Get parent children
@@ -278,7 +279,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         per_page:int = 30,
         order:Optional[str] = None,
         parent_uuid:Optional[str] = None,
-        order_filed:Optional[str] = None,
+        order_filed:Optional[str] = "date_added",
         keyword:Optional[str]= None,
         media_type:Optional[str]= None
     ):
@@ -303,9 +304,9 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
             record_query = record_query.filter(models.Media.media_type == media_type)
 
         if order and order.lower() == "asc":
-            record_query = record_query.order_by(getattr(models.Child, order_filed).asc())
+            record_query = record_query.order_by(getattr(models.Media, order_filed).asc())
         else:
-            record_query = record_query.order_by(getattr(models.Child, order_filed).desc())
+            record_query = record_query.order_by(getattr(models.Media, order_filed).desc())
 
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)

@@ -22,7 +22,7 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
         ).first()
         
         if not result:
-            raise HTTPException(status_code=404, detail="Close Hour not found or not authorized")
+            raise HTTPException(status_code=404, detail="close-hour-not-found-or-not-authorized")
         
         return result
     
@@ -40,10 +40,14 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
         
         record_query = db.query(models.NurseryCloseHour)\
             .join(models.Nursery, models.NurseryCloseHour.nursery_uuid == models.Nursery.uuid)\
-            .filter(models.Nursery.owner_uuid == owner_uuid)
+            .filter(models.Nursery.owner_uuid == owner_uuid)\
+            .filter(models.NurseryCloseHour.is_deleted!=True)\
+            .filter(models.NurseryCloseHour.is_active==True)
+            
+             
 
         if not record_query:
-            raise HTTPException(status_code=404, detail="Nurseries not found")
+            raise HTTPException(status_code=404, detail="nurseries-not-found")
         
         if order and order.lower() =="asc":
             record_query = record_query.order_by(models.NurseryCloseHour.date_added.asc())
@@ -75,10 +79,10 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
         # Check if the nursery exists
         nursery_exists = db.query(models.Nursery).filter(models.Nursery.uuid == close_hour.nursery_uuid).first()
         if not nursery_exists:
-            raise HTTPException(status_code=404, detail="Nursery not found")
+            raise HTTPException(status_code=404, detail="nurseries-not-found")
         
         if nursery_exists.owner_uuid != owner_uuid:
-            raise HTTPException(status_code=403, detail="Not authorized to create close hour for this nursery")
+            raise HTTPException(status_code=403, detail="close-hour-not-found-or-not-authorized")
         
         db_close_hour = models.NurseryCloseHour(
             uuid=str(uuid.uuid4()),
@@ -100,13 +104,13 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
     def update_nursery_close_hour(self,*,db: Session, close_hour_uuid: str, close_hour: schemas.NurseryCloseHourUpdate,owner_uuid: str):
         db_close_hour = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.uuid == close_hour_uuid).first()
         if not db_close_hour:
-            raise HTTPException(status_code=404, detail="Close Hour not found")
+            raise HTTPException(status_code=404, detail="close-hour-not-found")
         # Vérifiez si la crèche associée appartient au propriétaire
         nursery = db.query(models.Nursery).filter(models.Nursery.uuid == db_close_hour.nursery_uuid).first()
         if nursery is None:
-            raise HTTPException(status_code=404, detail="Nursery not found")
+            raise HTTPException(status_code=404, detail="nurseries-not-found")
         if nursery.owner_uuid != owner_uuid:
-            raise HTTPException(status_code=403, detail="Not authorized to update this close hour")
+            raise HTTPException(status_code=403, detail="close-hour-not-found-or-not-authorized")
 
         # Appliquez les mises à jour en une ligne chacune
         db_close_hour.name_fr = close_hour.name_fr if close_hour.name_fr is not None else db_close_hour.name_fr,
@@ -123,12 +127,12 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
     def delete_nursery_close_hour(self,*,db: Session, close_hour_uuid: str, owner_uuid: str):
         db_close_hour = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.uuid == close_hour_uuid).first()
         if not db_close_hour:
-            raise HTTPException(status_code=404, detail="Close Hour not found")
+            raise HTTPException(status_code=404, detail="close-hour-not-found")
         nursery = db.query(models.Nursery).filter(models.Nursery.uuid == db_close_hour.nursery_uuid).first()
         if not nursery:
-            raise HTTPException(status_code=404, detail="Nursery not found")
+            raise HTTPException(status_code=404, detail="nurseries-not-found")
         if nursery.owner_uuid != owner_uuid:
-            raise HTTPException(status_code=403, detail="You are not authorized to delete this close hour")
+            raise HTTPException(status_code=403, detail="you-are-not-authorized-to-delete-this-close-hour")
         db.delete(db_close_hour)
         db.commit()
 
@@ -137,21 +141,32 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
         # Vérifier si la pépinière existe
         nursery = db.query(models.Nursery).filter(models.Nursery.uuid == nursery_uuid).first()
         if not nursery:
-            raise HTTPException(status_code=404, detail="Nursery not found")
+            raise HTTPException(status_code=404, detail="nursery-not-found")
         # Vérifier si la pépinière appartient au propriétaire
         if nursery.owner_uuid != owner_uuid:
-            raise HTTPException(status_code=403, detail="You are not authorized to view this nursery details")
+            raise HTTPException(status_code=403, detail="You-are-not-authorized-to-view-this-nursery-details")
 
         # Récupérer les heures d'ouverture
-        opening_hours = db.query(models.NurseryOpeningHour).filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid).all()
+        opening_hours = db.query(models.NurseryOpeningHour)\
+            .filter(models.NurseryOpeningHour.nursery_uuid == nursery_uuid)\
+            .filter(models.NurseryOpeningHour.is_deleted==False)\
+            .all()
         opening_hours_data = [schemas.OpeningHoursDetails.from_orm(hour) for hour in opening_hours]
-
         # Récupérer les périodes de fermeture
-        close_hours = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.nursery_uuid == nursery_uuid).all()
+        close_hours = db.query(models.NurseryCloseHour) \
+            .filter(models.NurseryCloseHour.nursery_uuid == nursery_uuid) \
+            .filter(models.NurseryCloseHour.is_deleted == False) \
+            .filter(models.NurseryCloseHour.is_active == True) \
+            .all()
+        
         close_hours_data = [schemas.NurseryCloseHourDetails.from_orm(hour) for hour in close_hours]
 
         # Récupérer les jours fériés
-        holidays = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.nursery_uuid == nursery_uuid).all()
+        holidays = db.query(models.NuseryHoliday)\
+            .filter(models.NuseryHoliday.nursery_uuid == nursery_uuid)\
+            .filter(models.NuseryHoliday.is_deleted==False)\
+            .filter(models.NuseryHoliday.is_active==True)\
+            .all()
         holidays_data = [schemas.NurseryHolidaysDetails.from_orm(holiday) for holiday in holidays]
 
         return {
@@ -160,12 +175,30 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
             "holidays": holidays_data
         }
     @classmethod
-    def update_status(cls, uuids:List[str], status: bool, db: Session):
+    def update_status(cls, uuids:List[str], status: bool, db: Session,owner_uuid: str):
         records = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.uuid.in_(uuids)).all()
         for record in records:
-            record.is_active = status
-            db.commit()
-            db.refresh(record)
+            nursery = db.query(models.Nursery).filter(models.Nursery.uuid == record.nursery_uuid).first()
+            if nursery is None:
+                raise HTTPException(status_code=404, detail="nursery-not-found")
+            if nursery.owner_uuid != owner_uuid:
+                raise HTTPException(status_code=403, detail="You-are-not-authorized-to-update-this-close-hour")
+            record.is_active=status
+        db.commit()
+        db.refresh(record)
+
+
+    @classmethod
+    def soft_delete(cls,uuids:List[str],db:Session,owner_uuid: str):
+        records = db.query(models.NurseryCloseHour).filter(models.NurseryCloseHour.uuid.in_(uuids)).all()
+        for record in records:
+            nursery = db.query(models.Nursery).filter(models.Nursery.uuid == record.nursery_uuid).first()
+            if nursery is None:
+                raise HTTPException(status_code=404, detail="nursery-not-found")
+            if nursery.owner_uuid != owner_uuid:
+                raise HTTPException(status_code=403, detail="You-are-not-authorized-to-delete-this-close-hour")
+            record.is_deleted=True
+        db.commit()
         
         
 

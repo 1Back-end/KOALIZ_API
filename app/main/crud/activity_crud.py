@@ -26,7 +26,9 @@ class CRUDActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.Activ
             keyword:Optional[str]= None,
         ):
             """Récupère les activités en fonction des paramètres de pagination et de recherche."""
-            record_query = db.query(models.Activity)
+            record_query = db.query(models.Activity).filter(
+                models.Activity.is_deleted==False
+            )
             if keyword:
                 record_query = record_query.filter(
                     or_(
@@ -92,8 +94,8 @@ class CRUDActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.Activ
         return db.query(models.ActivityCategory).filter(models.ActivityCategory.uuid == uuid).first()
     
     @classmethod
-    def get_activity_by_uuid(cls,activity_uuid:str,db:Session):
-        return db.query(models.Activity).filter(models.Activity.uuid == activity_uuid).first()
+    def get_activity_by_uuid(cls,uuid:str,db:Session):
+        return db.query(models.Activity).filter(models.Activity.uuid == uuid).first()
     
 
     @classmethod
@@ -138,9 +140,18 @@ class CRUDActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.Activ
         db.query(models.activity_category_table).filter(models.activity_category_table.c.activity_uuid.in_(uuids)).delete()
         db.query(models.Activity).filter(models.Activity.uuid.in_(uuids)).delete()
         db.commit()
+    
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        for uuid in uuids:
+            activity = cls.get_activity_by_uuid(uuid, db)
+            if not activity:
+                raise HTTPException(status_code=404, detail=f"L'activité avec l'UUID {uuid} n'existe pas.")
+            
+            activity.is_deleted = True
+        db.commit()
+       
 
-    
-    
         
        
 

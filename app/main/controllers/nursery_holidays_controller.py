@@ -36,7 +36,7 @@ def read_nursery_holiday(
         owner_uuid=current_user.uuid
     )
     if db_nursery_holidays is None:
-        raise HTTPException(status_code=404, detail="Nursery holiday not found")
+        raise HTTPException(status_code=404, detail="Nursery-holiday-not-found")
     return db_nursery_holidays
 
 @router.put("/{uuid}", response_model=schemas.NurseryHoliday)
@@ -53,7 +53,7 @@ def update_nursery_holiday(
         owner_uuid=current_user.uuid
     )
     if db_nursery_holidays is None:
-        raise HTTPException(status_code=404, detail="Nursery holiday not found")
+        raise HTTPException(status_code=404, detail="Nursery-holiday-not-found")
     return db_nursery_holidays
 
 
@@ -91,11 +91,12 @@ def delete_nursery_holiday(
         holiday_uuid=holiday_uuid,
         owner_uuid=current_user.uuid
     )
-    return {"message": __("Holiday deleted successfully")}
+    return {"message": __("Holiday-deleted-successfully")}
 
     
 @router.put("/status/update")
 def update_status(
+    *,
     uuids : List[str],
     status: bool = None,
     db: Session = Depends(get_db),
@@ -108,4 +109,19 @@ def update_status(
         status=status,
         owner_uuid=current_user.uuid
     )
-    return {"message": __("Holidays status updated successfully")}
+    return {"message": __("Holidays-status-updated-successfully")}
+
+
+@router.delete("/soft")
+def soft_delete_nursery_holidays(
+    uuids : List[str],
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    # Appeler la méthode CRUD pour supprimer en "tant qu'archive"
+    crud.nursery_holiday.soft_delete(
+        db=db,
+        uuids=uuids,
+        owner_uuid=current_user.uuid
+    )
+    return {"message": __("Holidays-soft-deleted-successfully")}
