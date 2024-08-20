@@ -74,7 +74,7 @@ def delete_nap(
 ):
     """ Delete many(or one) """
 
-    crud.nap.delete(db, uuids)
+    crud.nap.soft_delete(db, uuids)
     return {"message": __("nap-deleted")}
 
 

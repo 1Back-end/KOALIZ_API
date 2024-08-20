@@ -106,6 +106,10 @@ translation = {
     "child-activity-not-found":" Child activity not found",
     "cmg-amount-range-not-found": "CMG amount range not found",
     "cmg-amount-not-found": "CMG amount not found",
-    "receiver-not-found":"Receiver not found"
+    "receiver-not-found":"Receiver not found",
+    "media-deleted":"Media successfully deleted",
+    "nap-deleted":"Nap successfully deleted",
+    "child-activity-deleted":"Child activity successfully deleted",
+
 
 }

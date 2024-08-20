@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import HygieneChange
+from app.main.models import HygieneChange,AbsenceStatusEnum
 from app.main.schemas import HygieneChangeCreate, HygieneChangeUpdate, HygieneChangeList, HygieneChangeMini
 
 
@@ -37,7 +37,9 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
     
     @classmethod
     def get_hygiene_change_by_uuid(cls, db: Session, uuid: str) -> Optional[HygieneChangeMini]:
-        return db.query(HygieneChange).filter(HygieneChange.uuid == uuid).first()
+        return db.query(HygieneChange).\
+            filter(HygieneChange.uuid == uuid,HygieneChange.status!=AbsenceStatusEnum.DELETED).\
+                first()
     
     @classmethod
     def update(cls, db: Session,obj_in: HygieneChangeUpdate) -> HygieneChangeMini:
@@ -67,6 +69,15 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
     def delete(cls,db:Session, uuids:list[str]) -> HygieneChangeMini:
         db.query(HygieneChange).filter(HygieneChange.uuid.in_(uuids)).delete()
         db.commit()
+    
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        attendance_tab = db.query(HygieneChange).\
+            filter(HygieneChange.uuid.in_(uuids),HygieneChange.status!=AbsenceStatusEnum.DELETED)\
+                .all()
+        for attendance in attendance_tab:
+            attendance.status = AbsenceStatusEnum.DELETED
+            db.commit()
 
     @classmethod
     def get_multi(
@@ -84,7 +95,7 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
         stool_type:Optional[str]= None,
         additional_care:Optional[str]= None
     ):
-        record_query = db.query(HygieneChange)
+        record_query = db.query(HygieneChange).filter(HygieneChange.status!= AbsenceStatusEnum.DELETED)
 
         if keyword:
             record_query = record_query.filter(

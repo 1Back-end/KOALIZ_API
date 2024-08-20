@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import OccasionalPresence
+from app.main.models import OccasionalPresence,AbsenceStatusEnum
 from app.main.schemas import OccasionalPresenceCreate, OccasionalPresenceUpdate, OccasionalPresenceList, OccasionalPresenceMini
 
 
@@ -31,7 +31,9 @@ class CRUDOccasionalPresence(CRUDBase[OccasionalPresence, OccasionalPresenceCrea
     
     @classmethod
     def get_occasional_presence_by_uuid(cls, db: Session, uuid: str) -> Optional[OccasionalPresenceMini]:
-        return db.query(OccasionalPresence).filter(OccasionalPresence.uuid == uuid).first()
+        return db.query(OccasionalPresence).\
+            filter(OccasionalPresence.uuid == uuid,OccasionalPresence.status!=AbsenceStatusEnum.DELETED).\
+                first()
     
     @classmethod
     def update(cls, db: Session,obj_in: OccasionalPresenceUpdate) -> OccasionalPresenceMini:
@@ -48,6 +50,15 @@ class CRUDOccasionalPresence(CRUDBase[OccasionalPresence, OccasionalPresenceCrea
     def delete(cls,db:Session, uuids:list[str]) -> OccasionalPresenceMini:
         db.query(OccasionalPresence).filter(OccasionalPresence.uuid.in_(uuids)).delete()
         db.commit()
+    
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        attendance_tab = db.query(OccasionalPresence).\
+            filter(OccasionalPresence.uuid.in_(uuids),OccasionalPresence.status!=AbsenceStatusEnum.DELETED)\
+                .all()
+        for attendance in attendance_tab:
+            attendance.status = AbsenceStatusEnum.DELETED
+            db.commit()
 
     @classmethod
     def get_multi(
@@ -62,7 +73,7 @@ class CRUDOccasionalPresence(CRUDBase[OccasionalPresence, OccasionalPresenceCrea
         order_field:Optional[str] = 'date_added',
         keyword:Optional[str]= None,
     ):
-        record_query = db.query(OccasionalPresence)
+        record_query = db.query(OccasionalPresence).filter(OccasionalPresence.status!= AbsenceStatusEnum.DELETED)
 
         if keyword:
             record_query = record_query.filter(

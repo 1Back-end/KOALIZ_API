@@ -69,7 +69,7 @@ def delete_hygiene_change(
 ):
     """ Delete many(or one) """
 
-    crud.hygiene_change.delete(db, uuids)
+    crud.hygiene_change.soft_delete(db, uuids)
     return {"message": __("hygiene-change-deleted")}
 
 
