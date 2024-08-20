@@ -18,6 +18,11 @@ class PreRegistrationStatusType(str, Enum):
     PENDING = "PENDING"
     REFUSED = "REFUSED"
 
+    class QuoteStatusType(str, Enum):
+        ACCEPTED = "ACCEPTED"
+        PENDING = "PENDING"
+        REFUSED = "REFUSED"
+
 
 class Gender(str, Enum):
     MALE = 'MALE'
@@ -83,6 +88,8 @@ class Child(Base):
     added_by = relationship("Owner", foreign_keys=added_by_uuid, uselist=False)
     is_accepted: bool = Column(Boolean, default=False)
     family_type: str = Column(types.Enum(FamilyType), default=FamilyType.COUPLE, nullable=True)
+
+    client_accounts: Mapped[list[any]] = relationship("ClientAccount", secondary="client_account_children", back_populates="children", uselist=True)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -347,6 +354,8 @@ class Contract(Base):
     sepa_direct_debit_uuid: str = Column(String, ForeignKey('sepa_direct_debits.uuid'))
     sepa_direct_debit: Mapped[any] = relationship("SEPADirectDebit", foreign_keys=sepa_direct_debit_uuid, uselist=False)
     reference: str = Column(String, default="")
+
+    client_accounts: Mapped[list[any]] = relationship("ClientAccount", secondary="client_account_contracts", back_populates="contracts", uselist=True)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

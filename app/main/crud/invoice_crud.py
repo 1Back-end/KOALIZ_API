@@ -1,4 +1,5 @@
 import math
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -89,6 +90,15 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         db.commit()
         return invoice_obj
 
+    def determine_invoice_id(self, db: Session, nursery: models.Nursery) -> int:
+        # Add a filter to get the last id in the current month(between first and last day of the current month) and for the current nursery
+        last_invoice = db.query(models.Invoice).filter(
+            models.Invoice.nursery_uuid == nursery.uuid,
+            models.Invoice.date_added >= datetime.now().replace(day=1),
+            models.Invoice.date_added < datetime.now().replace(day=1) + timedelta(days=31)
+        ).order_by(models.Invoice.id.desc()).first()
+        return last_invoice.id + 1 if last_invoice else 1
+
 
     def generate_invoice(self, db: Session, quote_uuid: str, contract_uuid: str = None) -> None:
         quote = crud.quote.get_by_uuid(db, quote_uuid)
@@ -96,9 +106,13 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
             raise HTTPException(status_code=404, detail=__("quote-not-found"))
 
         self.delete_by_quote_uuid(db, quote_uuid)
+        ref_number = self.determine_invoice_id(db, quote.nursery)
+
         for quote_timetable in quote.timetables:
             new_invoice = models.Invoice(
                 uuid=str(uuid4()),
+                id=ref_number,
+                reference=f"{ref_number}-{quote.nursery.code}-{datetime.now().strftime('%m%y')}",
                 date_to=quote_timetable.date_to,
                 invoicing_period_start=quote_timetable.invoicing_period_start,
                 invoicing_period_end=quote_timetable.invoicing_period_end,
@@ -113,6 +127,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 contract_uuid=contract_uuid
             )
             db.add(new_invoice)
+            ref_number += 1
             for quote_item in quote_timetable.items:
                 timetable_item = models.InvoiceItem(
                     uuid=str(uuid4()),

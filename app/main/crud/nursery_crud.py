@@ -50,10 +50,26 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
         slug = cls.slug_unicity(slug=generate_slug(obj_in.name), db=db)
 
+        code_from_name = "".join([word[0] for word in obj_in.name.split(" ")])
+        code = code_from_name
+        while db.query(models.Nursery).filter(models.Nursery.code == code).first():
+            if code == code_from_name:
+                code = code + "1"
+            else:
+                if int(code[-1]) <= 9:
+                    code = code_from_name + str(int(code[-1]) + 1)
+                elif code[-2] == "99":
+                    code = code_from_name + str(int(code[-2]) + 1)
+                elif code[-3] == "999":
+                    code = code_from_name + str(int(code[-4]) + 1)
+                else:
+                    code = code_from_name + str(int(code[-5:]) + 1)
+
         nursery = models.Nursery(
             uuid=str(uuid.uuid4()),
             email=obj_in.email,
             name=obj_in.name,
+            code=code,
             logo_uuid=obj_in.logo_uuid if obj_in.logo_uuid else None,
             signature_uuid=obj_in.signature_uuid if obj_in.signature_uuid else None,
             stamp_uuid=obj_in.stamp_uuid if obj_in.stamp_uuid else None,
@@ -69,7 +85,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         db.commit()
         db.refresh(nursery)
         return nursery
-    
+
+
     @classmethod
     def update(cls, db: Session, nursery: models.Nursery, obj_in: schemas.NurseryUpdateBase) -> models.Nursery:
 
@@ -225,7 +242,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
     @classmethod
     def get_all_uuids_of_same_owner(cls, db: Session, owner_uuid: str, except_uuids: list[str] = []) -> list[dict]:
-        res = db.query(models.Nursery.uuid, models.Nursery.name).filter(models.Nursery.owner_uuid == owner_uuid)
+        res = db.query(models.Nursery.uuid, models.Nursery.name).filter(models.Nursery.owner_uuid == owner_uuid).filter(models.Nursery.status != models.NurseryStatusType.DELETED)
         if except_uuids:
             res = res.filter(models.Nursery.uuid.notin_(except_uuids))
         return res.all()

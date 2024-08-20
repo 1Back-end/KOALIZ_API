@@ -47,7 +47,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
     def change_status_of_a_special_folder(cls, db: Session, folder_uuid: str, status: str, performed_by_uuid: str,
                                           background_task=None) -> Optional[schemas.PreregistrationDetails]:
 
-        exist_folder = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
+        exist_folder:models.PreRegistration = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == folder_uuid).first()
         if not exist_folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
@@ -77,6 +77,32 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 db.add(contract)
                 exist_folder.contract_uuid = contract.uuid
                 exist_folder.child.contract_uuid = contract.uuid
+                client_account = models.ClientAccount(
+                    uuid=str(uuid.uuid4()),
+                    name=f"{exist_folder.child.paying_parent.firstname} {exist_folder.child.paying_parent.lastname}" if not exist_folder.child.paying_parent.has_company_contract else exist_folder.child.paying_parent.company_name,
+                    account_number="",
+                    entity_name = "Physical" if not exist_folder.child.paying_parent.has_company_contract else "company",
+                    iban="",
+                    address="",
+                    zip_code=exist_folder.child.paying_parent.zip_code,
+                    city=exist_folder.child.paying_parent.city,
+                    country=exist_folder.child.paying_parent.country,
+                    phone_number=exist_folder.child.paying_parent.phone if exist_folder.child.paying_parent.phone else exist_folder.child.paying_parent.fix_phone,
+                    email=exist_folder.child.paying_parent.email
+                )
+                client_account_contract = models.ClientAccountContract(
+                    uuid=str(uuid.uuid4()),
+                    client_account_uuid=client_account.uuid,
+                    contract_uuid=contract.uuid
+                )
+                client_account_child = models.ClientAccountChild(
+                    uuid=str(uuid.uuid4()),
+                    client_account_uuid=client_account.uuid,
+                    child_uuid=exist_folder.child_uuid
+                )
+                db.add(client_account)
+                db.add(client_account_contract)
+                db.add(client_account_child)
             else:
                 exist_folder.contract.begin_date = exist_folder.pre_contract.begin_date
                 exist_folder.contract.end_date = exist_folder.pre_contract.end_date
@@ -791,6 +817,26 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         preregistration.nursery_uuid = nursery.uuid
         db.commit()
         return preregistration
+
+    def get_client_account_by_uuid(self, db, uuid) -> Optional[schemas.ClientAccount]:
+        return db.query(models.ClientAccount).filter(models.ClientAccount.uuid == uuid).first()
+
+
+    def update_client_account(self, db: Session, db_obj: models.ClientAccount, obj_in: schemas.ClientAccountUpdate) -> models.ClientAccount:
+        db_obj.name = obj_in.name
+        db_obj.account_number = obj_in.account_number
+        db_obj.entity_name = obj_in.entity_name
+        db_obj.iban = obj_in.iban
+        db_obj.address = obj_in.address
+        db_obj.zip_code = obj_in.zip_code
+        db_obj.city = obj_in.city
+        db_obj.country = obj_in.country
+        db_obj.phone_number = obj_in.phone_number
+        db_obj.email = obj_in.email
+        db.commit()
+
+        return db_obj
+
 
     @classmethod
     def code_unicity(cls, code: str, db: Session):

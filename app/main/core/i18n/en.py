@@ -90,6 +90,8 @@ translation = {
     "health-record-deleted": "Medical record successfully deleted",
     "cmg-amount-range-not-found": "CMG amount range not found",
     "cmg-amount-not-found": "CMG amount not found",
+    "cmg-amount-range-exists": "A range of amounts with this type of family and this number of children already exists.",
+    "client-account-not-found": "Client account not found",
 
 
 

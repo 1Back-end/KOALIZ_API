@@ -272,3 +272,20 @@ def delete_special_folder(
     crud.preregistration.delete_a_special_folder(db, folder_uuid=uuid, performed_by_uuid=current_user.uuid)
 
     return {"message": __("folder-deleted")}
+
+
+@router.put("/client-account/{client_account_uuid}", response_model=schemas.ClientAccount, status_code=200)
+def update_client_account(
+    client_account_uuid: str,
+    obj_in: schemas.ClientAccountUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """ Update client account """
+
+    client_account = crud.preregistration.get_client_account_by_uuid(db, client_account_uuid)
+    if not client_account:
+        raise HTTPException(status_code=404, detail=__("client-account-not-found"))
+
+    return crud.preregistration.update_client_account(db, db_obj=client_account, obj_in=obj_in)
+

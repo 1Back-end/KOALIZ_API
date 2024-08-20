@@ -100,4 +100,6 @@ translation = {
     "health-record-deleted": "Dossier médical supprimé avec succès",
     "cmg-amount-range-not-found": "Plage de montant CMG non trouvée",
     "cmg-amount-not-found": "Montant CMG non trouvé",
+    "cmg-amount-range-exists": "Une plage de montant avec ce type de famille et ce nombre d'enfants existe déjà",
+    "client-account-not-found": "Compte client non trouvé",
 }

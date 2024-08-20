@@ -57,16 +57,16 @@ class InvoiceParentGuest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class InvoiceClientAccount(BaseModel):
-    name: str
-    account_number: str
-    entity_name: str
-    iban: str
-    address: str
-    zip_code: str
-    city: str
-    country: str
-    phone_number: str
-    email: str
+    name: Optional[str]
+    account_number: Optional[str]
+    entity_name: Optional[str]
+    iban: Optional[str]
+    address: Optional[str]
+    zip_code: Optional[str]
+    city: Optional[str]
+    country: Optional[str]
+    phone_number: Optional[str]
+    email: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
 
