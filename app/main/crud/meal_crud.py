@@ -19,7 +19,8 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
         return db.query(models.Meal).filter(models.Meal.nursery_uuid == nursery_uuid,models.Meal.is_deleted==False).all()
     
     def get_meal_by_uuid(self,*, db: Session, uuid: str):
-        return db.query(models.Meal).filter(models.Meal.uuid == uuid).first()
+        return db.query(models.Meal).filter(models.Meal.uuid == uuid,models.Meal.is_deleted==False).first()
+    
     def get_many(
             self,
             *,
