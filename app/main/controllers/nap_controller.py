@@ -46,10 +46,9 @@ def update_nap(
     if not nap:
         raise HTTPException(status_code=404, detail=__("nap-not-found"))
 
-    if obj_in.child_uuid_tab:
-        childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuid_tab)
-        if not childs or len(childs)!=len(obj_in.child_uuid_tab):
-            raise HTTPException(status_code=404, detail=__("child-not-found"))
+    childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuid_tab)
+    if not childs or len(childs)!=len(obj_in.child_uuid_tab):
+        raise HTTPException(status_code=404, detail=__("child-not-found"))
 
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
     if not nursery:
