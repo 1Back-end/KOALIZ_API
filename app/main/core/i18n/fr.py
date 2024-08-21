@@ -131,5 +131,9 @@ translation = {
     "receiver-not-found":"Destinataire introuvable",
     "media-deleted":"Média supprimé avec succès",
     "nap-deleted":"Sieste supprimée avec succès",
-    "child-activity-deleted":"Activité enfant supprimée avec succès"
-    }
+    "child-activity-deleted":"Activité enfant supprimée avec succès",
+    "amount-required": "Montant requis",
+    "invoice-already-paid": "La facture a déjà été payée",
+    "invoice-still-proforma": "La facture est toujours en proforma",
+    "invoice-not-proforma": "La facture n'est plus en proforma",
+}
