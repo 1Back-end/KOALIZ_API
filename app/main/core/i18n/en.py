@@ -129,4 +129,5 @@ translation = {
     "amount-required": "Amount required",
     "invoice-already-paid": "The invoice has already been paid",
     "invoice-still-proforma": "The invoice is still in proforma",
+    "invoice-not-proforma": "The invoice is no longer in proforma",
 }
