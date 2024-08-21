@@ -136,4 +136,5 @@ translation = {
     "invoice-already-paid": "La facture a déjà été payée",
     "invoice-still-proforma": "La facture est toujours en proforma",
     "invoice-not-proforma": "La facture n'est plus en proforma",
+    "not-authorized":"Vous n'etes pas autorisés á effectuer cette action"
 }
