@@ -17,7 +17,7 @@ class HygieneChangeBase(BaseModel):
     time: Optional[datetime]= None
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
-    stool_type: Optional[StoolType]= None
+    stool_type: StoolType
     additional_care: Optional[AdditionalCare]= None
     observation: Optional[str]= None
 
