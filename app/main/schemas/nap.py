@@ -25,9 +25,6 @@ class NapCreate(NapBase):
 
 class NapUpdate(NapBase):
     uuid: str
-    nursery_uuid: Optional[str] = None
-    employee_uuid: Optional[str] = None
-    child_uuid_tab: Optional[list[str]]
     quality: Optional[NapQuality] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
