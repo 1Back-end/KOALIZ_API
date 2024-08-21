@@ -118,4 +118,5 @@ translation = {
     "cmg-amount-not-found": "Montant CMG non trouvé",
     "cmg-amount-range-exists": "Une plage de montant avec ce type de famille et ce nombre d'enfants existe déjà",
     "client-account-not-found": "Compte client non trouvé",
+    "amount-required": "Montant requis",
 }

@@ -139,7 +139,14 @@ class PaymentBase(BaseModel):
     cvc: str
     type: models.PaymentType
     method: models.PaymentMethod
-    amount: float = Field(..., gt=0)
+    amount: Optional[float] = Field(None, gt=0)
+
+    @model_validator(mode="wrap")
+    def validate_amount(self, handler):
+        validated_self = handler(self)
+        if validated_self.type == models.PaymentType.PARTIAL and not validated_self.amount:
+            raise ValueError(__("amount-required"))
+        return validated_self
 
 
 class PaymentCreate(PaymentBase):
