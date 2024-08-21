@@ -2,6 +2,7 @@ ALTER TYPE public.preregistrationstatustype
     ADD VALUE 'DELETED' AFTER 'REFUSED';
 
 UPDATE absences SET status = 'PENDING' WHERE status IS NULL;
+UPDATE messages SET status = 'DELIVERED' WHERE status IS NULL;
 UPDATE attendances SET status = 'PENDING' WHERE status IS NULL;
 UPDATE observations SET status = 'PENDING' WHERE status IS NULL;
 UPDATE media SET status = 'PENDING' WHERE status IS NULL;
