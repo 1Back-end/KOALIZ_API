@@ -324,71 +324,82 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                 # Step 2: Load filtered relations and assign to the child object
                 child.meals = db.query(models.Meal).\
                     filter(models.Meal.child_uuid == child.uuid, models.Meal.date_added == filter_date,
+                           models.Meal.is_deleted !=True,
                             models.Meal.nursery_uuid == nursery_uuid).\
                             all()
                 child.activities = db.query(models.ChildActivity).\
-                    filter(models.ChildActivity.child_uuid == child.uuid,
+                    filter(models.ChildActivity.child_uuid == child.uuid,models.ChildActivity.status != models.AbsenceStatusEnum.DELETED,
                             models.ChildActivity.nursery_uuid == nursery_uuid,
                             models.ChildActivity.date_added == filter_date,
                             ).\
                             all()
                 child.naps = db.query(models.Nap).\
                     filter(models.Nap.child_uuid == child.uuid,
+                           models.Nap.status !=models.AbsenceStatusEnum.DELETED,
                             models.Nap.nursery_uuid == nursery_uuid,
                             models.Nap.date_added == filter_date).\
                             all()
                 child.health_records = db.query(models.HealthRecord).\
                     filter(models.HealthRecord.child_uuid == child.uuid,
+                           models.HealthRecord.status !=models.AbsenceStatusEnum.DELETED,
                             models.HealthRecord.nursery_uuid == nursery_uuid,
                             models.HealthRecord.date_added == filter_date).\
                             all()
                 child.hygiene_changes = db.query(models.HygieneChange).\
                     filter(models.HygieneChange.child_uuid == child.uuid,
+                           models.HygieneChange.status!= models.AbsenceStatusEnum.DELETED,
                             models.HygieneChange.nursery_uuid == nursery_uuid,
                             models.HygieneChange.date_added == filter_date).\
                             all()
                 child.observations = db.query(models.Observation).\
                     filter(models.Observation.child_uuid == child.uuid,
+                           models.Observation.status !=models.AbsenceStatusEnum.DELETED,
                             models.Observation.nursery_uuid == nursery_uuid,
                             models.Observation.date_added == filter_date).\
                             all()
                 media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
                 child.media = db.query(models.Media).\
-                    filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == filter_date).\
+                    filter(models.Media.uuid.in_(media_uuids),models.Media.status!=models.AbsenceStatusEnum.DELETED, models.Media.date_added == filter_date).\
                     all()
             else:
                 child.meals = db.query(models.Meal).\
-                    filter(models.Meal.child_uuid == child.uuid, models.Meal.nursery_uuid == nursery_uuid).\
+                    filter(models.Meal.child_uuid == child.uuid, models.Meal.nursery_uuid == nursery_uuid,
+                           models.Meal.is_deleted != True).\
                     order_by(models.Meal.date_added.desc()).\
                     all()
                 child.activities = db.query(models.ChildActivity).\
                     filter(models.ChildActivity.child_uuid == child.uuid,
+                           models.ChildActivity.status != models.AbsenceStatusEnum.DELETED,
                         models.ChildActivity.nursery_uuid == nursery_uuid).\
                     order_by(models.ChildActivity.date_added.desc()).\
                     all()
                 child.naps = db.query(models.Nap).\
                     filter(models.Nap.child_uuid == child.uuid,
+                           models.Nap.status == models.AbsenceStatusEnum.DELETED,
                         models.Nap.nursery_uuid == nursery_uuid).\
                     order_by(models.Nap.date_added.desc()).\
                     all()
                 child.health_records = db.query(models.HealthRecord).\
                     filter(models.HealthRecord.child_uuid == child.uuid,
+                           models.HealthRecord.status!= models.AbsenceStatusEnum.DELETED,
                         models.HealthRecord.nursery_uuid == nursery_uuid).\
                     order_by(models.HealthRecord.date_added.desc()).\
                     all()
                 child.hygiene_changes = db.query(models.HygieneChange).\
                     filter(models.HygieneChange.child_uuid == child.uuid,
+                           models.HygieneChange.status != models.AbsenceStatusEnum.DELETED,
                         models.HygieneChange.nursery_uuid == nursery_uuid).\
                     order_by(models.HygieneChange.date_added.desc()).\
                     all()
                 child.observations = db.query(models.Observation).\
                     filter(models.Observation.child_uuid == child.uuid,
+                          models.Observation.status!= models.AbsenceStatusEnum.DELETED,
                         models.Observation.nursery_uuid == nursery_uuid).\
                     order_by(models.Observation.date_added.desc()).\
                     all()
                 media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
                 child.media = db.query(models.Media).\
-                    filter(models.Media.uuid.in_(media_uuids)).\
+                    filter(models.Media.uuid.in_(media_uuids),models.Media.status!= models.AbsenceStatusEnum.DELETED).\
                     order_by(models.Media.date_added.desc()).\
                     all()
 
