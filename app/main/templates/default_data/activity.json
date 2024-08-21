@@ -13,6 +13,8 @@
         "uuid": "a123f9e4-234a-4f6b-baa5-86a3e99f042c",
         "name_fr": "Eveil Sonore",
         "name_en": "Sound Awakening"
+       
+
     },
     {
         "uuid": "c6789e0b-1d3f-4c9f-a6a2-3b9e2b1c7c42",
@@ -28,6 +30,7 @@
         "uuid": "d4a9e0b1-3c5f-4b6a-9c8a-7d1e2f3b6a67",
         "name_fr": "Manipulation",
         "name_en": "Manipulation"
+
     },
     {
         "uuid": "e234b6f2-4d6a-4e9c-b5a7-6f3e7d8c9a1e",

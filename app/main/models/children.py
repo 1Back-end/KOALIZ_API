@@ -21,6 +21,13 @@ class MealTypeEnum(str, Enum):
     BOTTLE_FEEDING = "BOTTLE_FEEDING" #Le biberon
     BREAST_FEEDING = "BREAST_FEEDING" #l'allaitement
 
+
+class AbsenceStatusEnum(str,Enum):
+    ACCEPTED = "ACCEPTED" # Accepté
+    PENDING = "PENDING" # En attente
+    REJECTED = "REJECTED" # Refusé
+    DELETED = "DELETED" # Supprimé
+
 # Repas
 @dataclass
 class Meal(Base):
@@ -37,6 +44,8 @@ class Meal(Base):
     meal_quality = Column(types.Enum(MealQuality), nullable=False) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     meal_type = Column(String, nullable=True,) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     observation = Column(Text, nullable=True) # Observation
+    is_deleted: bool = Column(Boolean, default=False)
+
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
@@ -67,8 +76,12 @@ class ActivityCategory(Base):
     uuid = Column(String, primary_key=True, unique=True)
     name_fr = Column(String, nullable=False)
     name_en = Column(String, nullable=False)
+    is_deleted: bool = Column(Boolean, default=False)
+
 
     activities = relationship("Activity", secondary=activity_category_table, back_populates="activity_categories")
+    
+    status:str = Column(String, index=True, nullable=True, default ="CREATED")
 
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
@@ -83,6 +96,8 @@ class Activity(Base):
     uuid = Column(String, primary_key=True, unique=True)
     name_fr = Column(String, nullable=False)
     name_en = Column(String, nullable=False)
+    is_deleted: bool = Column(Boolean, default=False)
+
 
     children = relationship("ChildActivity", back_populates="activity")
     activity_categories = relationship("ActivityCategory", secondary=activity_category_table, back_populates="activities")
@@ -109,6 +124,7 @@ class ChildActivity(Base):
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+    status:str = Column(String, index=True, nullable=True,default ="ACTIVED")
 
     activity_time = Column(DateTime, nullable=False, default=datetime.now())
 
@@ -145,7 +161,8 @@ class Nap(Base):
 
     added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
     added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
-    
+    status:str = Column(String, index=True, nullable=True,default="PENDING")
+
     date_added = Column(DateTime, server_default=func.now())
     date_modified = Column(DateTime, server_default=func.now())
 
@@ -196,6 +213,7 @@ class HealthRecord(Base):
     medication_type = Column(types.Enum(MedicationType), nullable=True) # Type (suppositoire, Sirop, Comprimé, Autre)
     medication_name = Column(String, nullable=True)
     observation = Column(Text, nullable=True)
+    status:str = Column(String, index=True, nullable=True,default = "CREATED")
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
@@ -247,6 +265,7 @@ class HygieneChange(Base):
     stool_type = Column(types.Enum(StoolType), nullable=True) # (Dures, normales, molles, liquides)
     additional_care = Column(types.Enum(AdditionalCare), nullable=True) # Soins complémentaires (Nez, yeux, Oreilles, Crème)
     observation = Column(Text, nullable=True)
+    status:str = Column(String, index=True, nullable=True,default="CREATED")
 
     added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=False)
     added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
@@ -279,9 +298,10 @@ class Media(Base):
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
     
-    media_type = Column(types.Enum(MediaType), nullable=False) # media type (photos, vidéo)
+    media_type:str = Column(String, nullable=False) # media type (photos, vidéo)
     time = Column(DateTime, nullable=False, default=datetime.now())
     observation = Column(Text, nullable=True)
+    status:str = Column(String, index=True, nullable=True,default="ACTIVED")
 
     added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
     added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
@@ -309,6 +329,7 @@ class Observation(Base):
 
     time = Column(DateTime, nullable=False, default=datetime.now())
     observation = Column(Text, nullable=False)
+    status:str = Column(String, index=True, nullable=True,default="PENDING")
 
     added_by_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=True)
     added_by = relationship("Employee", foreign_keys=[added_by_uuid], uselist=False)
@@ -332,6 +353,7 @@ class Attendance(Base):
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+    status:str = Column(String, index=True,default="PENDING", nullable=True)
 
     date = Column(Date, nullable=False)
     arrival_time = Column(DateTime, nullable=True)
@@ -359,7 +381,7 @@ class Absence(Base):
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
-
+    status:str = Column(String, index=True, nullable=True,default="PENDING")
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     note = Column(Text, nullable=True)
@@ -386,7 +408,7 @@ class OccasionalPresence(Base):
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
-
+    status:str = Column(String, index=True, nullable=True,default ="PENDING")
     date = Column(Date, nullable=False)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)

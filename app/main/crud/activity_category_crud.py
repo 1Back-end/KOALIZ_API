@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import ActivityCategory,Activity,activity_category_table
+from app.main.models import ActivityCategory,Activity,activity_category_table,AbsenceStatusEnum
 from app.main.schemas import ActivityCategoryCreate,ActivityCategoryUpdate,ActivityCategoryList
 
 
@@ -43,7 +43,11 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
     
     @classmethod
     def get_activity_category_by_uuid(cls, db: Session, uuid: str) -> Optional[ActivityCategory]:
-        return db.query(ActivityCategory).filter(ActivityCategory.uuid == uuid).first()
+        return db.query(ActivityCategory).\
+            filter(
+                ActivityCategory.uuid == uuid,
+                ActivityCategory.status!=AbsenceStatusEnum.DELETED).\
+                first()
     
     @classmethod
     def update(cls, db: Session,obj_in: ActivityCategoryUpdate) -> ActivityCategory:
@@ -69,8 +73,17 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
     
     @classmethod
     def delete(cls,db:Session, uuids:list[str]) -> ActivityCategory:
+        db.query(activity_category_table).filter(activity_category_table.c.activity_uuid.in_(uuids)).delete()
         db.query(ActivityCategory).filter(ActivityCategory.uuid.in_(uuids)).delete()
         db.commit()
+    
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        for activity_cateegory_uuid in uuids:
+            activity_category = cls.get_activity_category_by_uuid(db, activity_cateegory_uuid)
+            if activity_category:
+                activity_category.status = AbsenceStatusEnum.DELETED
+                db.commit()
 
     @classmethod
     def get_multi(
@@ -86,7 +99,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
         keyword:Optional[str]= None,
         # quality:Optional[str]= None
     ):
-        record_query = db.query(ActivityCategory)
+        record_query = db.query(ActivityCategory).filter(ActivityCategory.status!=AbsenceStatusEnum.DELETED)
 
         if keyword:
             record_query = record_query.filter(

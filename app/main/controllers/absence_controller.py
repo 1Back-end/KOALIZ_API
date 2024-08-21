@@ -68,7 +68,7 @@ def delete_absence(
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles =[]))
 ):
     """ Delete many(or one) """
-    crud.absence.delete(db, uuids)
+    crud.absence.soft_delete(db, uuids)
     return {"message": __("absence-deleted")}
 
 

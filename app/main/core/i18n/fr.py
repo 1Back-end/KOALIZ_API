@@ -93,6 +93,16 @@ translation = {
     "Not-authorized-to-delete-this-holiday":"Non autorisé à supprimer ce jour férié",
     "Nursery-holiday-not-found":"Vacances à la crèche introuvables",
     "Holiday-deleted-successfully":"Jours fériés supprimés avec succès",
+    "Meal-not-found": "Repas introuvable",
+    "Meals-successfully-soft-deleted": "Repas supprimés en douceur avec succès",
+    "Close-Hour-status-updated-successfully": "Statut de l'heure de fermeture mis à jour avec succès",
+    "Close-Hours-soft-deleted-successfully": "Heures de fermeture supprimées en douceur avec succès",
+    "Holidays-soft-deleted-successfully": "Vacances supprimées en douceur avec succès",
+    "Holidays-status-updated-successfully": "Statut des vacances mis à jour avec succès",
+    "Holiday-deleted-successfully": "Jour férié supprimé avec succès",
+    "Nursery-holiday-not-found": "Vacances à la crèche introuvables",
+    "You-are-not-authorized-to-view-this-nursery-details": "Vous n'êtes pas autorisé à consulter les détails de cette crèche",
+    "Close-Hour-deleted-successfully": "Heure de fermeture supprimée avec succès",
     "nap-not-found":"La sieste n'existe pas",
     "hygiene-change-not-found":"Le changement d'hygiène n'existe pas",
     "hygiene-change-deleted": "Changement d'hygiène supprimé avec succès",
@@ -118,4 +128,8 @@ translation = {
     "cmg-amount-not-found": "Montant CMG non trouvé",
     "cmg-amount-range-exists": "Une plage de montant avec ce type de famille et ce nombre d'enfants existe déjà",
     "client-account-not-found": "Compte client non trouvé",
-}
+    "receiver-not-found":"Destinataire introuvable",
+    "media-deleted":"Média supprimé avec succès",
+    "nap-deleted":"Sieste supprimée avec succès",
+    "child-activity-deleted":"Activité enfant supprimée avec succès"
+    }

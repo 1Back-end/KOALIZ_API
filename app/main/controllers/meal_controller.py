@@ -114,3 +114,17 @@ def get_meal(
     if not db_meal:
         raise HTTPException(status_code=404, detail=__("meal-not-found"))
     return db_meal
+
+
+@router.delete("/soft/delete")
+def delete_meal_soft(
+    *,
+    db: Session = Depends(get_db),
+    uuids:List[str],
+    # current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+):
+    try:
+        crud.meal.soft_delete(db=db,uuids=uuids)
+        return {"message": "Meals-successfully-soft-deleted"}
+    except Exception as e:
+        return {"detail": str(e)}

@@ -18,6 +18,10 @@ def create_child_activity(
 ):
     """ Create child_activity for children """
 
+    exist_activity =  crud.activity_category.get_activity_type_by_uuid(db,obj_in.activity_uuid)
+    if not exist_activity:
+        raise HTTPException(status_code=404, detail=__("activity-type-not-found"))
+    
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
@@ -64,12 +68,25 @@ def update_child_activity(
 def delete_child_activity(
     *,
     db: Session = Depends(get_db),
-    uuids: list[str],
+    obj_in:list[schemas.ChildActivityDelete],
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles =[]))
 ):
     """ Delete many(or one) """
+    exist_activity_errors = [] 
+    for obj in obj_in:
+        exist_activity_for_child = crud.child_activity.get_by_activity_uuid_and_child_uuid(
+            db,
+            obj.activity_uuid,
+            obj.child_uuid
+        )
+        if not exist_activity_for_child:
+            exist_activity_errors.append(obj)
+            continue
+    
+    if exist_activity_errors:
+        raise HTTPException(status_code=404, detail=__("child-activity-not-found") +': '+"".join([str(err.activity_uuid) for err in exist_activity_errors]))
 
-    crud.child_activity.delete(db, uuids)
+    crud.child_activity.soft_delete(db, obj_in)
     return {"message": __("child-activity-deleted")}
 
 

@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import Nap
+from app.main.models import Nap,AbsenceStatusEnum
 from app.main.schemas import NapCreate, NapUpdate, NapList, NapMini
 
 
@@ -34,7 +34,9 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
     
     @classmethod
     def get_nap_by_uuid(cls, db: Session, uuid: str) -> Optional[NapMini]:
-        return db.query(Nap).filter(Nap.uuid == uuid).first()
+        return db.query(Nap).\
+            filter(Nap.uuid == uuid,Nap.status!=AbsenceStatusEnum.DELETED).\
+                first()
     
     @classmethod
     def update(cls, db: Session,obj_in: NapUpdate) -> NapMini:
@@ -51,6 +53,16 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
     def delete(cls,db:Session, uuids:list[str]) -> NapMini:
         db.query(Nap).filter(Nap.uuid.in_(uuids)).delete()
         db.commit()
+    
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        attendance_tab = db.query(Nap).\
+            filter(Nap.uuid.in_(uuids),Nap.status!=AbsenceStatusEnum.DELETED)\
+                .all()
+        for attendance in attendance_tab:
+            attendance.status = AbsenceStatusEnum.DELETED
+            db.commit()
+    
 
     @classmethod
     def get_multi(
@@ -66,7 +78,7 @@ class CRUDNap(CRUDBase[Nap, NapCreate, NapUpdate]):
         keyword:Optional[str]= None,
         quality:Optional[str]= None
     ):
-        record_query = db.query(Nap)
+        record_query = db.query(Nap).filter(Nap.status!= AbsenceStatusEnum.DELETED)
 
         if keyword:
             record_query = record_query.filter(

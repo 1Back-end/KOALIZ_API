@@ -70,7 +70,7 @@ def delete_attendance(
 ):
     """ Delete many(or one) """
 
-    crud.attendance.delete(db, uuids)
+    crud.attendance.soft_delete(db, uuids)
     return {"message": __("attendance-deleted")}
 
 

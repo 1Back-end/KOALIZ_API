@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import HealthRecord
+from app.main.models import HealthRecord,AbsenceStatusEnum
 from app.main.schemas import HealthRecordCreate, HealthRecordUpdate, HealthRecordList, HealthRecordMini
 
 
@@ -39,7 +39,9 @@ class CRUDHealthRecord(CRUDBase[HealthRecord, HealthRecordCreate, HealthRecordUp
     
     @classmethod
     def get_health_record_by_uuid(cls, db: Session, uuid: str) -> Optional[HealthRecordMini]:
-        return db.query(HealthRecord).filter(HealthRecord.uuid == uuid).first()
+        return db.query(HealthRecord).\
+            filter(HealthRecord.uuid == uuid,HealthRecord.status!=AbsenceStatusEnum.DELETED).\
+                first()
     
     @classmethod
     def update(cls, db: Session,obj_in: HealthRecordUpdate) -> HealthRecordMini:
@@ -70,6 +72,14 @@ class CRUDHealthRecord(CRUDBase[HealthRecord, HealthRecordCreate, HealthRecordUp
         db.commit()
 
     @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        attendance_tab = db.query(HealthRecord).\
+            filter(HealthRecord.uuid.in_(uuids),HealthRecord.status!=AbsenceStatusEnum.DELETED)\
+                .all()
+        for attendance in attendance_tab:
+            attendance.status = AbsenceStatusEnum.DELETED
+            db.commit()
+    @classmethod
     def get_multi(
         cls,
         db:Session,
@@ -85,7 +95,7 @@ class CRUDHealthRecord(CRUDBase[HealthRecord, HealthRecordCreate, HealthRecordUp
         care_type:Optional[str]= None,
         medication_type:Optional[str]= None
     ):
-        record_query = db.query(HealthRecord)
+        record_query = db.query(HealthRecord).filter(HealthRecord.status!= AbsenceStatusEnum.DELETED)
 
         if keyword:
             record_query = record_query.filter(

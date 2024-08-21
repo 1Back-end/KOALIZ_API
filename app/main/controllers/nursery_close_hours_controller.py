@@ -74,7 +74,7 @@ def delete_nursery_close_hour(
         close_hour_uuid=close_hour_uuid,
         owner_uuid=current_user.uuid
     )
-    return {"message": __("Close Hour deleted successfully")}
+    return {"message": __("Close-Hour-deleted-successfully")}
 
 
 @router.get("/{close_hour_uuid}", response_model=schemas.NurseryCloseHour)
@@ -86,10 +86,29 @@ def read_nursery_close_hour(
     db_close_hour = crud.nursery_close_hour.get_nursery_close_by_uuid(db=db,
     close_hour_uuid=close_hour_uuid, owner_uuid=current_user.uuid)
     if db_close_hour is None:
-        raise HTTPException(status_code=404, detail="Nursery close hour not found")
+        raise HTTPException(status_code=404, detail="Nursery-close-hour-not-found")
     return db_close_hour
 
+@router.put("/status/update")
+def update_status(
+    uuids : List[str],
+    status: bool = None,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    crud.nursery_close_hour.update_status(
+        db=db,
+        uuids=uuids,
+        status=status,
+        owner_uuid=current_user.uuid
+    )
+    return {"message": __("Close-Hour-status-updated-successfully")}
 
-
-
-    
+@router.delete("/soft/delete")
+def soft_delete_nursery_close_hours(
+    uuids : List[str],
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    crud.nursery_close_hour.soft_delete(db=db, uuids=uuids,owner_uuid=current_user.uuid)
+    return {"message": __("Close-Hours-soft-deleted-successfully")}

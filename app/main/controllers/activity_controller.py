@@ -83,3 +83,12 @@ def delete_activity(
     )
     return {"message": __("Activity deleted successfully")}
 
+@router.delete("/soft/delete")
+
+def soft_delete_activity(
+    uuids: list[str],
+    db: Session = Depends(get_db),
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+):
+    crud.activity.soft_delete(db, uuids)
+    return {"message": __("Activity-soft-deleted-successfully")}
