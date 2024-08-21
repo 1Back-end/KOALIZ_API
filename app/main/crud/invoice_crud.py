@@ -173,6 +173,63 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
 
         return payment_obj
 
+    def add_update_items(self, db: Session, invoice_obj: models.Invoice, obj_in: schemas.InvoiceUpdate) -> models.Invoice:
+        for item_uuid in obj_in.uuids_to_delete:
+            db.query(models.InvoiceItem).filter(
+                models.InvoiceItem.invoice_uuid==invoice_obj.uuid,
+                        models.InvoiceItem.uuid == item_uuid
+            ).delete()
+
+        for item in obj_in.items:
+            if item.uuid:
+                if item.total_hours and item.unit_price:
+                    amount = item.total_hours * item.unit_price
+                elif item.unit_price:
+                    amount = item.unit_price
+                else:
+                    amount = 0
+
+                if amount:
+                    db.query(models.InvoiceItem).filter(
+                        models.InvoiceItem.invoice_uuid == invoice_obj.uuid,
+                        models.InvoiceItem.uuid == item.uuid
+                    ).update({
+                        "title_fr": item.title_fr,
+                        "title_en": item.title_en,
+                        "total_hours": item.total_hours,
+                        "unit_price": item.unit_price,
+                        "amount": amount
+                    })
+                else:
+                    db.query(models.InvoiceItem).filter(
+                        models.InvoiceItem.invoice_uuid == invoice_obj.uuid,
+                        models.InvoiceItem.uuid == item.uuid
+                    ).update({
+                        "title_fr": item.title_fr,
+                        "title_en": item.title_en,
+                        "total_hours": item.total_hours,
+                        "unit_price": item.unit_price
+                    })
+            else:
+                if item.total_hours and item.unit_price:
+                    amount = item.total_hours * item.unit_price
+                else:
+                    amount = item.unit_price
+
+                new_item = models.InvoiceItem(
+                    uuid=str(uuid4()),
+                    invoice_uuid=invoice_obj.uuid,
+                    title_fr=item.title_fr,
+                    title_en=item.title_en,
+                    total_hours=item.total_hours,
+                    unit_price=item.unit_price,
+                    amount=amount
+                )
+                db.add(new_item)
+        db.commit()
+
+        return invoice_obj
+
 
 invoice = CRUDInvoice(models.Invoice)
 

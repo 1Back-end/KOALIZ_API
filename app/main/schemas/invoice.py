@@ -20,6 +20,7 @@ class InvoiceChildMini(BaseModel):
 
 
 class InvoiceTimeTableItem(BaseModel):
+    uuid: str
     title_fr: str
     title_en: str
     amount: float = 0
@@ -157,3 +158,19 @@ class Payment(PaymentBase):
     uuid: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ItemsCreateUpdate(BaseModel):
+    uuid: Optional[str] = None
+    title_fr: str
+    title_en: str
+    # amount: float
+    total_hours: Optional[float] = None
+    unit_price: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InvoiceUpdate(BaseModel):
+    items: list[ItemsCreateUpdate] = []
+    uuids_to_delete: list[str] = []
