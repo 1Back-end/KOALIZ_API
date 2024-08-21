@@ -23,6 +23,7 @@ class Invoice(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
+    id: int = Column(Integer, default=0)
     reference: str = Column(String, nullable=False, default="")
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
@@ -54,6 +55,8 @@ class Invoice(Base):
     client_account_uuid: str = Column(String, ForeignKey('client_accounts.uuid'))
     client_account: Mapped[any] = relationship("ClientAccount", foreign_keys=client_account_uuid, uselist=False, back_populates="invoices")
 
+    payments: Mapped[list[any]] = relationship("Payment", back_populates="invoice", uselist=True, cascade="all, delete-orphan")
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
@@ -63,7 +66,6 @@ def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
     target.date_modified = datetime.now()
-    target.reference = datetime.now().strftime('%Y%m%d%H%M%S')
 
 
 @event.listens_for(Invoice, 'before_update')
@@ -106,6 +108,66 @@ def update_modified_on_update_listener(mapper, connection, target):
     target.date_modified = datetime.now()
 
 
+class ClientAccountContract(Base):
+    __tablename__ = 'client_account_contracts'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    client_account_uuid: str = Column(String, ForeignKey('client_accounts.uuid'), nullable=False)
+    client_account = relationship("ClientAccount", foreign_keys=client_account_uuid, uselist=False, overlaps="client_accounts")
+    # client_account = relationship("ClientAccount", foreign_keys=client_account_uuid, uselist=False, overlaps="teams")
+
+    contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=False)
+    contract = relationship("Contract", foreign_keys=contract_uuid, uselist=False, overlaps="client_accounts")
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(ClientAccountContract, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+@event.listens_for(ClientAccountContract, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(InvoiceItem, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
+class ClientAccountChild(Base):
+    __tablename__ = 'client_account_children'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    client_account_uuid: str = Column(String, ForeignKey('client_accounts.uuid'), nullable=False)
+    client_account = relationship("ClientAccount", foreign_keys=client_account_uuid, uselist=False, overlaps="client_accounts")
+    # client_account = relationship("ClientAccount", foreign_keys=client_account_uuid, uselist=False, overlaps="teams")
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=False)
+    child = relationship("Child", foreign_keys=child_uuid, uselist=False, overlaps="client_accounts")
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(ClientAccountChild, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+@event.listens_for(ClientAccountChild, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
 class ClientAccount(Base):
     """
      database model for storing Timetable related details
@@ -115,9 +177,9 @@ class ClientAccount(Base):
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     name: str = Column(String, nullable=False)
-    account_number: str = Column(String, nullable=False)
+    account_number: str = Column(String, default="")
     entity_name: str = Column(String, default="")
-    iban: str = Column(String, nullable=False, default="")
+    iban: str = Column(String, default="")
     address: str = Column(String, nullable=False)
     zip_code: str = Column(String, nullable=False)
     city: str = Column(String, nullable=False)
@@ -126,6 +188,9 @@ class ClientAccount(Base):
     email: str = Column(String, nullable=False)
 
     invoices: Mapped[list[any]] = relationship("Invoice", uselist=True, back_populates="client_account")
+    contracts = relationship("Contract", secondary="client_account_contracts", back_populates="client_accounts", uselist=True, overlaps="contract,client_account")
+    children = relationship("Child", secondary="client_account_children", back_populates="client_accounts", uselist=True, overlaps="child,client_account")
+    # children = relationship("Employee", secondary="client_account_children", back_populates="client_accounts", overlaps="employee,client_account")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -139,6 +204,50 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 
 
 @event.listens_for(ClientAccount, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
+class PaymentType(Enum):
+    PARTIAL = "PARTIAL"
+    TOTAL = "TOTAL"
+
+
+class PaymentMethod(Enum):
+    CASH = "CASH"
+    CREDIT_CARD = "CREDIT_CARD"
+    SEPA = "SEPA"
+    BANK_TRANSFER = "BANK_TRANSFER"
+
+
+class Payment(Base):
+    __tablename__ = 'payments'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    full_name = Column(String)
+    card_number = Column(String)
+    expiration_date = Column(Date)
+    cvc = Column(String)
+    type = Column(types.Enum(PaymentType), nullable=False)
+    method = Column(types.Enum(PaymentMethod), nullable=False)
+    amount = Column(Float, default=0)
+
+    invoice_uuid: str = Column(String, ForeignKey('invoices.uuid'), nullable=False)
+    invoice = relationship("Invoice", uselist=False, back_populates="payments")
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(Payment, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(Payment, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()

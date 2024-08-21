@@ -50,10 +50,26 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
         slug = cls.slug_unicity(slug=generate_slug(obj_in.name), db=db)
 
+        code_from_name = "".join([word[0] for word in obj_in.name.split(" ")])
+        code = code_from_name
+        while db.query(models.Nursery).filter(models.Nursery.code == code).first():
+            if code == code_from_name:
+                code = code + "1"
+            else:
+                if int(code[-1]) <= 9:
+                    code = code_from_name + str(int(code[-1]) + 1)
+                elif code[-2] == "99":
+                    code = code_from_name + str(int(code[-2]) + 1)
+                elif code[-3] == "999":
+                    code = code_from_name + str(int(code[-4]) + 1)
+                else:
+                    code = code_from_name + str(int(code[-5:]) + 1)
+
         nursery = models.Nursery(
             uuid=str(uuid.uuid4()),
             email=obj_in.email,
             name=obj_in.name,
+            code=code,
             logo_uuid=obj_in.logo_uuid if obj_in.logo_uuid else None,
             signature_uuid=obj_in.signature_uuid if obj_in.signature_uuid else None,
             stamp_uuid=obj_in.stamp_uuid if obj_in.stamp_uuid else None,
@@ -69,6 +85,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         db.commit()
         db.refresh(nursery)
         return nursery
+
 
     @classmethod
     def update(cls, db: Session, nursery: models.Nursery, obj_in: schemas.NurseryUpdateBase) -> models.Nursery:
@@ -266,7 +283,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
     
     def get_children_by_nursery(
             self,*,
-            db: Session, 
+            db: Session,
             nursery_uuid: str,
             child_uuid: Optional[str] = None,
             filter_date: Optional[date] = None,
@@ -296,10 +313,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                     all()
             ]
 
-            
-
-
-            # Filtrer les enfants par UUID et is_accepted
+        # Filtrer les enfants par UUID et is_accepted
         children = db.query(Child).filter(
             Child.uuid.in_(child_uuids),
             Child.is_accepted == True
@@ -314,7 +328,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                             all()
                 child.activities = db.query(models.ChildActivity).\
                     filter(models.ChildActivity.child_uuid == child.uuid,
-                            models.ChildActivity.nursery_uuid == nursery_uuid, 
+                            models.ChildActivity.nursery_uuid == nursery_uuid,
                             models.ChildActivity.date_added == filter_date,
                             ).\
                             all()
@@ -324,18 +338,18 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                             models.Nap.date_added == filter_date).\
                             all()
                 child.health_records = db.query(models.HealthRecord).\
-                    filter(models.HealthRecord.child_uuid == child.uuid, 
+                    filter(models.HealthRecord.child_uuid == child.uuid,
                             models.HealthRecord.nursery_uuid == nursery_uuid,
                             models.HealthRecord.date_added == filter_date).\
                             all()
                 child.hygiene_changes = db.query(models.HygieneChange).\
-                    filter(models.HygieneChange.child_uuid == child.uuid, 
+                    filter(models.HygieneChange.child_uuid == child.uuid,
                             models.HygieneChange.nursery_uuid == nursery_uuid,
                             models.HygieneChange.date_added == filter_date).\
                             all()
                 child.observations = db.query(models.Observation).\
-                    filter(models.Observation.child_uuid == child.uuid, 
-                            models.Observation.nursery_uuid == nursery_uuid, 
+                    filter(models.Observation.child_uuid == child.uuid,
+                            models.Observation.nursery_uuid == nursery_uuid,
                             models.Observation.date_added == filter_date).\
                             all()
                 media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
@@ -358,17 +372,17 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                     order_by(models.Nap.date_added.desc()).\
                     all()
                 child.health_records = db.query(models.HealthRecord).\
-                    filter(models.HealthRecord.child_uuid == child.uuid, 
+                    filter(models.HealthRecord.child_uuid == child.uuid,
                         models.HealthRecord.nursery_uuid == nursery_uuid).\
                     order_by(models.HealthRecord.date_added.desc()).\
                     all()
                 child.hygiene_changes = db.query(models.HygieneChange).\
-                    filter(models.HygieneChange.child_uuid == child.uuid, 
+                    filter(models.HygieneChange.child_uuid == child.uuid,
                         models.HygieneChange.nursery_uuid == nursery_uuid).\
                     order_by(models.HygieneChange.date_added.desc()).\
                     all()
                 child.observations = db.query(models.Observation).\
-                    filter(models.Observation.child_uuid == child.uuid, 
+                    filter(models.Observation.child_uuid == child.uuid,
                         models.Observation.nursery_uuid == nursery_uuid).\
                     order_by(models.Observation.date_added.desc()).\
                     all()
@@ -390,13 +404,13 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
         if child_uuid:
             children = children.filter(Child.uuid == child_uuid)
-            
+
         if order == "asc":
             children = children.order_by(getattr(models.Child, order_filed).asc())
         else:
             children = children.order_by(getattr(models.Child, order_filed).desc())
 
-        
+
         # total = children.count()
         # children = children.offset((page - 1) * per_page).limit(per_page)
 

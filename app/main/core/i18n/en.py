@@ -106,6 +106,8 @@ translation = {
     "child-activity-not-found":" Child activity not found",
     "cmg-amount-range-not-found": "CMG amount range not found",
     "cmg-amount-not-found": "CMG amount not found",
+    "cmg-amount-range-exists": "A range of amounts with this type of family and this number of children already exists.",
+    "client-account-not-found": "Client account not found",
     "receiver-not-found":"Receiver not found",
     "media-deleted":"Media successfully deleted",
     "nap-deleted":"Nap successfully deleted",

@@ -41,6 +41,7 @@ class Nursery(Base):
 
     status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.ACTIVED)
     slug: str = Column(String, index=True, default="", unique=True, nullable=False)
+    code: str = Column(String, default="")
     website: str = Column(String, default="")
 
     owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=False)

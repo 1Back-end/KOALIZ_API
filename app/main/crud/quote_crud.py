@@ -120,6 +120,15 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
     def get_cmg_range_by_uuid(cls, db: Session, uuid: str) -> Optional[models.CMGAmountRange]:
         return db.query(models.CMGAmountRange).filter(models.CMGAmountRange.uuid == uuid).first()
 
+
+    def get_cmg_amount_by_family_type_and_number_children(cls, db: Session, family_type: models.FamilyType,
+                                                      number_children: int) -> models.CMGAmountRange:
+        return db.query(models.CMGAmountRange).filter(
+            models.CMGAmountRange.family_type==family_type,
+                    models.CMGAmountRange.number_children==number_children
+            ).first()
+
+
     @classmethod
     def update_cmg_amount_range(cls, db: Session, db_obj: models.CMGAmountRange, obj_in: schemas.CMGAmountRangeUpdate) -> models.CMGAmountRange:
         db_obj.lower = obj_in.lower

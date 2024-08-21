@@ -1,4 +1,5 @@
 import math
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -89,16 +90,29 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         db.commit()
         return invoice_obj
 
+    def determine_invoice_id(self, db: Session, nursery: models.Nursery) -> int:
+        # Add a filter to get the last id in the current month(between first and last day of the current month) and for the current nursery
+        last_invoice = db.query(models.Invoice).filter(
+            models.Invoice.nursery_uuid == nursery.uuid,
+            models.Invoice.date_added >= datetime.now().replace(day=1),
+            models.Invoice.date_added < datetime.now().replace(day=1) + timedelta(days=31)
+        ).order_by(models.Invoice.id.desc()).first()
+        return last_invoice.id + 1 if last_invoice else 1
 
-    def generate_invoice(self, db: Session, quote_uuid: str, contract_uuid: str = None) -> None:
+
+    def generate_invoice(self, db: Session, quote_uuid: str, contract_uuid: str = None, client_account_uuid: str = None) -> None:
         quote = crud.quote.get_by_uuid(db, quote_uuid)
         if not quote:
             raise HTTPException(status_code=404, detail=__("quote-not-found"))
 
         self.delete_by_quote_uuid(db, quote_uuid)
+        ref_number = self.determine_invoice_id(db, quote.nursery)
+
         for quote_timetable in quote.timetables:
             new_invoice = models.Invoice(
                 uuid=str(uuid4()),
+                id=ref_number,
+                reference=f"{ref_number}-{quote.nursery.code}-{datetime.now().strftime('%m%y')}",
                 date_to=quote_timetable.date_to,
                 invoicing_period_start=quote_timetable.invoicing_period_start,
                 invoicing_period_end=quote_timetable.invoicing_period_end,
@@ -110,9 +124,11 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 quote_uuid=quote_uuid,
                 nursery_uuid=quote.nursery_uuid,
                 parent_guest_uuid=quote.parent_guest_uuid,
-                contract_uuid=contract_uuid
+                contract_uuid=contract_uuid,
+                client_account_uuid=client_account_uuid
             )
             db.add(new_invoice)
+            ref_number += 1
             for quote_item in quote_timetable.items:
                 timetable_item = models.InvoiceItem(
                     uuid=str(uuid4()),
@@ -132,6 +148,30 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
             models.Invoice.child_uuid == child_uuid,
             models.Invoice.status == status
         ).count()
+
+    def create_payment(self, db: Session, invoice_obj: models.Invoice, payment: schemas.PaymentCreate) -> models.Payment:
+        amount: float = payment.amount if payment.type == models.PaymentType.PARTIAL else invoice_obj.amount
+        payment_obj = models.Payment(
+            uuid=str(uuid4()),
+            full_name=payment.full_name,
+            card_number=payment.card_number,
+            expiration_date=payment.expiration_date,
+            cvc=payment.cvc,
+            type=payment.type,
+            method=payment.method,
+            amount=payment.amount,
+            invoice_uuid=invoice_obj.uuid
+        )
+        db.add(payment_obj)
+        invoice_obj.amount_paid += amount
+        invoice_obj.amount_due -= amount
+        db.commit()
+        if invoice_obj.amount_due == 0:
+            self.update_status(db, invoice_obj, models.InvoiceStatusType.PAID)
+        else:
+            self.update_status(db, invoice_obj, models.InvoiceStatusType.INCOMPLETE)
+
+        return payment_obj
 
 
 invoice = CRUDInvoice(models.Invoice)
