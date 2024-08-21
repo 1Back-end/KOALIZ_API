@@ -55,6 +55,8 @@ class Invoice(Base):
     client_account_uuid: str = Column(String, ForeignKey('client_accounts.uuid'))
     client_account: Mapped[any] = relationship("ClientAccount", foreign_keys=client_account_uuid, uselist=False, back_populates="invoices")
 
+    payments: Mapped[list[any]] = relationship("Payment", back_populates="invoice", uselist=True, cascade="all, delete-orphan")
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
@@ -202,6 +204,50 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 
 
 @event.listens_for(ClientAccount, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
+class PaymentType(Enum):
+    PARTIAL = "PARTIAL"
+    TOTAL = "TOTAL"
+
+
+class PaymentMethod(Enum):
+    CASH = "CASH"
+    CREDIT_CARD = "CREDIT_CARD"
+    SEPA = "SEPA"
+    BANK_TRANSFER = "BANK_TRANSFER"
+
+
+class Payment(Base):
+    __tablename__ = 'payments'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    full_name = Column(String)
+    card_number = Column(String)
+    expiration_date = Column(Date)
+    cvc = Column(String)
+    type = Column(types.Enum(PaymentType), nullable=False)
+    method = Column(types.Enum(PaymentMethod), nullable=False)
+    amount = Column(Float, default=0)
+
+    invoice_uuid: str = Column(String, ForeignKey('invoices.uuid'), nullable=False)
+    invoice = relationship("Invoice", uselist=False, back_populates="payments")
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(Payment, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(Payment, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()

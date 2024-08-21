@@ -149,6 +149,30 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
             models.Invoice.status == status
         ).count()
 
+    def create_payment(self, db: Session, invoice_obj: models.Invoice, payment: schemas.PaymentCreate) -> models.Payment:
+        amount: float = payment.amount if payment.type == models.PaymentType.PARTIAL else invoice_obj.amount
+        payment_obj = models.Payment(
+            uuid=str(uuid4()),
+            full_name=payment.full_name,
+            card_number=payment.card_number,
+            expiration_date=payment.expiration_date,
+            cvc=payment.cvc,
+            type=payment.type,
+            method=payment.method,
+            amount=payment.amount,
+            invoice_uuid=invoice_obj.uuid
+        )
+        db.add(payment_obj)
+        invoice_obj.amount_paid += amount
+        invoice_obj.amount_due -= amount
+        db.commit()
+        if invoice_obj.amount_due == 0:
+            self.update_status(db, invoice_obj, models.InvoiceStatusType.PAID)
+        else:
+            self.update_status(db, invoice_obj, models.InvoiceStatusType.INCOMPLETE)
+
+        return payment_obj
+
 
 invoice = CRUDInvoice(models.Invoice)
 
