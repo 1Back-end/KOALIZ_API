@@ -57,3 +57,24 @@ def get_details(
     }
 
     return invoice
+
+
+@router.post("/{uuid}/payments", response_model=schemas.Payment)
+def create_payment(
+        uuid: str,
+        payment: schemas.PaymentCreate,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Create payment
+    """
+    invoice = crud.invoice.get_by_uuid(db, uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    return crud.invoice.create_payment(db, invoice, payment)
+

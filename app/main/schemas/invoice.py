@@ -72,6 +72,14 @@ class InvoiceClientAccount(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PaymentSlim(BaseModel):
+    uuid: str
+    type: models.PaymentType
+    method: models.PaymentMethod
+    amount: float
+    date_added: datetime
+
+
 class InvoiceDetails(BaseModel):
     uuid: str
     date_to: date
@@ -81,12 +89,14 @@ class InvoiceDetails(BaseModel):
     invoicing_period_start: Optional[date]
     invoicing_period_end: Optional[date]
 
+    nursery: InvoiceNursery
     contract: InvoiceContract
     parent_guest: InvoiceParentGuest
     client_account: Optional[InvoiceClientAccount] = None
 
     items: list[InvoiceTimeTableItem] = []
     invoices_statistic: dict[str, int] = {}
+    payments: list[PaymentSlim] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -118,5 +128,25 @@ class InvoiceTimetableSlim(BaseModel):
 
 class InvoiceList(DataList):
     data: list[InvoiceTimetableSlim] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PaymentBase(BaseModel):
+    full_name: str
+    card_number: str
+    expiration_date: date
+    cvc: str
+    type: models.PaymentType
+    method: models.PaymentMethod
+    amount: float = Field(..., gt=0)
+
+
+class PaymentCreate(PaymentBase):
+    pass
+
+
+class Payment(PaymentBase):
+    uuid: str
 
     model_config = ConfigDict(from_attributes=True)
