@@ -78,8 +78,8 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
                 uuid=str(uuid.uuid4()),
                 meal_time=obj_in.meal_time,
                 bottle_milk_ml=obj_in.bottle_milk_ml,
-                breastfeeding_duration_minutes=obj_in.breastfeeding_duration_minutes,
                 meal_quality=obj_in.meal_quality,
+                meal_type = obj_in.meal_type,
                 observation=obj_in.observation,
                 nursery_uuid=obj_in.nursery_uuid,
                 child_uuid=child_uuid,
@@ -107,9 +107,10 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
             first()
             if exist_meal_for_child:
                 exist_meal_for_child.bottle_milk_ml = obj_in.bottle_milk_ml if obj_in.bottle_milk_ml else exist_meal_for_child.bottle_milk_ml
-                exist_meal_for_child.breastfeeding_duration_minutes = obj_in.breastfeeding_duration_minutes if obj_in.breastfeeding_duration_minutes else exist_meal_for_child.breastfeeding_duration_minutes
+                exist_meal_for_child.meal_type = obj_in.meal_type if obj_in.meal_type else exist_meal_for_child.meal_type
                 exist_meal_for_child.meal_quality = obj_in.meal_quality if obj_in.meal_quality else exist_meal_for_child.meal_quality
-                exist_meal_for_child.observation = obj_in.observation if obj_in.observation else exist_meal_for_child.observation
+                exist_meal_for_child.observation = obj_in.observation if obj_in.observation else exist_meal_for_child.observation,
+                exist_meal_for_child.meal_time = obj_in.meal_time if obj_in.meal_time else exist_meal_for_child.meal_time
                 db.flush()
         # Commit the changes to the database
         db.commit()
