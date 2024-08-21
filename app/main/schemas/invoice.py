@@ -6,6 +6,7 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
+from app.main.schemas import AddressBase
 from app.main.schemas.base import Items, DataList
 from app.main.schemas.file import File
 
@@ -39,6 +40,8 @@ class InvoiceContract(BaseModel):
 class InvoiceNursery(BaseModel):
     uuid: str
     name: str
+    phone_number: str
+    address: AddressBase = None
 
     model_config = ConfigDict(from_attributes=True)
 
