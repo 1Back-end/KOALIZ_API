@@ -174,6 +174,45 @@ async def create_user_roles(
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
 
+@router.post("/create-groups", response_model=schemas.Msg, status_code=201)
+async def create_user_groups(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create user roles.
+    """
+    check_user_access_key(admin_key)
+
+    try:
+        with open('{}/app/main/templates/default_data/group.json'.format(os.getcwd()), encoding='utf-8') as f:
+            datas = json.load(f)
+
+            for data in datas:
+                user_group:models.Group = db.query(models.Group).filter(models.Group.code == data["code"])
+                if user_group:
+                    user_group.title_fr=data["title_fr"]
+                    user_group.title_en=data["title_en"]
+                    user_group.description=data["description"]
+
+                else:
+                    user_group = models.Group(
+                        title_fr=data["title_fr"],
+                        title_en=data["title_en"],
+                        description=data["description"],
+                        uuid=data["uuid"]
+                    )
+                    db.add(user_group)
+                    db.commit()
+        return {"message": "Les groupes ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("user-group-conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+
 
 @router.post("/create-admin-users", response_model=schemas.Msg, status_code=201)
 async def create_admin_users(
