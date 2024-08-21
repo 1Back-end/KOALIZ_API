@@ -23,8 +23,10 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
                 cleanliness=obj_in.cleanliness,
                 pipi=obj_in.pipi,
                 stool_type=obj_in.stool_type,
+                pipi_stool_type=obj_in.pipi_stool_type,
                 additional_care=obj_in.additional_care,
                 observation=obj_in.observation,
+                product = obj_in.product,
                 child_uuid=child_uuid,
                 nursery_uuid=obj_in.nursery_uuid,
                 added_by_uuid=obj_in.employee_uuid
@@ -49,17 +51,25 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
                 filter(HygieneChange.uuid == hygiene_change.uuid).\
                 filter(HygieneChange.child_uuid == child_uuid).\
                 first()
-        
-            hygiene_change.time = obj_in.time if obj_in.time else hygiene_change.time
-            hygiene_change.cleanliness = obj_in.cleanliness if obj_in.cleanliness else hygiene_change.cleanliness
-            if obj_in.pipi == False:
-                hygiene_change.pipi = False
-            if obj_in.pipi == True:
-                hygiene_change.pipi = True
-            hygiene_change.stool_type = obj_in.stool_type if obj_in.stool_type else hygiene_change.stool_type
-            hygiene_change.additional_care = obj_in.additional_care if obj_in.additional_care else hygiene_change.additional_care
-            hygiene_change.observation = obj_in.observation if obj_in.observation else hygiene_change.observation
-            db.flush()
+            
+            if exist_hygiene_change_for_child:
+
+                hygiene_change.time = obj_in.time if obj_in.time else hygiene_change.time
+                hygiene_change.cleanliness = obj_in.cleanliness if obj_in.cleanliness else hygiene_change.cleanliness
+                hygiene_change.product = obj_in.product if obj_in.product else hygiene_change.product
+                
+                if obj_in.pipi == False:
+                    hygiene_change.pipi = False
+
+                if obj_in.pipi == True:
+                    hygiene_change.pipi = True
+                
+                exist_hygiene_change_for_child.pipi_stool_type = obj_in.pipi_stool_type if obj_in.pipi_stool_type else exist_hygiene_change_for_child.pipi_stool_type
+                exist_hygiene_change_for_child.stool_type = obj_in.stool_type if obj_in.stool_type else exist_hygiene_change_for_child.stool_type
+                exist_hygiene_change_for_child.additional_care = obj_in.additional_care if obj_in.additional_care else exist_hygiene_change_for_child.additional_care
+                exist_hygiene_change_for_child.observation = obj_in.observation if obj_in.observation else exist_hygiene_change_for_child.observation
+
+                db.flush()
             
         db.commit()
         db.refresh(hygiene_change)
