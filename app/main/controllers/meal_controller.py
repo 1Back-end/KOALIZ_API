@@ -121,7 +121,7 @@ def delete_meal_soft(
     *,
     db: Session = Depends(get_db),
     uuids:List[str],
-    # current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
     try:
         crud.meal.soft_delete(db=db,uuids=uuids)
