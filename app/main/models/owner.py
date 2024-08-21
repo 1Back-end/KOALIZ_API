@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from .user import UserStatusType
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, Table, Boolean,types,event, Enum
 from datetime import datetime, date
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from .db.base_class import Base
 from sqlalchemy.dialects.postgresql import ENUM
@@ -40,6 +41,12 @@ class Owner(Base):
 
     def __repr__(self):
         return '<Owner: uuid: {} email: {}>'.format(self.uuid, self.email)
+    
+    @hybrid_property
+    def valid_nurseries(self):
+        if self.nurseries:
+            return [nursery for nursery in self.nurseries if nursery.status!="DELETED"]
+        return []
 
 
 @event.listens_for(Owner, 'before_insert')
