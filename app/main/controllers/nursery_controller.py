@@ -117,6 +117,10 @@ def read_children_by_nursery(
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
+    nursery = crud.nursery.get_by_uuid(db,nursery_uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
     if current_team_device.nursery_uuid!=nursery_uuid:
         raise HTTPException(status_code=403, detail=__("not-authorized"))
     
