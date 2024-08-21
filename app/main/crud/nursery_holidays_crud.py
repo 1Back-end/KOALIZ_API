@@ -24,7 +24,7 @@ class NuseryHolidayCRUD(CRUDBase[models.NuseryHoliday,schemas.NurseryHolidayCrea
             models.Nursery.owner_uuid == owner_uuid
         ).first()
         if not result:
-            raise HTTPException(status_code=404, detail="Nursery not found or not authorized")
+            raise HTTPException(status_code=404, detail="Nursery-not-found-or-not-authorized")
         return result
     
     def get_all_nursery(
@@ -41,7 +41,9 @@ class NuseryHolidayCRUD(CRUDBase[models.NuseryHoliday,schemas.NurseryHolidayCrea
         
         record_query = db.query(models.NuseryHoliday)\
         .join(models.Nursery, models.NuseryHoliday.nursery_uuid == models.Nursery.uuid)\
-        .filter(models.Nursery.owner_uuid == owner_uuid)
+        .filter(models.Nursery.owner_uuid == owner_uuid)\
+        .filter(models.NuseryHoliday.is_deleted!=True)\
+        .filter(models.NuseryHoliday.is_active==True)
 
         if order and order.lower() == "asc":
             record_query = record_query.order_by(models.NuseryHoliday.date_added.asc())
@@ -71,10 +73,10 @@ class NuseryHolidayCRUD(CRUDBase[models.NuseryHoliday,schemas.NurseryHolidayCrea
     def create_nursery_holidays(self,*, db: Session,nursery_holiday: schemas.NurseryHolidayCreate, owner_uuid: str):
         db_holiday_exists = db.query(models.Nursery).filter(models.Nursery.uuid == nursery_holiday.nursery_uuid).first()
         if not db_holiday_exists:
-            raise HTTPException(status_code=404, detail="Nursery not found")
+            raise HTTPException(status_code=404, detail="Nursery-not-found")
         
         if db_holiday_exists.owner_uuid != owner_uuid:
-            raise HTTPException(status_code=403, detail="Not authorized to create close hour for this nursery")
+            raise HTTPException(status_code=403, detail="Not-authorized-to create-close-hour-for-this-nursery")
         
         # Generate a unique UUID for the holiday
         db_holiday = models.NuseryHoliday(
@@ -96,14 +98,14 @@ class NuseryHolidayCRUD(CRUDBase[models.NuseryHoliday,schemas.NurseryHolidayCrea
         # Check if the holiday exists
         db_holiday = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.uuid == holiday_uuid).first()
         if not db_holiday:
-            raise HTTPException(status_code=404, detail="Holiday not found")
+            raise HTTPException(status_code=404, detail="Holiday-not-found")
 
         # Check if the associated nursery exists and the owner is authorized
         nursery = db.query(models.Nursery).filter(models.Nursery.uuid == db_holiday.nursery_uuid).first()
         if not nursery:
-            raise HTTPException(status_code=404, detail="Nursery not found")
+            raise HTTPException(status_code=404, detail="Nursery-not-found")
         if nursery.owner_uuid != owner_uuid:
-            raise HTTPException(status_code=403, detail="Not authorized to update this holiday")
+            raise HTTPException(status_code=403, detail="Not-authorized-to-update-this-holiday")
                        # Apply updates to the holiday
         db_holiday.name_fr = nursery_holiday.name_fr if nursery_holiday.name_fr is not None else db_holiday.name_fr,
         db_holiday.name_en = nursery_holiday.name_en if nursery_holiday.name_en is not None else db_holiday.name_en,
@@ -119,23 +121,48 @@ class NuseryHolidayCRUD(CRUDBase[models.NuseryHoliday,schemas.NurseryHolidayCrea
         # Check if the holiday exists
         db_holiday = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.uuid == holiday_uuid).first()
         if not db_holiday:
-            raise HTTPException(status_code=404, detail="Holiday not found")
+            raise HTTPException(status_code=404, detail="Holiday-not-found")
         
         # Check if the associated nursery exists and the owner is authorized
         nursery = db.query(models.Nursery).filter(models.Nursery.uuid == db_holiday.nursery_uuid).first()
         if not nursery:
-            raise HTTPException(status_code=404, detail="Nursery not found")
+            raise HTTPException(status_code=404, detail="Nursery-not-found")
         if nursery.owner_uuid != owner_uuid:
-            raise HTTPException(status_code=403, detail="Not authorized to delete this holiday")
+            raise HTTPException(status_code=403, detail="Not-authorized-to-delete-this-holiday")
         
         # Delete the holiday
         db.delete(db_holiday)
         db.commit()
        
+    @classmethod
+    def update_status(cls, uuids:List[str], status: bool, db: Session,owner_uuid: str):
+        records = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.uuid.in_(uuids)).all()
+        for record in records:
+            nursery = db.query(models.Nursery).filter(models.Nursery.uuid == record.nursery_uuid).first()
+            if nursery is None:
+                raise HTTPException(status_code=404, detail="nursery-not-found")
+            if nursery.owner_uuid != owner_uuid:
+                raise HTTPException(status_code=403, detail="You-are-not-authorized-to-update-this-close-hour")
+            record.is_active=status
+        db.commit()
+        db.refresh(record)
 
+    def soft_delete(self, uuids:List[str],db: Session, owner_uuid: str):
+        # Check if the holidays exist
+        db_holidays = db.query(models.NuseryHoliday).filter(models.NuseryHoliday.uuid.in_(uuids)).all()
+        if not db_holidays:
+            raise HTTPException(status_code=404, detail="Holidays-not-found")
         
+        # Check if the associated nurseries exist and the owner is authorized
+        for holiday in db_holidays:
+            nursery = db.query(models.Nursery).filter(models.Nursery.uuid == holiday.nursery_uuid).first()
+            if not nursery:
+                raise HTTPException(status_code=404, detail="Nursery-not-found")
+            if nursery.owner_uuid != owner_uuid:
+                raise HTTPException(status_code=403, detail="Not-authorized-to-delete-this-holiday")
+            # Soft delete the holiday
+            holiday.is_active = False
+            db.commit()
             
-
-    
     
 nursery_holiday = NuseryHolidayCRUD(models.NuseryHoliday)

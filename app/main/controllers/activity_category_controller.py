@@ -67,7 +67,7 @@ def delete_activity_category(
 ):
     """ Delete many(or one) """
 
-    crud.activity_category.delete(db, uuids)
+    crud.activity_category.soft_delete(db, uuids)
     return {"message": __("category-activity-deleted-successfully")}
 
 

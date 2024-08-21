@@ -18,18 +18,6 @@ async def get_roles(
     """
     return crud.role.get_all(db, group)
 
-@router.put("/team-device-name/update")
-def update_team_device_name(
-    *,
-    db: Session = Depends(get_db),
-):
-    team_device_tab = db.query(models.TeamDevice).all()
-    print("team_device_tab", team_device_tab)
-    for team_device in team_device_tab:
-        team_device.name = None
-        db.commit()
-    return 
-
 @router.get("/meeting-types", response_model=list[schemas.MeetingTypeResponse])
 async def get_meeting_types(
     *,
@@ -75,6 +63,7 @@ async def get_enums(
 
     return {
         "status": [t.name for t in models.UserStatusType],
+        "message_type": [t.name for t in models.MessageType],
         "gender": [t.name for t in models.Gender],
         "parent_relationship": [t.name for t in models.ParentRelationship],
         "cleanliness": [t.name for t in models.Cleanliness],

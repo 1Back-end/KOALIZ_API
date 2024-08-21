@@ -3,7 +3,7 @@ from pydantic import BaseModel,ConfigDict
 from datetime import datetime
 from typing import Optional
 
-from app.main.models.children import MealQuality
+from app.main.models.children import MealQuality,MealTypeEnum
 from app.main.schemas.base import DataList
 from app.main.schemas.employee import EmployeBase
 from app.main.schemas.nursery import NurserySlim
@@ -14,8 +14,8 @@ from app.main.schemas.preregistration import ChildMini2
 class MealBase(BaseModel):
     meal_time: Optional[datetime]=None
     bottle_milk_ml: Optional[int] = None
-    breastfeeding_duration_minutes: Optional[int] = 0
     meal_quality: Optional[MealQuality]=None
+    meal_type:MealTypeEnum
     observation: Optional[str] = None
     nursery_uuid: str
     child_uuids: list[str]
@@ -31,6 +31,7 @@ class MealUpdate(BaseModel):
     bottle_milk_ml: Optional[int] = None
     breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
+    meal_type:MealTypeEnum
     observation: Optional[str] = None
     nursery_uuid: str
     child_uuids: list[str]
@@ -44,6 +45,7 @@ class MealResponse(BaseModel):
     bottle_milk_ml: Optional[int] = None
     breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
+    meal_type: MealTypeEnum
     observation: Optional[str] = None    
     nursery: Optional[NurserySlim]=None
     added_by: Optional[EmployeBase]=None

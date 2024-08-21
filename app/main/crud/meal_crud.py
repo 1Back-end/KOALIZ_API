@@ -16,10 +16,11 @@ import uuid
 class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
 
     def get_meal_by_nursery(self, *,db: Session, nursery_uuid: str):
-        return db.query(models.Meal).filter(models.Meal.nursery_uuid == nursery_uuid).all()
+        return db.query(models.Meal).filter(models.Meal.nursery_uuid == nursery_uuid,models.Meal.is_deleted==False).all()
     
     def get_meal_by_uuid(self,*, db: Session, uuid: str):
-        return db.query(models.Meal).filter(models.Meal.uuid == uuid).first()
+        return db.query(models.Meal).filter(models.Meal.uuid == uuid,models.Meal.is_deleted==False).first()
+    
     def get_many(
             self,
             *,
@@ -33,7 +34,7 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
             meal_quality:Optional[str]= None
 
     ):
-        record_query = db.query(models.Meal)
+        record_query = db.query(models.Meal).filter(models.Meal.is_deleted==False)
 
         if order and order.lower() == "asc":
             record_query = record_query.order_by(models.Meal.date_added.asc())
@@ -78,8 +79,8 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
                 uuid=str(uuid.uuid4()),
                 meal_time=obj_in.meal_time,
                 bottle_milk_ml=obj_in.bottle_milk_ml,
-                breastfeeding_duration_minutes=obj_in.breastfeeding_duration_minutes,
                 meal_quality=obj_in.meal_quality,
+                meal_type = obj_in.meal_type,
                 observation=obj_in.observation,
                 nursery_uuid=obj_in.nursery_uuid,
                 child_uuid=child_uuid,
@@ -98,7 +99,7 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
 
         # Vérifier si le repas existe
         if not db_meal:
-            raise HTTPException(status_code=404, detail="Meal not found")
+            raise HTTPException(status_code=404, detail="Meal-not-found")
 
         for child_uuid in obj_in.child_uuids:
             exist_meal_for_child = db.query(models.Meal).\
@@ -107,9 +108,10 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
             first()
             if exist_meal_for_child:
                 exist_meal_for_child.bottle_milk_ml = obj_in.bottle_milk_ml if obj_in.bottle_milk_ml else exist_meal_for_child.bottle_milk_ml
-                exist_meal_for_child.breastfeeding_duration_minutes = obj_in.breastfeeding_duration_minutes if obj_in.breastfeeding_duration_minutes else exist_meal_for_child.breastfeeding_duration_minutes
+                exist_meal_for_child.meal_type = obj_in.meal_type if obj_in.meal_type else exist_meal_for_child.meal_type
                 exist_meal_for_child.meal_quality = obj_in.meal_quality if obj_in.meal_quality else exist_meal_for_child.meal_quality
-                exist_meal_for_child.observation = obj_in.observation if obj_in.observation else exist_meal_for_child.observation
+                exist_meal_for_child.observation = obj_in.observation if obj_in.observation else exist_meal_for_child.observation,
+                exist_meal_for_child.meal_time = obj_in.meal_time if obj_in.meal_time else exist_meal_for_child.meal_time
                 db.flush()
         # Commit the changes to the database
         db.commit()
@@ -123,12 +125,20 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
         db_meal = db.query(models.Meal).filter(models.Meal.uuid == uuid).first()
         # Vérifier si le repas existe
         if not db_meal:
-            raise HTTPException(status_code=404, detail="Meal not found")
+            raise HTTPException(status_code=404, detail="Meal-not-found")
         # Supprimer le repas de la base de données
         db.delete(db_meal)
         db.commit()
 
+    @classmethod
+    def soft_delete(cls,uuids:List[str],db:Session):
+        db_meals = db.query(models.Meal).filter(models.Meal.uuid.in_(uuids)).all()
+        for db_meal in db_meals:
+            db_meal.is_deleted=True
+        db.commit()
+
 
 meal = CRUDMeal(models.Meal)
+
         
         

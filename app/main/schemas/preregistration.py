@@ -368,6 +368,7 @@ class PreregistrationSlim(BaseModel):
     child: ChildMini2
     pre_contract: PreContractSlim
     status: str = None
+    is_deleted:Optional[bool]
     tags: Optional[list[Tag]] = []
 
     model_config = ConfigDict(from_attributes=True)
@@ -517,6 +518,9 @@ class Transmission(BaseModel):
 
 class ChildTransmissionList(DataList):
     data: list[Transmission] = []
+    model_config = ConfigDict(from_attributes=True)
+class ChildDetailsList(DataList):
+    data: list[ChildDetails] = []
 
     model_config = ConfigDict(from_attributes=True)
 

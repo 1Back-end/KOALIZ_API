@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import Media, Child,children_media
+from app.main.models import Media, Child,children_media,AbsenceStatusEnum
 from app.main.schemas import MediaCreate, MediaUpdate, MediaList, MediaMini
 
 
@@ -41,7 +41,7 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
 
     @classmethod
     def get_media_by_uuid(cls, db: Session, uuid: str) -> Optional[MediaMini]:
-        return db.query(Media).filter(Media.uuid == uuid).first()
+        return db.query(Media).filter(Media.uuid == uuid,Media.status!=AbsenceStatusEnum.DELETED).first()
 
     @classmethod
     def update(cls, db: Session,obj_in: MediaUpdate) -> MediaMini:
@@ -68,6 +68,15 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
     def delete(cls,db:Session, uuids:list[str]) -> MediaMini:
         db.query(Media).filter(Media.uuid.in_(uuids)).delete()
         db.commit()
+    
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        attendance_tab = db.query(Media).\
+            filter(Media.uuid.in_(uuids),Media.status!=AbsenceStatusEnum.DELETED)\
+                .all()
+        for attendance in attendance_tab:
+            attendance.status = AbsenceStatusEnum.DELETED
+            db.commit()
 
     @classmethod
     def get_multi(
@@ -83,7 +92,7 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
         keyword:Optional[str]= None,
         media_type:Optional[str]= None
     ):
-        record_query = db.query(Media)
+        record_query = db.query(Media).filter(Media.status!=AbsenceStatusEnum.DELETED)
 
         if keyword:
             record_query = record_query.filter(

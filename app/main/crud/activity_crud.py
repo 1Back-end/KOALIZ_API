@@ -14,7 +14,7 @@ from app.main import crud, schemas, models
 import uuid
 
 
-class CRUDTypeActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.ActivityUpdate]):
+class CRUDActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.ActivityUpdate]):
 
     @classmethod
     def get_many(
@@ -26,7 +26,9 @@ class CRUDTypeActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.A
             keyword:Optional[str]= None,
         ):
             """Récupère les activités en fonction des paramètres de pagination et de recherche."""
-            record_query = db.query(models.Activity)
+            record_query = db.query(models.Activity).filter(
+                models.Activity.is_deleted==False
+            )
             if keyword:
                 record_query = record_query.filter(
                     or_(
@@ -92,13 +94,9 @@ class CRUDTypeActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.A
         return db.query(models.ActivityCategory).filter(models.ActivityCategory.uuid == uuid).first()
     
     @classmethod
-    def get_activity_by_uuid(cls,activity_uuid:str,db:Session):
-        return db.query(models.Activity).filter(models.Activity.uuid == activity_uuid).first()
+    def get_activity_by_uuid(cls,uuid:str,db:Session):
+        return db.query(models.Activity).filter(models.Activity.uuid == uuid).first()
     
-    @classmethod
-    def delete(cls,db:Session, uuids:list[str]):
-        db.query(models.Activity).filter(models.Activity.uuid.in_(uuids)).delete()
-        db.commit()
 
     @classmethod
     def update(cls,db: Session, obj_in: schemas.ActivityUpdate):
@@ -135,16 +133,29 @@ class CRUDTypeActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.A
         db.commit()
         db.refresh(db_obj)
         return db_obj
-            
-
-   
-
-
     
+
+    @classmethod
+    def delete(cls,db:Session, uuids:list[str]):
+        db.query(models.activity_category_table).filter(models.activity_category_table.c.activity_uuid.in_(uuids)).delete()
+        db.query(models.Activity).filter(models.Activity.uuid.in_(uuids)).delete()
+        db.commit()
+    
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        for uuid in uuids:
+            activity = cls.get_activity_by_uuid(uuid, db)
+            if not activity:
+                raise HTTPException(status_code=404, detail=f"L'activité avec l'UUID {uuid} n'existe pas.")
+            
+            activity.is_deleted = True
+        db.commit()
+       
+
         
        
 
-activity =  CRUDTypeActivity(models.Activity)
+activity =  CRUDActivity(models.Activity)
 
 
 

@@ -5,18 +5,18 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import ChildActivity
-from app.main.schemas import ChildActivityCreate, ChildActivityUpdate, ChildActivityList,ChildActivityDetails
+from app.main.models import ChildActivity,AbsenceStatusEnum
+from app.main.schemas import ChildActivityCreate, ChildActivityUpdate, ChildActivityList,ChildActivityDetails,ChildActivityDelete
 
 
 class CRUDChildActivity(CRUDBase[ChildActivity, ChildActivityCreate, ChildActivityUpdate]):
 
     @classmethod
     def create(cls, db: Session, obj_in: ChildActivityCreate):
-        # child_activities:list[ChildActivityDetails] = []
         for child_uuid in obj_in.child_uuids:
             db_obj = cls.get_by_activity_uuid_and_child_uuid(db,obj_in.activity_uuid,child_uuid)
             if db_obj:
+
                 db_obj.activity_time = obj_in.activity_time
             else:
                 db_obj = ChildActivity(
@@ -36,7 +36,9 @@ class CRUDChildActivity(CRUDBase[ChildActivity, ChildActivityCreate, ChildActivi
     @classmethod
     def get_by_activity_uuid_and_child_uuid(cls, db: Session, activity_uuid: str,child_uuid:str) -> Optional[ChildActivity]:
         return db.query(ChildActivity).\
-            filter(ChildActivity.activity_uuid == activity_uuid,ChildActivity.child_uuid == child_uuid).\
+            filter(ChildActivity.activity_uuid == activity_uuid,
+                   ChildActivity.child_uuid == child_uuid,
+                   ChildActivity.status!= AbsenceStatusEnum.DELETED).\
                 first()
     
     @classmethod
@@ -54,6 +56,18 @@ class CRUDChildActivity(CRUDBase[ChildActivity, ChildActivityCreate, ChildActivi
         db.commit()
 
     @classmethod
+    def soft_delete(cls,db:Session, obj_in:list[ChildActivityDelete]):
+        for obj in obj_in:
+            exist_child_activity = cls.get_by_activity_uuid_and_child_uuid(
+                db,
+                obj.activity_uuid,
+                obj.child_uuid
+            )
+            if exist_child_activity:
+                exist_child_activity.status = AbsenceStatusEnum.DELETED
+                db.commit()
+
+    @classmethod
     def get_multi(
         cls,
         db:Session,
@@ -66,7 +80,7 @@ class CRUDChildActivity(CRUDBase[ChildActivity, ChildActivityCreate, ChildActivi
         order_field:Optional[str] = 'date_added',
         keyword:Optional[str]= None,
     ):
-        record_query = db.query(ChildActivity)
+        record_query = db.query(ChildActivity).filter(ChildActivity.status!=AbsenceStatusEnum.DELETED)
 
         # if keyword:
         #     record_query = record_query.filter(

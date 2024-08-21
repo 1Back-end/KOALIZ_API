@@ -92,6 +92,10 @@ class CRUDTeamDevice(CRUDBase[TeamDevice, TeamDeviceCreate, TeamDeviceUpdate]):
     @classmethod
     def get_by_team_device_uuid(cls, db: Session, device_uuid: str) -> Optional[TeamDevice]:
         return db.query(TeamDevice).filter(TeamDevice.uuid==device_uuid).first()
+    
+    @classmethod
+    def get_device_by_nursery_uuid(cls, db: Session, nursery_uuid: str) -> Optional[TeamDevice]:
+        return db.query(TeamDevice).filter(TeamDevice.nursery_uuid==nursery_uuid).first()
 
 
     def get_many(self,

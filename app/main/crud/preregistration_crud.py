@@ -31,6 +31,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         if not folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
+        print("foldeer", folder.is_deleted)
         # Create the log tracking
         before_changes = schemas.PreregistrationDetails.model_validate(folder).model_dump()
         crud.audit_log.create(
@@ -846,7 +847,10 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
 
     def transfer(self, db, uuid, obj_in: schemas.TransferPreRegistration, current_user_uuid: str):
-        preregistration = db.query(models.PreRegistration).filter(models.PreRegistration.uuid == uuid).first()
+        preregistration = db.query(models.PreRegistration).\
+            filter(models.PreRegistration.uuid == uuid).\
+            filter(models.PreRegistration.is_deleted != True).\
+                first()
         if not preregistration:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
@@ -890,7 +894,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
     def is_active(self, user: models.Administrator) -> bool:
         return user.status == models.UserStatusType.ACTIVED
-
 
 preregistration = CRUDPreRegistration(models.PreRegistration)
 

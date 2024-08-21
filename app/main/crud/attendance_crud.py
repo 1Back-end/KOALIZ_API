@@ -1,3 +1,4 @@
+import datetime
 import math
 from typing import Any, Dict, Optional
 import uuid
@@ -6,21 +7,28 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import Attendance
+from app.main.models import Attendance,AbsenceStatusEnum
 from app.main.schemas import AttendanceCreate, AttendanceUpdate, AttendanceList, AttendanceMini
 
 
 class CRUDAttendance(CRUDBase[Attendance, AttendanceCreate, AttendanceUpdate]):
 
     @classmethod
+    def get_unique_attendance(self,db:Session,child_uuid:str,date:datetime.date,nursery_uuid:str):
+        return db.query(Attendance).\
+            filter(Attendance.child_uuid == child_uuid,
+                   Attendance.date == date,
+                   Attendance.nursery_uuid == nursery_uuid,
+                   Attendance.status!=AbsenceStatusEnum.DELETED
+            ).first()
+    
+    @classmethod
     def create(self, db: Session, obj_in: AttendanceCreate) -> Attendance:
 
         for child_uuid in obj_in.child_uuid_tab:
-            attendance_record = db.query(Attendance).filter_by(
-                child_uuid=child_uuid,
-                date=obj_in.date,
-                nursery_uuid=obj_in.nursery_uuid
-            ).first()
+            attendance_record = self.get_unique_attendance(
+                db, child_uuid, obj_in.date, obj_in.nursery_uuid
+            )
 
             if attendance_record:
                 attendance_record.arrival_time = obj_in.arrival_time
@@ -43,17 +51,19 @@ class CRUDAttendance(CRUDBase[Attendance, AttendanceCreate, AttendanceUpdate]):
     
     @classmethod
     def get_attendance_by_uuid(cls, db: Session, uuid: str) -> Optional[AttendanceMini]:
-        return db.query(Attendance).filter(Attendance.uuid == uuid).first()
+        return db.query(Attendance).\
+            filter(Attendance.uuid == uuid,
+                   Attendance.status!= AbsenceStatusEnum.DELETED).\
+                    first()
     
     @classmethod
     def update(cls, db: Session, obj_in: AttendanceUpdate) -> AttendanceMini:
         attendance = cls.get_attendance_by_uuid(db, obj_in.uuid)
         for child_uuid in obj_in.child_uuid_tab:
-            attendance = db.query(Attendance).filter_by(
-                child_uuid=child_uuid,
-                date=obj_in.date,
-                nursery_uuid=obj_in.nursery_uuid
-            ).first()
+            attendance = cls.get_unique_attendance(
+                db, child_uuid, obj_in.date, obj_in.nursery_uuid
+
+            )
             attendance.arrival_time = obj_in.arrival_time if obj_in.arrival_time else attendance.arrival_time
             attendance.departure_time = obj_in.departure_time if obj_in.departure_time else attendance.departure_time
             attendance.date = obj_in.date if obj_in.date else attendance.date
@@ -65,6 +75,17 @@ class CRUDAttendance(CRUDBase[Attendance, AttendanceCreate, AttendanceUpdate]):
     def delete(cls,db:Session, uuids:list[str]) -> AttendanceMini:
         db.query(Attendance).filter(Attendance.uuid.in_(uuids)).delete()
         db.commit()
+
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        attendance_tab = db.query(Attendance).\
+            filter(Attendance.uuid.in_(uuids),Attendance.status!=AbsenceStatusEnum.DELETED)\
+                .all()
+        
+
+        for attendance in attendance_tab:
+            attendance.status = AbsenceStatusEnum.DELETED
+            db.commit()
 
     @classmethod
     def get_multi(
@@ -79,7 +100,8 @@ class CRUDAttendance(CRUDBase[Attendance, AttendanceCreate, AttendanceUpdate]):
         order_field:Optional[str] = 'date_added',
         keyword:Optional[str]= None,
     ):
-        record_query = db.query(Attendance)
+        record_query = db.query(Attendance).filter(Attendance.status!= AbsenceStatusEnum.DELETED)
+        
 
         # if keyword:
         #     record_query = record_query.filter(
