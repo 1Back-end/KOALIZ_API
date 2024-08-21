@@ -28,6 +28,10 @@ class AbsenceStatusEnum(str,Enum):
     REJECTED = "REJECTED" # Refusé
     DELETED = "DELETED" # Supprimé
 
+class PipiStoolTypeEnum(str, Enum):
+    NORMAL = "NORMAL" # Normales
+    SOFT = "SOFT" # Molles
+
 # Repas
 @dataclass
 class Meal(Base):

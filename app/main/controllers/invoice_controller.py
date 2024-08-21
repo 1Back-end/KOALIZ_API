@@ -72,9 +72,60 @@ def create_payment(
     invoice = crud.invoice.get_by_uuid(db, uuid)
     if not invoice:
         raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+    if invoice.status == models.InvoiceStatusType.PAID:
+        raise HTTPException(status_code=400, detail=__("invoice-already-paid"))
+    if invoice.status == models.InvoiceStatusType.PROFORMA:
+        raise HTTPException(status_code=400, detail=__("invoice-still-proforma"))
 
     if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("invoice-not-found"))
 
     return crud.invoice.create_payment(db, invoice, payment)
+
+
+@router.put("/{uuid}/pending", response_model=schemas.InvoiceDetails)
+def set_pending(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Set invoice to pending
+    """
+    invoice = crud.invoice.get_by_uuid(db, uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if invoice.status != models.InvoiceStatusType.PROFORMA:
+        raise HTTPException(status_code=400, detail=__("invoice-not-proforma"))
+
+    return crud.invoice.update_status(db, invoice, models.InvoiceStatusType.PENDING)
+
+# Endpoint to update/add invoice items
+@router.put("/{uuid}/items", response_model=schemas.InvoiceDetails)
+def update_items(
+        uuid: str,
+        # items: list[schemas.ItemsCreateUpdate],
+        items: schemas.InvoiceUpdate,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Update/add invoice items
+    """
+    invoice = crud.invoice.get_by_uuid(db, uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if invoice.status != models.InvoiceStatusType.PROFORMA:
+        raise HTTPException(status_code=400, detail=__("invoice-not-proforma"))
+
+    crud.invoice.add_update_items(db, invoice, items)
+    return crud.invoice.get_by_uuid(db, uuid)
 
