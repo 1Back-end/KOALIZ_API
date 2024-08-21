@@ -17,6 +17,10 @@ class MealQuality(str, Enum):
     GOOD = "GOOD" # Bien
     VERY_GOOD = "VERY_GOOD" # Très
 
+class MealTypeEnum(str, Enum):
+    BOTTLE_FEEDING = "BOTTLE_FEEDING" #Le biberon
+    BREAST_FEEDING = "BREAST_FEEDING" #l'allaitement
+
 # Repas
 @dataclass
 class Meal(Base):
@@ -29,8 +33,9 @@ class Meal(Base):
 
     meal_time = Column(DateTime, nullable=False, default=datetime.now()) # Heure
     bottle_milk_ml = Column(Integer, nullable=True) # Biberon
-    breastfeeding_duration_minutes = Column(Integer, nullable=True) # Allaitement
+    # breastfeeding_duration_minutes = Column(Integer, nullable=True) # Allaitement
     meal_quality = Column(types.Enum(MealQuality), nullable=False) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
+    meal_type = Column(String, nullable=True,) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     observation = Column(Text, nullable=True) # Observation
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
