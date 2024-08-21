@@ -40,13 +40,13 @@ def get(
     get children with filters
     """
     return crud.parent.get_children(
-        db,
-        page,
-        per_page,
-        order,
-        order_filed,
-        keyword,
-        current_user.uuid
+        db=db,
+        page=page,
+        per_page=per_page,
+        order=order,
+        order_filed=order_filed,
+        keyword=keyword,
+        parent_uuid=current_user.uuid
     )
 
 @router.get("/media", response_model=schemas.MediaList)
@@ -65,12 +65,12 @@ def get(
     get children media with filters
     """
     return crud.parent.get_children_media(
-        db,
-        page,
-        per_page,
-        order,
-        order_filed,
-        keyword,
+        db=db,
+        page=page,
+        per_page=per_page,
+        order=order,
+        order_filed=order_filed,
+        keyword=keyword,
         parent_uuid=current_user.uuid,
         media_type=media_type
     )

@@ -73,6 +73,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
     
     @classmethod
     def delete(cls,db:Session, uuids:list[str]) -> ActivityCategory:
+        db.query(activity_category_table).filter(activity_category_table.c.activity_uuid.in_(uuids)).delete()
         db.query(ActivityCategory).filter(ActivityCategory.uuid.in_(uuids)).delete()
         db.commit()
     
