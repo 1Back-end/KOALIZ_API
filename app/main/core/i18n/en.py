@@ -109,4 +109,6 @@ translation = {
     "cmg-amount-range-exists": "A range of amounts with this type of family and this number of children already exists.",
     "client-account-not-found": "Client account not found",
     "amount-required": "Amount required",
+    "invoice-already-paid": "The invoice has already been paid",
+    "invoice-still-proforma": "The invoice is still in proforma",
 }
