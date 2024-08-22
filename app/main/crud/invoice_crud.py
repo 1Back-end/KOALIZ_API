@@ -228,6 +228,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
             total_amount += i_item.amount
         invoice_obj.amount = total_amount
         db.commit()
+        return invoice_obj
 
     def create(self, db: Session, invoice_obj, obj_in: schemas.InvoiceCreate) -> models.Invoice:
         total_amount: float = 0
