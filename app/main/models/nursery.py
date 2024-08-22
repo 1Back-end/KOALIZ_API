@@ -71,13 +71,14 @@ class Nursery(Base):
         from fastapi.encoders import jsonable_encoder
 
         db = SessionLocal()
+        response = None
         try:
             if self.memberships:
-                response = db.query(Membership).\
-                    join(NurseryMemberships, self.uuid==NurseryMemberships.nursery_uuid ).\
-                        filter(NurseryMemberships.status == MembershipEnum.ACTIVED).\
-                        order_by(desc(NurseryMemberships.date_modified)).\
-                        first()
+                response = db.query(Membership). \
+                    join(NurseryMemberships, self.uuid==NurseryMemberships.nursery_uuid ). \
+                    filter(NurseryMemberships.status == MembershipEnum.ACTIVED). \
+                    order_by(desc(NurseryMemberships.date_modified)). \
+                    first()
         except Exception as e:
             print("error",e)
             return None
