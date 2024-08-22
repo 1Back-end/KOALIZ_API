@@ -64,9 +64,6 @@ class Meal(Base):
     date_modified: any = Column(DateTime, server_default=func.now())
 
 
-    @hybrid_property
-    def converted_date_added(self):
-        return self.date_added.date()
     
 # Table d'association many-to-many entre Activity et Category
 activity_category_table = Table('activity_category', Base.metadata,

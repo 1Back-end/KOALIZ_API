@@ -142,7 +142,7 @@ def read_children_by_nursery(
             db=db, 
             nursery_uuid=nursery_uuid,
             child_uuid=child_uuid,
-            filter_date=datetime_obj
+            filter_date=datetime_obj if filter_date else None
             # page=page,
             # per_page=per_page,
             # order=order,
