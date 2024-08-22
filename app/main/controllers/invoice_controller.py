@@ -108,7 +108,6 @@ def set_pending(
 @router.put("/{uuid}/items", response_model=schemas.InvoiceDetails)
 def update_items(
         uuid: str,
-        # items: list[schemas.ItemsCreateUpdate],
         items: schemas.InvoiceUpdate,
         db: Session = Depends(get_db),
         current_user=Depends(TokenRequired(roles=["owner"]))
@@ -128,4 +127,26 @@ def update_items(
 
     crud.invoice.add_update_items(db, invoice, items)
     return crud.invoice.get_by_uuid(db, uuid)
+
+
+@router.post("/", response_model=schemas.InvoiceDetails)
+def create(
+        obj_in: schemas.InvoiceCreate,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Add invoice
+    """
+    invoice = crud.invoice.get_by_uuid(db, obj_in.invoice_uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if invoice.status != models.InvoiceStatusType.PROFORMA:
+        raise HTTPException(status_code=400, detail=__("invoice-not-proforma"))
+
+    return crud.invoice.create(db, invoice, obj_in)
 
