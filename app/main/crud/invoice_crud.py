@@ -153,10 +153,6 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         amount: float = payment.amount if payment.type == models.PaymentType.PARTIAL else invoice_obj.amount
         payment_obj = models.Payment(
             uuid=str(uuid4()),
-            full_name=payment.full_name,
-            card_number=payment.card_number,
-            expiration_date=payment.expiration_date,
-            cvc=payment.cvc,
             type=payment.type,
             method=payment.method,
             amount=payment.amount,
@@ -227,8 +223,51 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 )
                 db.add(new_item)
         db.commit()
-
+        total_amount: float = 0
+        for i_item in invoice_obj.items:
+            total_amount += i_item.amount
+        invoice_obj.amount = total_amount
+        db.commit()
         return invoice_obj
+
+    def create(self, db: Session, invoice_obj, obj_in: schemas.InvoiceCreate) -> models.Invoice:
+        total_amount: float = 0
+        for item in obj_in.items:
+            if item.total_hours and item.unit_price:
+                amount = item.total_hours * item.unit_price
+            else:
+                amount = item.unit_price
+
+            new_item = models.InvoiceItem(
+                uuid=str(uuid4()),
+                invoice_uuid=invoice_obj.uuid,
+                title_fr=item.title_fr,
+                title_en=item.title_en,
+                total_hours=item.total_hours,
+                unit_price=item.unit_price,
+                amount=amount
+            )
+            db.add(new_item)
+            total_amount += amount
+
+        ref_number = self.determine_invoice_id(db, invoice_obj.nursery)
+        new_invoice = models.Invoice(
+            uuid=str(uuid4()),
+            id=ref_number,
+            reference=f"{ref_number}-{invoice_obj.nursery.code}-{datetime.now().strftime('%m%y')}",
+            date_to=obj_in.date_to,
+            amount_paid=0,
+            amount_due=total_amount,
+            amount=total_amount,
+            child_uuid=invoice_obj.child_uuid,
+            nursery_uuid=invoice_obj.nursery_uuid,
+            parent_guest_uuid=invoice_obj.parent_guest_uuid,
+            contract_uuid=invoice_obj.contract_uuid,
+            client_account_uuid=invoice_obj.client_account_uuid
+        )
+        db.add(new_invoice)
+        db.commit()
+        return new_invoice
 
 
 invoice = CRUDInvoice(models.Invoice)

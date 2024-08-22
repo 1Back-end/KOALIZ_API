@@ -6,6 +6,7 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
+from app.main.schemas import AddressBase
 from app.main.schemas.base import Items, DataList
 from app.main.schemas.file import File
 
@@ -39,6 +40,8 @@ class InvoiceContract(BaseModel):
 class InvoiceNursery(BaseModel):
     uuid: str
     name: str
+    phone_number: str
+    address: AddressBase = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -134,10 +137,6 @@ class InvoiceList(DataList):
 
 
 class PaymentBase(BaseModel):
-    full_name: str
-    card_number: str
-    expiration_date: date
-    cvc: str
     type: models.PaymentType
     method: models.PaymentMethod
     amount: Optional[float] = Field(None, gt=0)
@@ -174,3 +173,11 @@ class ItemsCreateUpdate(BaseModel):
 class InvoiceUpdate(BaseModel):
     items: list[ItemsCreateUpdate] = []
     uuids_to_delete: list[str] = []
+
+
+class InvoiceCreate(BaseModel):
+    invoice_uuid: str
+    date_to: Optional[date] = None
+    invoicing_period_start: Optional[date] = None
+    invoicing_period_end: Optional[date] = None
+    items: list[ItemsCreateUpdate] = []

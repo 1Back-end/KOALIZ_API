@@ -137,6 +137,9 @@ def update_settings(
     if not quote:
         raise HTTPException(status_code=404, detail=__("quote-not-found"))
 
+    if quote.status != models.QuoteStatusType.PENDING:
+        raise HTTPException(status_code=400, detail=__("quote-no-more-editable"))
+
     if quote.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("quote-not-found"))
 
@@ -160,6 +163,9 @@ def update_settings(
 
     if quote.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("quote-not-found"))
+
+    if quote.status != models.QuoteStatusType.PENDING:
+        raise HTTPException(status_code=400, detail=__("quote-no-more-editable"))
 
     crud.quote.update_cmg(db, quote, obj_in)
     return schemas.Msg(message=__("quote-cmg-updated"))

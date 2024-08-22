@@ -19,13 +19,20 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.NurseryCreate,
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
 ):
     """
     Create nursery
     """
+    if current_user.role.code == "administrator" and not obj_in.owner_uuid:
+        raise HTTPException(status_code=400, detail=__("owner-required"))
 
-    return crud.nursery.create(db, obj_in, current_user.uuid)
+    current_user_uuid = current_user.uuid
+    if current_user.role.code == "owner":
+        obj_in.owner_uuid = current_user.uuid
+        current_user_uuid = None
+
+    return crud.nursery.create(db, obj_in, current_user_uuid)
 
 
 @router.put("/actived", response_model=schemas.Nursery, status_code=200)

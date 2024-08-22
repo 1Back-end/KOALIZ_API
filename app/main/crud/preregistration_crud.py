@@ -31,7 +31,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         if not folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
-        print("foldeer", folder.is_deleted)
         # Create the log tracking
         before_changes = schemas.PreregistrationDetails.model_validate(folder).model_dump()
         crud.audit_log.create(
@@ -62,9 +61,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
         exist_folder.status = status
-        if exist_folder.quote:
-            exist_folder.quote.status = status if status in [st.value for st in models.QuoteStatusType] else exist_folder.quote.status
-
         if status in ['REFUSED']:
             exist_folder.refused_date = datetime.now()
 
@@ -125,6 +121,9 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             # Insert planning for child
             # background_task.add_task(crud.child_planning.insert_planning, exist_folder.nursery, exist_folder.child, db)
             crud.child_planning.insert_planning(db=db, child=exist_folder.child, nursery=exist_folder.nursery)
+
+        if exist_folder.quote:
+            exist_folder.quote.status = status if status in [st.value for st in models.QuoteStatusType] else exist_folder.quote.status
 
         db.commit()
 

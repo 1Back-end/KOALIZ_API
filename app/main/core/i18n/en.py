@@ -130,4 +130,11 @@ translation = {
     "invoice-already-paid": "The invoice has already been paid",
     "invoice-still-proforma": "The invoice is still in proforma",
     "invoice-not-proforma": "The invoice is no longer in proforma",
+    "quote-no-more-editable": "The quote is no longer editable",
+    "owner-required": "Owner required",
+    "new-nursery": "New nursery",
+    "overlapping-periods": "Overlapping periods",
+    "membership-not-found": "Membership not found",
+
+
 }

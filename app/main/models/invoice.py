@@ -32,7 +32,7 @@ class Invoice(Base):
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
 
-    quote_uuid = Column(String, ForeignKey('quotes.uuid'), nullable=False)
+    quote_uuid = Column(String, ForeignKey('quotes.uuid'), nullable=True)
     quote: Mapped[any] = relationship("Quote", uselist=False) # , back_populates="invoices"
 
     parent_guest_uuid: str = Column(String, ForeignKey('parent_guests.uuid'), nullable=True)
@@ -225,10 +225,6 @@ class Payment(Base):
     __tablename__ = 'payments'
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
-    full_name = Column(String)
-    card_number = Column(String)
-    expiration_date = Column(Date)
-    cvc = Column(String)
     type = Column(types.Enum(PaymentType), nullable=False)
     method = Column(types.Enum(PaymentMethod), nullable=False)
     amount = Column(Float, default=0)

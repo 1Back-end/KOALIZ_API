@@ -136,4 +136,9 @@ translation = {
     "invoice-already-paid": "La facture a déjà été payée",
     "invoice-still-proforma": "La facture est toujours en proforma",
     "invoice-not-proforma": "La facture n'est plus en proforma",
+    "quote-no-more-editable": "Le devis n'est plus modifiable",
+    "owner-required": "Le gestionnaire est requis",
+    "new-nursery": "Nouvelle crèche",
+    "overlapping-periods": "Périodes qui se chevauchent",
+    "membership-not-found": "Adhésion non trouvée",
 }

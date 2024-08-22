@@ -51,6 +51,8 @@ class Nursery(BaseModel):
     address: Address
     owner: AddedBy
     memberships:Optional[list[Membership1]]=[]
+    current_membership:Optional[Membership1]
+
     date_added: datetime
     date_modified: datetime
 
@@ -84,7 +86,7 @@ class NurseryCreateBase(BaseModel):
     stamp_uuid: Optional[str] = None
     total_places: int = Body(0, ge=0)
     phone_number: str
-    owner_uuid: str
+    owner_uuid: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

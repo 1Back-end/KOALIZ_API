@@ -6,7 +6,7 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType,PipiStoolTypeEnum
+from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType,PipiStoolTypeEnum,PipiStoolTypeEnum
 from app.main.schemas import DataList, NurseryMini
 # from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
@@ -452,8 +452,6 @@ class HygieneChangeSlim(BaseModel):
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
-    pipi_stool_type: Optional[PipiStoolTypeEnum]= None
-    product: Optional[str]= None
     additional_care: Optional[AdditionalCare]= None
     observation: Optional[str]= None
     date_added: datetime
