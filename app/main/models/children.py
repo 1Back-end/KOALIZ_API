@@ -272,7 +272,6 @@ class HygieneChange(Base):
     cleanliness = Column(types.Enum(Cleanliness), nullable=False) # Propreté (Rien a signaler, Couche, Sur le pot, Aux toilettes)
     pipi = Column(Boolean, nullable=False, default=False)
     stool_type:str = Column(types.Enum(StoolType), nullable=True) # (Dures, normales, molles, liquides)
-    pipi_stool_type:str = Column(String, nullable=True) # (Dures, normales, molles, liquides)
     product:str = Column(String, nullable=True) # (Dures, normales, molles, liquides)
     additional_care = Column(types.Enum(AdditionalCare), nullable=True) # Soins complémentaires (Nez, yeux, Oreilles, Crème)
     observation = Column(Text, nullable=True)
