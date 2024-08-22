@@ -51,7 +51,7 @@ class Nursery(BaseModel):
     address: Address
     owner: AddedBy
     memberships:Optional[list[Membership1]]=[]
-    current_membership:Optional[Membership1]
+    current_membership:Optional[Membership1] = None
 
     date_added: datetime
     date_modified: datetime
