@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time
 
 from app.main.core.dependencies import TeamTokenRequired, get_db, TokenRequired
 from app.main import schemas, crud, models
@@ -123,19 +123,25 @@ def read_children_by_nursery(
 
     if current_team_device.nursery_uuid!=nursery_uuid:
         raise HTTPException(status_code=403, detail=__("not-authorized"))
+    try:
+        # date_obj = datetime.strptime(filter_date, "%Y-%m-%d").date()
+            # Combiner la date avec l'heure minuit pour obtenir un objet datetime
+        datetime_obj = datetime.combine(filter_date, datetime.min.time())
+    except:
+        raise HTTPException(status_code=400, detail=__("invalid-date-format"))
     
-    
-    return crud.nursery.get_children_by_nursery(
-        db=db, 
-        nursery_uuid=nursery_uuid,
-        child_uuid=child_uuid,
-        filter_date=filter_date
-        # page=page,
-        # per_page=per_page,
-        # order=order,
-        # order_filed=order_filed,
-        # keyword=keyword
-        )
+    finally:
+        return crud.nursery.get_children_by_nursery(
+            db=db, 
+            nursery_uuid=nursery_uuid,
+            child_uuid=child_uuid,
+            filter_date=datetime_obj
+            # page=page,
+            # per_page=per_page,
+            # order=order,
+            # order_filed=order_filed,
+            # keyword=keyword
+            )
 
 
 @router.get("/all/slim", response_model=list[schemas.OtherNurseryByGuest], status_code=200)
