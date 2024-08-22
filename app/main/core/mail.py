@@ -269,3 +269,53 @@ def send_reset_password_option2_email(email_to: str, name: str, token: str, vali
         },
     )
     logging.info(f"new send mail task with id {task}")
+
+
+def admin_send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> None:
+    project_name = Config.PROJECT_NAME
+    subject = f'{project_name} - {__("new-nursery", language)}'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "admin_new_nursery.html") as f:
+        template_str = f.read()
+
+    print("==================Start New Nursery Mail(Admin)===================")
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "user_name": data["user_name"],
+            "email": email_to,
+            "nursery_name": data["nursery_name"],
+            "owner_name": data["creator_name"],
+            "login_link": Config.ADMIN_LOGIN_LINK.format(language)
+        }
+    )
+    print("=====================End New Nursery Mail(Admin)===========================")
+
+
+
+def send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> None:
+    project_name = Config.PROJECT_NAME
+    subject = f'{project_name} - {__("new-nursery", language)}'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "new_nursery.html") as f:
+        template_str = f.read()
+
+    print("==================Start New Nursery Mail===================")
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "user_name": data["user_name"],
+            "email": email_to,
+            "nursery_name": data["nursery_name"],
+            "admin_name": data["creator_name"],
+            "login_link": Config.LOGIN_LINK.format(language)
+        }
+    )
+    print("=====================End New Nursery Mail===========================")
+

@@ -6,7 +6,8 @@ from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlalchemy import or_
 
-from app.main.core.i18n import __
+from app.main.core.i18n import __, get_language
+from app.main.core.mail import admin_send_new_nursery_email, send_new_nursery_email
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import crud, schemas, models
@@ -23,7 +24,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             .filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED])).first()
 
     @classmethod
-    def create(cls, db: Session, obj_in: schemas.NurseryCreate, current_user_uuid: str) -> models.Administrator:
+    def create(cls, db: Session, obj_in: schemas.NurseryCreate, current_user_uuid: str = None) -> models.Nursery:
 
         if obj_in.logo_uuid:
             logo = crud.storage.get(db=db, uuid=obj_in.logo_uuid)
@@ -84,6 +85,23 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         db.add(nursery)
         db.commit()
         db.refresh(nursery)
+        if not current_user_uuid:
+            for admin in crud.administrator.get_all_active(db):
+                print(f"admin email: {admin.email}")
+                data = {
+                    "user_name": f"{admin.firstname} {admin.lastname}".strip(),
+                    "nursery_name": nursery.name,
+                    "creator_name": f"{nursery.owner.firstname} {nursery.owner.lastname}".strip(),
+                }
+                admin_send_new_nursery_email(email_to=admin.email, data=data, language=get_language())
+        else:
+            data = {
+                "user_name": f"{nursery.owner.firstname} {nursery.owner.lastname}".strip(),
+                "nursery_name": nursery.name,
+                "creator_name": f"{nursery.added_by.firstname} {nursery.added_by.lastname}".strip(),
+            }
+            send_new_nursery_email(email_to=owner.email, data=data, language=get_language())
+
         return nursery
 
 

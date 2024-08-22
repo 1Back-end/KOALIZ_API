@@ -81,6 +81,8 @@ class ConfigClass(BaseSettings):
 
     RESET_PASSWORD_LINK: str = get_secret("RESET_PASSWORD_LINK", "https://app.development.koalizz.fr/{}/auth/reset-password")
     ADMIN_RESET_PASSWORD_LINK: str = get_secret("ADMIN_RESET_PASSWORD_LINK", "http://localhost:3000/{}/new-password")
+    LOGIN_LINK: str = get_secret("LOGIN_LINK", "https://app.development.koalizz.fr/{}/auth/login")
+    ADMIN_LOGIN_LINK: str = get_secret("ADMIN_LOGIN_LINK", "https://dashboard.development.koalizz.fr/{}/login")
 
     # Default image size
     IMAGE_MEDIUM_WIDTH: int = get_secret("IMAGE_MEDIUM_WIDTH", 600)
