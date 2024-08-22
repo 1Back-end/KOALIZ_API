@@ -31,7 +31,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         if not folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
-        print("foldeer", folder.is_deleted)
         # Create the log tracking
         before_changes = schemas.PreregistrationDetails.model_validate(folder).model_dump()
         crud.audit_log.create(
