@@ -16,17 +16,22 @@ def create(
     obj_in:list[schemas.MembershipCreate],
     current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
 ):
-    errors =[]
+    memberships_errors =[]
+    nursery_errors = []
     for membership in obj_in:
         exist_nursery = crud.nursery.get_by_uuid(db, membership.nursery_uuid)
         
         exist_membership = db.query(models.Membership).filter_by(uuid = membership.membership_uuid).first()
 
         if not exist_membership or not exist_nursery:
-            errors.append(f"Membership {membership.membership_uuid} or {membership.nursery_uuid} not found")
+            memberships_errors.append(f"Membership {membership.membership_uuid}")
+        if not exist_nursery:
+            nursery_errors.append(f"Nursery {membership.nursery_uuid}")
         
+    key_error ="nursery-not-found" if nursery_errors else "memebership-not-found" if memberships_errors else None
+    errors = memberships_errors if memberships_errors else  nursery_errors if nursery_errors else []
     if len(errors)>0:
-        raise HTTPException(status_code=404, detail=f"{errors}")
+        raise HTTPException(status_code=404, detail=__(f"{key_error}"))
     
     nursery_existing_memberships = crud.membership.get_by_nursery_uuid(db, [membership.nursery_uuid for membership in obj_in])
     
