@@ -39,7 +39,7 @@ class Nursery(Base):
     address_uuid: str = Column(String, ForeignKey('addresses.uuid'), nullable=False)
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
 
-    status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.ACTIVED)
+    status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.UNACTIVED)
     slug: str = Column(String, index=True, default="", unique=True, nullable=False)
     code: str = Column(String, default="")
     website: str = Column(String, default="")

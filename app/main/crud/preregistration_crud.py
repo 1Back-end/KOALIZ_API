@@ -62,9 +62,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
         exist_folder.status = status
-        if exist_folder.quote:
-            exist_folder.quote.status = status if status in [st.value for st in models.QuoteStatusType] else exist_folder.quote.status
-
         if status in ['REFUSED']:
             exist_folder.refused_date = datetime.now()
 
@@ -125,6 +122,9 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             # Insert planning for child
             # background_task.add_task(crud.child_planning.insert_planning, exist_folder.nursery, exist_folder.child, db)
             crud.child_planning.insert_planning(db=db, child=exist_folder.child, nursery=exist_folder.nursery)
+
+        if exist_folder.quote:
+            exist_folder.quote.status = status if status in [st.value for st in models.QuoteStatusType] else exist_folder.quote.status
 
         db.commit()
 
@@ -694,14 +694,9 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
         db.commit()
         db.refresh(child)
-        print(f"+++++++++++++pre_registration_uuids {preregistration_uuids}+++++++++++++")
 
         for preregistration_uuid in preregistration_uuids:
-            print("====Before generation====")
-            print(preregistration_uuid)
-            print(cls.generate_quote(cls, db, preregistration_uuid))
-            print("====After generation====")
-            # background_task.add_task(cls.generate_quote, cls, db, preregistration_uuid)
+            background_task.add_task(cls.generate_quote, cls, db, preregistration_uuid)
 
         return child
 
