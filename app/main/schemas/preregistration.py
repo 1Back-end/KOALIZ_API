@@ -452,6 +452,7 @@ class HygieneChangeSlim(BaseModel):
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
+    product:Optional[str] = None
     additional_care: Optional[AdditionalCare]= None
     observation: Optional[str]= None
     date_added: datetime
