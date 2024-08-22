@@ -104,7 +104,7 @@ def set_pending(
 
     return crud.invoice.update_status(db, invoice, models.InvoiceStatusType.PENDING)
 
-# Endpoint to update/add invoice items
+
 @router.put("/{uuid}/items", response_model=schemas.InvoiceDetails)
 def update_items(
         uuid: str,

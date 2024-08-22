@@ -225,10 +225,6 @@ class Payment(Base):
     __tablename__ = 'payments'
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
-    full_name = Column(String)
-    card_number = Column(String)
-    expiration_date = Column(Date)
-    cvc = Column(String)
     type = Column(types.Enum(PaymentType), nullable=False)
     method = Column(types.Enum(PaymentMethod), nullable=False)
     amount = Column(Float, default=0)
