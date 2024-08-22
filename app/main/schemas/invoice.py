@@ -173,3 +173,11 @@ class ItemsCreateUpdate(BaseModel):
 class InvoiceUpdate(BaseModel):
     items: list[ItemsCreateUpdate] = []
     uuids_to_delete: list[str] = []
+
+
+class InvoiceCreate(BaseModel):
+    invoice_uuid: str
+    date_to: Optional[date] = None
+    invoicing_period_start: Optional[date] = None
+    invoicing_period_end: Optional[date] = None
+    items: list[ItemsCreateUpdate] = []
