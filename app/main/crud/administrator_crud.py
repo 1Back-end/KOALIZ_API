@@ -152,6 +152,8 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
             data =record_query
         )
 
+    def get_all_active(self, db):
+        return db.query(models.Administrator).filter(models.Administrator.status == models.UserStatusType.ACTIVED).all()
 
     @classmethod
     def authenticate(cls, db: Session, email: str, password: str, role_group: str) -> Optional[models.Administrator]:
