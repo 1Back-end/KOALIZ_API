@@ -694,6 +694,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
         db.commit()
         db.refresh(child)
+        print(f"+++++++++++++pre_registration_uuids {preregistration_uuids}+++++++++++++")
 
         for preregistration_uuid in preregistration_uuids:
             background_task.add_task(cls.generate_quote, cls, db, preregistration_uuid)
