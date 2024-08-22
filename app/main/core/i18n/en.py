@@ -133,4 +133,8 @@ translation = {
     "quote-no-more-editable": "The quote is no longer editable",
     "owner-required": "Owner required",
     "new-nursery": "New nursery",
+    "overlapping-periods": "Overlapping periods",
+    "membership-not-found": "Membership not found",
+
+
 }

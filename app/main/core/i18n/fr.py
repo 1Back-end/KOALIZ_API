@@ -139,4 +139,6 @@ translation = {
     "quote-no-more-editable": "Le devis n'est plus modifiable",
     "owner-required": "Le gestionnaire est requis",
     "new-nursery": "Nouvelle crèche",
+    "overlapping-periods": "Périodes qui se chevauchent",
+    "membership-not-found": "Adhésion non trouvée",
 }
