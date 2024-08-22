@@ -137,10 +137,6 @@ class InvoiceList(DataList):
 
 
 class PaymentBase(BaseModel):
-    full_name: str
-    card_number: str
-    expiration_date: date
-    cvc: str
     type: models.PaymentType
     method: models.PaymentMethod
     amount: Optional[float] = Field(None, gt=0)

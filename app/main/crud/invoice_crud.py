@@ -153,10 +153,6 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         amount: float = payment.amount if payment.type == models.PaymentType.PARTIAL else invoice_obj.amount
         payment_obj = models.Payment(
             uuid=str(uuid4()),
-            full_name=payment.full_name,
-            card_number=payment.card_number,
-            expiration_date=payment.expiration_date,
-            cvc=payment.cvc,
             type=payment.type,
             method=payment.method,
             amount=payment.amount,
