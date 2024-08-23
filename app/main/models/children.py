@@ -20,6 +20,7 @@ class MealQuality(str, Enum):
 class MealTypeEnum(str, Enum):
     BOTTLE_FEEDING = "BOTTLE_FEEDING" #Le biberon
     BREAST_FEEDING = "BREAST_FEEDING" #l'allaitement
+    OTHER = "OTHER" #
 
 
 class AbsenceStatusEnum(str,Enum):
@@ -48,6 +49,7 @@ class Meal(Base):
     meal_quality = Column(types.Enum(MealQuality), nullable=False) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     meal_type = Column(String, nullable=True,) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     observation = Column(Text, nullable=True) # Observation
+    product = Column(Text, nullable=True) # Produit
     is_deleted: bool = Column(Boolean, default=False)
 
 
@@ -64,6 +66,7 @@ class Meal(Base):
     date_modified: any = Column(DateTime, server_default=func.now())
 
 
+    
 # Table d'association many-to-many entre Activity et Category
 activity_category_table = Table('activity_category', Base.metadata,
     Column('activity_uuid', String, ForeignKey('activities.uuid'), primary_key=True),
@@ -271,7 +274,6 @@ class HygieneChange(Base):
     cleanliness = Column(types.Enum(Cleanliness), nullable=False) # Propreté (Rien a signaler, Couche, Sur le pot, Aux toilettes)
     pipi = Column(Boolean, nullable=False, default=False)
     stool_type:str = Column(types.Enum(StoolType), nullable=True) # (Dures, normales, molles, liquides)
-    pipi_stool_type:str = Column(String, nullable=True) # (Dures, normales, molles, liquides)
     product:str = Column(String, nullable=True) # (Dures, normales, molles, liquides)
     additional_care = Column(types.Enum(AdditionalCare), nullable=True) # Soins complémentaires (Nez, yeux, Oreilles, Crème)
     observation = Column(Text, nullable=True)

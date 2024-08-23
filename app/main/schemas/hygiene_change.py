@@ -17,8 +17,7 @@ class HygieneChangeBase(BaseModel):
     time: Optional[datetime]= None
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
-    stool_type: Optional[StoolType] = None
-    pipi_stool_type: Optional[PipiStoolTypeEnum] = None
+    stool_type: StoolType
     additional_care: Optional[AdditionalCare]= None
     product:Optional[str] = None
     observation: Optional[str]= None
@@ -40,8 +39,8 @@ class HygieneChange(BaseModel):
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
-    pipi_stool_type: Optional[PipiStoolTypeEnum] = None
     additional_care: Optional[AdditionalCare]= None
+    status: Optional[str]= None
     product:Optional[str] = None
     observation: Optional[str]= None
     date_added: datetime
@@ -55,9 +54,9 @@ class HygieneChangeMini(BaseModel):
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
-    pipi_stool_type: Optional[PipiStoolTypeEnum] = None
     additional_care: Optional[AdditionalCare]= None
     product:Optional[str] = None
+    status: Optional[str]= None
     observation: Optional[str]= None
     date_added: datetime
     date_modified: datetime

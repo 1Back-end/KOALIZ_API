@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Text
 
 from fastapi import Body, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
@@ -6,7 +6,7 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType
+from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, MealTypeEnum, NapQuality, Route, StoolType,PipiStoolTypeEnum,PipiStoolTypeEnum
 from app.main.schemas import DataList, NurseryMini
 # from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
@@ -368,7 +368,6 @@ class PreregistrationSlim(BaseModel):
     child: ChildMini2
     pre_contract: PreContractSlim
     status: str = None
-    is_deleted:Optional[bool]
     tags: Optional[list[Tag]] = []
 
     model_config = ConfigDict(from_attributes=True)
@@ -406,8 +405,10 @@ class MealSlim(BaseModel):
     # child: Optional[ChildMini2] = None
     meal_time: Optional[datetime] = None
     bottle_milk_ml: Optional[int] = None
-    breastfeeding_duration_minutes: Optional[int] = None
+    # breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
+    meal_type:Optional[MealTypeEnum] = None
+    product:Optional[Text] = None
     observation: Optional[str] = None    
     # nursery: Optional[NurserySlim]=None
     # added_by: Optional[EmployeBase]=None
@@ -453,6 +454,7 @@ class HygieneChangeSlim(BaseModel):
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
+    product:Optional[str] = None
     additional_care: Optional[AdditionalCare]= None
     observation: Optional[str]= None
     date_added: datetime

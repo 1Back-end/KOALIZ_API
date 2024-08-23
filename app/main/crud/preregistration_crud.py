@@ -31,7 +31,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         if not folder:
             raise HTTPException(status_code=404, detail=__("folder-not-found"))
 
-        print("foldeer", folder.is_deleted)
         # Create the log tracking
         before_changes = schemas.PreregistrationDetails.model_validate(folder).model_dump()
         crud.audit_log.create(
@@ -45,6 +44,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         )
 
         folder.status = models.PreRegistrationStatusType.DELETED
+        folder.quote.status = models.QuoteStatusType.DELETED
         db.commit()
 
     @classmethod
@@ -62,9 +62,6 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         before_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
 
         exist_folder.status = status
-        if exist_folder.quote:
-            exist_folder.quote.status = status if status in [st.value for st in models.QuoteStatusType] else exist_folder.quote.status
-
         if status in ['REFUSED']:
             exist_folder.refused_date = datetime.now()
 
@@ -126,6 +123,9 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             # background_task.add_task(crud.child_planning.insert_planning, exist_folder.nursery, exist_folder.child, db)
             crud.child_planning.insert_planning(db=db, child=exist_folder.child, nursery=exist_folder.nursery)
 
+        if exist_folder.quote:
+            exist_folder.quote.status = status if status in [st.value for st in models.QuoteStatusType] else exist_folder.quote.status
+
         db.commit()
 
         after_changes = schemas.PreregistrationDetails.model_validate(exist_folder).model_dump()
@@ -142,13 +142,14 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
 
         # Update others folders with refused status
         if status in ['ACCEPTED']:
-            others_folders = db.query(models.PreRegistration).\
+            others_folders: list[models.PreRegistration] = db.query(models.PreRegistration).\
                 filter(models.PreRegistration.uuid!=folder_uuid).\
-                filter(models.PreRegistration.child_uuid==exist_folder.child_uuid).\
+                filter(models.PreRegistration.child_uuid == exist_folder.child_uuid).\
                 all()
             for folder in others_folders:
                 folder.status = models.PreRegistrationStatusType.REFUSED
                 folder.refused_date = datetime.now()
+                folder.quote.status = models.QuoteStatusType.REFUSED
                 db.commit()
 
         return exist_folder
@@ -214,6 +215,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         contract.begin_date=obj_in.pre_contract.begin_date,
         contract.end_date=obj_in.pre_contract.end_date,
         contract.typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
+
+        # crud.child_planning.insert_planning(db=db, child=preregistration.child, nursery=preregistration.nursery)
 
         # Delete the old parents data
         db.query(models.ParentGuest).\
@@ -309,6 +312,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         contract.end_date=obj_in.pre_contract.end_date,
         contract.typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
 
+        # crud.child_planning.insert_planning(db=db, child=preregistration.child, nursery=preregistration.nursery)
+
         # Delete the old parents data
         db.query(models.ParentGuest).\
             filter(models.ParentGuest.child_uuid==child.uuid).\
@@ -351,6 +356,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 preregistration.code = code
                 preregistration.note = obj_in.note if obj_in.note else preregistration.note
                 db.commit()
+
 
         db.commit()
         db.refresh(child)
@@ -459,6 +465,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         ]
 
         quote: models.Quote = db.query(models.Quote).filter(
+            models.Quote.status != models.QuoteStatusType.DELETED).filter(
             models.Quote.preregistration_uuid == exist_preregistration.uuid).filter(
             models.Quote.nursery_uuid == exist_preregistration.nursery_uuid).first()
 

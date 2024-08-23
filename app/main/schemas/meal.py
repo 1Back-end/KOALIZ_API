@@ -1,7 +1,7 @@
 from enum import Enum
 from pydantic import BaseModel,ConfigDict
 from datetime import datetime
-from typing import Optional
+from typing import Optional,Text
 
 from app.main.models.children import MealQuality,MealTypeEnum
 from app.main.schemas.base import DataList
@@ -16,6 +16,7 @@ class MealBase(BaseModel):
     bottle_milk_ml: Optional[int] = None
     meal_quality: Optional[MealQuality]=None
     meal_type:MealTypeEnum
+    product:Optional[Text] = None
     observation: Optional[str] = None
     nursery_uuid: str
     child_uuids: list[str]
@@ -29,10 +30,11 @@ class MealUpdate(BaseModel):
     uuid: str
     meal_time: Optional[datetime] = None
     bottle_milk_ml: Optional[int] = None
-    breastfeeding_duration_minutes: Optional[int] = None
+    # breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
     meal_type:MealTypeEnum
     observation: Optional[str] = None
+    product:Optional[Text] = None
     nursery_uuid: str
     child_uuids: list[str]
     employee_uuid: str 
@@ -43,11 +45,12 @@ class MealResponse(BaseModel):
     child: Optional[ChildMini2] = None
     meal_time: Optional[datetime] = None
     bottle_milk_ml: Optional[int] = None
-    breastfeeding_duration_minutes: Optional[int] = None
+    # breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
-    meal_type: MealTypeEnum
+    meal_type: Optional[MealTypeEnum] = None
     observation: Optional[str] = None    
     nursery: Optional[NurserySlim]=None
+    product:Optional[Text] = None
     added_by: Optional[EmployeBase]=None
     date_added: datetime
     date_modified: datetime

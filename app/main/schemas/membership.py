@@ -40,9 +40,9 @@ class MembershipUpdate(BaseModel):
     membership_type_uuid:Optional[str]  = None
 
 class MembershipTypeSlim(BaseModel):
-    uuid: Optional[str]=None
-    title_fr: Optional[str] =None
-    title_en: Optional[str] =None
+    uuid: str
+    title_fr: str
+    title_en: str
     description: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
@@ -81,7 +81,7 @@ class MembershipResponse(MembershipBase):
     uuid: str
     status: str
     duration:float
-    nursery:Nursery2
+    membership_type:MembershipTypeSlim
     date_added: datetime
     date_modified: datetime
     model_config = ConfigDict(from_attributes=True)
