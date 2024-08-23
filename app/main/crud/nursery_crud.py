@@ -401,7 +401,49 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                             models.Media.date_modified.between(start_date,end_date)).\
                     all()
                 
-            
+            else:
+                child.meals = db.query(models.Meal).\
+                    filter(models.Meal.child_uuid == child.uuid, 
+                            models.Meal.is_deleted !=True,
+                            models.Meal.nursery_uuid == nursery_uuid).\
+                            all()
+                
+                print("exist-meal",child.meals)
+                child.activities = db.query(models.ChildActivity).\
+                    filter(models.ChildActivity.child_uuid == child.uuid,models.ChildActivity.status != models.AbsenceStatusEnum.DELETED,
+                            models.ChildActivity.nursery_uuid == nursery_uuid,
+                            ).\
+                            all()
+                
+                child.naps = db.query(models.Nap).\
+                    filter(models.Nap.child_uuid == child.uuid,
+                            models.Nap.status !=models.AbsenceStatusEnum.DELETED,
+                            models.Nap.nursery_uuid == nursery_uuid,
+                            ).\
+                            all()
+                child.health_records = db.query(models.HealthRecord).\
+                    filter(models.HealthRecord.child_uuid == child.uuid,
+                            models.HealthRecord.status !=models.AbsenceStatusEnum.DELETED,
+                            models.HealthRecord.nursery_uuid == nursery_uuid,
+                            ).\
+                            all()
+                child.hygiene_changes = db.query(models.HygieneChange).\
+                    filter(models.HygieneChange.child_uuid == child.uuid,
+                            models.HygieneChange.status!= models.AbsenceStatusEnum.DELETED,
+                            models.HygieneChange.nursery_uuid == nursery_uuid,
+                            ).\
+                            all()
+                child.observations = db.query(models.Observation).\
+                    filter(models.Observation.child_uuid == child.uuid,
+                            models.Observation.status !=models.AbsenceStatusEnum.DELETED,
+                            models.Observation.nursery_uuid == nursery_uuid,
+                            ).\
+                            all()
+                child.media = db.query(models.Media).\
+                    filter(models.Media.uuid.in_(media_uuids),
+                            models.Media.status!=models.AbsenceStatusEnum.DELETED, 
+                            ).\
+                                all()
 
         # if keyword:
         #     children = children.filter(
