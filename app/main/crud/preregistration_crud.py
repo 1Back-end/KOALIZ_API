@@ -143,7 +143,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         if status in ['ACCEPTED']:
             others_folders: list[models.PreRegistration] = db.query(models.PreRegistration).\
                 filter(models.PreRegistration.uuid!=folder_uuid).\
-                filter(models.PreRegistration.child_uuid==exist_folder.child_uuid).\
+                filter(models.PreRegistration.child_uuid == exist_folder.child_uuid).\
                 all()
             for folder in others_folders:
                 folder.status = models.PreRegistrationStatusType.REFUSED
