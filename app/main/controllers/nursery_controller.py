@@ -120,7 +120,7 @@ def read_children_by_nursery(
     # order: str = Query("desc", enum=["asc", "desc"]),
     # order_filed: str = "date_added",
     # keyword: Optional[str] = None,
-    filter_date:Optional[datetime] = None,
+    filter_date:Optional[date] = None,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
@@ -135,7 +135,7 @@ def read_children_by_nursery(
         db=db, 
         nursery_uuid=nursery_uuid,
         child_uuid=child_uuid,
-        filter_date=filter_date
+        filter_date=datetime.combine(filter_date, datetime.max.time()) if filter_date else None
         # page=page,
         # per_page=per_page,
         # order=order,
