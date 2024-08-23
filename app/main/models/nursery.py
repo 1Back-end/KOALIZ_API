@@ -35,8 +35,8 @@ class Nursery(Base):
 
     total_places: int = Column(Integer, default=0)
     phone_number: str = Column(String, nullable=False, default="")
-    memberships = relationship("Membership",secondary="nursery_memberships",back_populates="nurseries",overlaps="nursery, memberships")
-    
+    # memberships = relationship("Membership",secondary="nursery_memberships",back_populates="nurseries",overlaps="nursery, memberships")
+    memberships = relationship("NurseryMemberships", back_populates="nursery")
     address_uuid: str = Column(String, ForeignKey('addresses.uuid'), nullable=False)
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
 
@@ -60,51 +60,19 @@ class Nursery(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
-    # @hybrid_property
-    # def nb_memberships(self) -> int:
-    #     return len(self.memberships ) if self.memberships else 0
+    @hybrid_property
+    def nb_memberships(self) -> int:
+        return len(self.memberships ) if self.memberships else 0
     
     @hybrid_property
     def current_membership(self):
         from app.main.models import Membership,NurseryMemberships,MembershipEnum
-        from app.main.models.db.session import SessionLocal
-        from fastapi.encoders import jsonable_encoder
-
-        db = SessionLocal()
-        response = None
-        try:
-            if self.memberships:
-                response = db.query(Membership). \
-                    join(NurseryMemberships, self.uuid==NurseryMemberships.nursery_uuid ). \
-                    filter(NurseryMemberships.status == MembershipEnum.ACTIVED). \
-                    order_by(desc(NurseryMemberships.date_modified)). \
-                    first()
-        except Exception as e:
-            print("error",e)
+        if self.memberships:
+            for membership in self.memberships:
+                if membership.status == MembershipEnum.ACTIVED:
+                    return membership
+        else:
             return None
-        finally:
-            db.close()
-            return response
-    
-    @hybrid_property
-    def list_memberships(self):
-        from app.main.models import Membership,NurseryMemberships,MembershipEnum
-        from app.main.models.db.session import SessionLocal
-        from fastapi.encoders import jsonable_encoder
-
-        db = SessionLocal()
-        try:
-            if self.memberships:
-                response = db.query(Membership).\
-                    join(NurseryMemberships, self.uuid==NurseryMemberships.nursery_uuid ).\
-                        order_by(desc(NurseryMemberships.date_added)).\
-                        all()
-        except Exception as e:
-            print("error",e)
-            return None
-        finally:
-            db.close()
-            return jsonable_encoder(response)
     
     def __repr__(self):
         return '<Nursery: uuid: {} email: {}>'.format(self.uuid, self.email)
