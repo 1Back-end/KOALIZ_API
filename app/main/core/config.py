@@ -22,7 +22,7 @@ class ConfigClass(BaseSettings):
     ADMIN_PASSWORD: str = get_secret("ADMIN_PASSWORD", "JXunRJ1r3g")
 
     PROJECT_NAME: str = get_secret("PROJECT_NAME", "KOALIZZ API")
-    EMAIL_PROJECT_NAME: str = get_secret("PROJECT_NAME", "KOALIZZ")
+    EMAIL_PROJECT_NAME: str = get_secret("EMAIL_PROJECT_NAME", "KOALIZZ")
     PROJECT_VERSION: str = get_secret("PROJECT_VERSION", "0.0.1")
     PREFERRED_LANGUAGE: str = get_secret("PREFERRED_LANGUAGE", 'fr')
     API_STR: str = get_secret("API_STR", "/api/v1")
