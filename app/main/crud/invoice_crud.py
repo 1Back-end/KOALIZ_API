@@ -155,12 +155,12 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 models.Invoice.child_uuid == child_uuid,
                 models.Invoice.status != models.InvoiceStatusType.PROFORMA,
                 # models.Invoice.date_to < current_date
-            ).scalar(),
+            ).scalar() or 0,
             "PENDING": db.query(func.sum(models.Invoice.amount_due)).filter(
                 models.Invoice.child_uuid == child_uuid,
                 models.Invoice.status.notin_([models.InvoiceStatusType.PAID, models.InvoiceStatusType.PROFORMA]),
                 models.Invoice.date_to < current_date
-            ).scalar(),
+            ).scalar() or 0,
             "UPCOMING": db.query(func.sum(models.Invoice.amount)).filter(
                 models.Invoice.child_uuid == child_uuid,
                 or_(
@@ -170,7 +170,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                     ),
                     models.Invoice.status == models.InvoiceStatusType.PROFORMA
                 )
-            ).scalar()
+            ).scalar() or 0
         }
 
     def create_payment(self, db: Session, invoice_obj: models.Invoice, payment: schemas.PaymentCreate) -> models.Payment:
