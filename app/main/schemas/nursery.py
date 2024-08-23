@@ -70,6 +70,7 @@ class NurserySlim(BaseModel):
 class NurserySlim1(BaseModel):
     uuid: str
     name: str
+    slug: str
     logo: Optional[File]
     address: AddressSLim
     is_actived:Optional[bool]=None
