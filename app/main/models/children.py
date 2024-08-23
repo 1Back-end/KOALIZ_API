@@ -20,6 +20,7 @@ class MealQuality(str, Enum):
 class MealTypeEnum(str, Enum):
     BOTTLE_FEEDING = "BOTTLE_FEEDING" #Le biberon
     BREAST_FEEDING = "BREAST_FEEDING" #l'allaitement
+    OTHER = "OTHER" #
 
 
 class AbsenceStatusEnum(str,Enum):
@@ -48,6 +49,7 @@ class Meal(Base):
     meal_quality = Column(types.Enum(MealQuality), nullable=False) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     meal_type = Column(String, nullable=True,) # Comment l’enfant a manger (Pas, Peu, Bien, Très)
     observation = Column(Text, nullable=True) # Observation
+    product = Column(Text, nullable=True) # Produit
     is_deleted: bool = Column(Boolean, default=False)
 
 
