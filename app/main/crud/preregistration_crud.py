@@ -44,6 +44,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         )
 
         folder.status = models.PreRegistrationStatusType.DELETED
+        folder.quote.status = models.QuoteStatusType.DELETED
         db.commit()
 
     @classmethod
@@ -464,6 +465,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         ]
 
         quote: models.Quote = db.query(models.Quote).filter(
+            models.Quote.status != models.QuoteStatusType.DELETED).filter(
             models.Quote.preregistration_uuid == exist_preregistration.uuid).filter(
             models.Quote.nursery_uuid == exist_preregistration.nursery_uuid).first()
 

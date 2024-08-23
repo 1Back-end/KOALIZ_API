@@ -12,8 +12,8 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Quote]:
-        return db.query(models.Quote).filter(models.Quote.uuid == uuid).first()
-
+        return db.query(models.Quote).filter(models.Quote.status != models.QuoteStatusType.DELETED).filter(
+            models.Quote.uuid == uuid).first()
 
     @classmethod
     def update_status(cls, db: Session, quote_obj: models.Quote, status: models.QuoteStatusType) -> models.Quote:
@@ -35,7 +35,10 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             status: Optional[str] = None,
             tag_uuid: str = None
     ):
-        record_query = db.query(models.Quote).filter(models.Quote.nursery_uuid==nursery_uuid).filter(models.Quote.nursery.has(models.Nursery.owner_uuid==owner_uuid))
+        record_query = db.query(models.Quote).filter(models.Quote.status != models.QuoteStatusType.DELETED).filter(
+            models.Quote.nursery_uuid == nursery_uuid).filter(
+            models.Quote.nursery.has(models.Nursery.owner_uuid == owner_uuid))
+
         if status:
             record_query = record_query.filter(models.Quote.status == status)
 

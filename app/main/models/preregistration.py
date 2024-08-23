@@ -23,6 +23,7 @@ class QuoteStatusType(str, Enum):
     ACCEPTED = "ACCEPTED"
     PENDING = "PENDING"
     REFUSED = "REFUSED"
+    DELETED = "DELETED"
 
 
 class Gender(str, Enum):
