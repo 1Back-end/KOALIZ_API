@@ -10,13 +10,13 @@ from .base import DataList
 
 
 class NapBase(BaseModel):
-    nursery_uuid: Optional[str] = None
-    child_uuid_tab: Optional[list[str]]
-    employee_uuid: Optional[str] = None
+    nursery_uuid: str 
+    child_uuid_tab: list[str]
+    employee_uuid: str
     observation: Optional[str] = None
-    quality: Optional[NapQuality] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    quality: NapQuality
+    start_time: datetime
+    end_time: datetime
 
 
 class NapCreate(NapBase):
@@ -25,6 +25,10 @@ class NapCreate(NapBase):
 
 class NapUpdate(NapBase):
     uuid: str
+    quality: Optional[NapQuality] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+
 
 class Nap(BaseModel):
     uuid: Optional[str] = None

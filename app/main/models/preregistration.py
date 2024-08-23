@@ -19,10 +19,10 @@ class PreRegistrationStatusType(str, Enum):
     REFUSED = "REFUSED"
     DELETED = "DELETED"
 
-    class QuoteStatusType(str, Enum):
-        ACCEPTED = "ACCEPTED"
-        PENDING = "PENDING"
-        REFUSED = "REFUSED"
+class QuoteStatusType(str, Enum):
+    ACCEPTED = "ACCEPTED"
+    PENDING = "PENDING"
+    REFUSED = "REFUSED"
 
 
 class Gender(str, Enum):

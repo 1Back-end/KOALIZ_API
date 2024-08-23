@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time
 
 from app.main.core.dependencies import TeamTokenRequired, get_db, TokenRequired
 from app.main import schemas, crud, models
@@ -130,13 +130,12 @@ def read_children_by_nursery(
 
     if current_team_device.nursery_uuid!=nursery_uuid:
         raise HTTPException(status_code=403, detail=__("not-authorized"))
-    
-    
+
     return crud.nursery.get_children_by_nursery(
         db=db, 
         nursery_uuid=nursery_uuid,
         child_uuid=child_uuid,
-        filter_date=filter_date
+        filter_date=datetime.combine(filter_date, datetime.max.time()) if filter_date else None
         # page=page,
         # per_page=per_page,
         # order=order,
