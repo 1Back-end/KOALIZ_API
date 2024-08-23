@@ -33,6 +33,7 @@ from .absence_controller import router as absence
 from .attendance_controller import router as attendance
 from .activity_category_controller import router as activity_category
 from .activity_controller import router as activity_controller
+from .copy_parameters_controller import router as copy_parameters_controller
 api_router = APIRouter()
 
 api_router.include_router(audit_logs)
@@ -67,3 +68,4 @@ api_router.include_router(meal_controller)
 api_router.include_router(employee)
 api_router.include_router(activity_controller)
 api_router.include_router(activity_category)
+api_router.include_router(copy_parameters_controller)
