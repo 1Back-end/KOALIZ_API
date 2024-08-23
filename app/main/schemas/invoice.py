@@ -99,7 +99,7 @@ class InvoiceDetails(BaseModel):
     client_account: Optional[InvoiceClientAccount] = None
 
     items: list[InvoiceTimeTableItem] = []
-    invoices_statistic: dict[str, Optional[float]] = {}
+    invoices_statistic: dict[str, float] = {}
     payments: list[PaymentSlim] = []
 
     model_config = ConfigDict(from_attributes=True)
