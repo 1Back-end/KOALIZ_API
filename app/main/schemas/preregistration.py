@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Text
 
 from fastapi import Body, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
@@ -405,9 +405,10 @@ class MealSlim(BaseModel):
     # child: Optional[ChildMini2] = None
     meal_time: Optional[datetime] = None
     bottle_milk_ml: Optional[int] = None
-    breastfeeding_duration_minutes: Optional[int] = None
+    # breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
     meal_type:Optional[MealTypeEnum] = None
+    product:Optional[Text] = None
     observation: Optional[str] = None    
     # nursery: Optional[NurserySlim]=None
     # added_by: Optional[EmployeBase]=None

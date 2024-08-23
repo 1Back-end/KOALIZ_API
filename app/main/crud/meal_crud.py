@@ -82,6 +82,7 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
                 meal_quality=obj_in.meal_quality,
                 meal_type = obj_in.meal_type,
                 observation=obj_in.observation,
+                product = obj_in.product,
                 nursery_uuid=obj_in.nursery_uuid,
                 child_uuid=child_uuid,
                 added_by_uuid=obj_in.employee_uuid
@@ -112,6 +113,7 @@ class CRUDMeal(CRUDBase[models.Meal,schemas.MealCreate, schemas.MealUpdate]):
                 exist_meal_for_child.meal_quality = obj_in.meal_quality if obj_in.meal_quality else exist_meal_for_child.meal_quality
                 exist_meal_for_child.observation = obj_in.observation if obj_in.observation else exist_meal_for_child.observation,
                 exist_meal_for_child.meal_time = obj_in.meal_time if obj_in.meal_time else exist_meal_for_child.meal_time
+                exist_meal_for_child.product = obj_in.product if obj_in.product else exist_meal_for_child.product
                 db.flush()
         # Commit the changes to the database
         db.commit()
