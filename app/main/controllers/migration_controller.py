@@ -306,7 +306,7 @@ async def create_membership(
                     #   db_obj.description = data["description"] if data["description"] else None
                     
                     db_obj.status = data["status"]
-                    db_obj.period_unit = data["perido_unit"]
+                    db_obj.period_unit = data["period_unit"]
                     db_obj.period_from = data["period_from"]
 
                     db_obj.period_to = data["period_to"]
