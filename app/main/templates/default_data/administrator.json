@@ -12,8 +12,6 @@
     "otp_password": null,
     "otp_password_expired_at": null,
     "password_hash": "Passw0rd",
-    "status": "ACTIVED",
-    "date_added": "2024-07-18 17:41:22.486327",
-    "date_modified": "2024-07-18 17:41:22.486339"
+    "status": "ACTIVED"
   }
 ]
