@@ -135,6 +135,5 @@ translation = {
     "new-nursery": "New nursery",
     "overlapping-periods": "Overlapping periods",
     "membership-not-found": "Membership not found",
-
-
+    "payment-amount-exceeds": "The payment amount exceeds the amount due",
 }

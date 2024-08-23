@@ -141,4 +141,5 @@ translation = {
     "new-nursery": "Nouvelle crèche",
     "overlapping-periods": "Périodes qui se chevauchent",
     "membership-not-found": "Adhésion non trouvée",
+    "payment-amount-exceeds": "Le montant du paiement dépasse le montant total de la facture",
 }
