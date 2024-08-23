@@ -317,8 +317,6 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             PreRegistration.status == PreRegistrationStatusType.ACCEPTED
         ).all()
 
-        print("accepted_preregistrations",accepted_preregistrations[0].status)
-        
         # Récupérer les UUIDs des enfants acceptés
         child_uuids = [preregistration.child_uuid for preregistration in accepted_preregistrations if preregistration.child_uuid]
 
@@ -337,8 +335,6 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                     filter(models.ChildPlanning.current_date.between(models.ChildPlanning.current_date,end_date)).\
                     all()
             ]
-
-            print("child_uuids123",child_uuids)
 
         # Filtrer les enfants par UUID et is_accepted
         children = db.query(Child).filter(
