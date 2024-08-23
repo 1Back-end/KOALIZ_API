@@ -52,9 +52,10 @@ def get_details(
     if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("invoice-not-found"))
 
-    invoice.invoices_statistic = {
-        st.value: crud.invoice.get_child_statistic(db, invoice.child_uuid, status=st) for st in models.InvoiceStatusType
-    }
+    # invoice.invoices_statistic = {
+    #     st.value: crud.invoice.get_child_statistic(db, invoice.child_uuid, status=st) for st in models.InvoiceStatusType
+    # }
+    invoice.invoices_statistic = crud.invoice.get_child_statistic(db, invoice.child_uuid)
 
     return invoice
 
@@ -79,6 +80,9 @@ def create_payment(
 
     if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if payment.type == models.PaymentType.PARTIAL and payment.amount > invoice.amount_due:
+        raise HTTPException(status_code=400, detail=__("payment-amount-exceeds"))
 
     return crud.invoice.create_payment(db, invoice, payment)
 

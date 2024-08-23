@@ -1,10 +1,11 @@
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from operator import and_
 from uuid import uuid4
 
 from fastapi import HTTPException
 from typing import Optional, Union
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import Session, aliased, joinedload
 
 from app.main import crud, schemas, models
@@ -143,19 +144,42 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         db.commit()
 
 
-    def get_child_statistic(self, db: Session, child_uuid: str, status: str):
-        return db.query(models.Invoice).filter(
-            models.Invoice.child_uuid == child_uuid,
-            models.Invoice.status == status
-        ).count()
+    def get_child_statistic(self, db: Session, child_uuid: str, status: str = None):
+        # return db.query(models.Invoice).filter(
+        #     models.Invoice.child_uuid == child_uuid,
+        #     models.Invoice.status == status
+        # ).count()
+        current_date: date = date.today()
+        return {
+            "PAID": db.query(func.sum(models.Invoice.amount_paid)).filter(
+                models.Invoice.child_uuid == child_uuid,
+                models.Invoice.status != models.InvoiceStatusType.PROFORMA,
+                # models.Invoice.date_to < current_date
+            ).scalar(),
+            "PENDING": db.query(func.sum(models.Invoice.amount_due)).filter(
+                models.Invoice.child_uuid == child_uuid,
+                models.Invoice.status.notin_([models.InvoiceStatusType.PAID, models.InvoiceStatusType.PROFORMA]),
+                models.Invoice.date_to < current_date
+            ).scalar(),
+            "UPCOMING": db.query(func.sum(models.Invoice.amount)).filter(
+                models.Invoice.child_uuid == child_uuid,
+                or_(
+                    and_(
+                        models.Invoice.status == models.InvoiceStatusType.PENDING,
+                        models.Invoice.date_to >= current_date
+                    ),
+                    models.Invoice.status == models.InvoiceStatusType.PROFORMA
+                )
+            ).scalar()
+        }
 
     def create_payment(self, db: Session, invoice_obj: models.Invoice, payment: schemas.PaymentCreate) -> models.Payment:
-        amount: float = payment.amount if payment.type == models.PaymentType.PARTIAL else invoice_obj.amount
+        amount: float = payment.amount if payment.type == models.PaymentType.PARTIAL else invoice_obj.amount_due
         payment_obj = models.Payment(
             uuid=str(uuid4()),
             type=payment.type,
             method=payment.method,
-            amount=payment.amount,
+            amount=amount,
             invoice_uuid=invoice_obj.uuid
         )
         db.add(payment_obj)
