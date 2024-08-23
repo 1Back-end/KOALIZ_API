@@ -54,7 +54,6 @@ class HygieneChangeMini(BaseModel):
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
-    pipi_stool_type: Optional[PipiStoolTypeEnum] = None
     additional_care: Optional[AdditionalCare]= None
     product:Optional[str] = None
     status: Optional[str]= None
