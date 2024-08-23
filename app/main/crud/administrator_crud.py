@@ -3,11 +3,12 @@ import math
 from typing import Union, Optional, List
 from pydantic import EmailStr
 from sqlalchemy import or_
-from app.main.core.i18n import __
+from app.main.core.i18n import __, get_language
 from app.main.core.mail import send_account_creation_email, send_reset_password_email
 from app.main.crud.base import CRUDBase
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models
+from app.main.core.config import Config
 import uuid
 from app.main.core.security import get_password_hash, verify_password, generate_password
 
@@ -46,7 +47,9 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
     @classmethod
     def create(cls, db: Session, obj_in: schemas.AdministratorCreate,added_by:models.Administrator) -> models.Administrator:
         password:str = generate_password(8, 8)
-        send_account_creation_email(email_to=obj_in.email,prefered_language="en", name=obj_in.firstname,password=password)
+        lang: str = get_language()
+        send_account_creation_email(email_to=obj_in.email, prefered_language=lang, name=obj_in.firstname,
+                                    password=password, login_link=Config.ADMIN_LOGIN_LINK.format(lang))
         administrator = models.Administrator(
             uuid= str(uuid.uuid4()),
             firstname = obj_in.firstname,
