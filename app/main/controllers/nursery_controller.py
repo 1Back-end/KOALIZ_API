@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time
 
 from app.main.core.dependencies import TeamTokenRequired, get_db, TokenRequired
 from app.main import schemas, crud, models
@@ -120,7 +120,7 @@ def read_children_by_nursery(
     # order: str = Query("desc", enum=["asc", "desc"]),
     # order_filed: str = "date_added",
     # keyword: Optional[str] = None,
-    filter_date:Optional[date] = None,
+    filter_date:Optional[datetime] = None,
     db: Session = Depends(get_db),
     current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
 ):
@@ -130,8 +130,7 @@ def read_children_by_nursery(
 
     if current_team_device.nursery_uuid!=nursery_uuid:
         raise HTTPException(status_code=403, detail=__("not-authorized"))
-    
-    
+
     return crud.nursery.get_children_by_nursery(
         db=db, 
         nursery_uuid=nursery_uuid,

@@ -14,3 +14,4 @@ UPDATE hygiene_changes SET status = 'CREATED' WHERE status is NULL;
 UPDATE children_activities SET status = 'ACTIVED' WHERE status is NULL;
 UPDATE activity_categories SET status = 'CREATED' WHERE status is NULL;
 UPDATE meals SET meal_type = 'BOTTLE_FEEDING' WHERE meal_type is NULL;
+UPDATE hygiene_changes SET pipi_stool_type = 'SOFT' WHERE pipi_stool_type is NULL;

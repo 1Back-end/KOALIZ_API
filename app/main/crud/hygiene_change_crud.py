@@ -23,7 +23,6 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
                 cleanliness=obj_in.cleanliness,
                 pipi=obj_in.pipi,
                 stool_type=obj_in.stool_type,
-                pipi_stool_type=obj_in.pipi_stool_type,
                 additional_care=obj_in.additional_care,
                 observation=obj_in.observation,
                 product = obj_in.product,
@@ -64,7 +63,6 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
                 if obj_in.pipi == True:
                     hygiene_change.pipi = True
                 
-                exist_hygiene_change_for_child.pipi_stool_type = obj_in.pipi_stool_type if obj_in.pipi_stool_type else exist_hygiene_change_for_child.pipi_stool_type
                 exist_hygiene_change_for_child.stool_type = obj_in.stool_type if obj_in.stool_type else exist_hygiene_change_for_child.stool_type
                 exist_hygiene_change_for_child.additional_care = obj_in.additional_care if obj_in.additional_care else exist_hygiene_change_for_child.additional_care
                 exist_hygiene_change_for_child.observation = obj_in.observation if obj_in.observation else exist_hygiene_change_for_child.observation

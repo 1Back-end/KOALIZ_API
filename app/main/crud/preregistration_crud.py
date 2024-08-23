@@ -214,6 +214,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         contract.end_date=obj_in.pre_contract.end_date,
         contract.typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
 
+        # crud.child_planning.insert_planning(db=db, child=preregistration.child, nursery=preregistration.nursery)
+
         # Delete the old parents data
         db.query(models.ParentGuest).\
             filter(models.ParentGuest.child_uuid==child.uuid).\
@@ -308,6 +310,8 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         contract.end_date=obj_in.pre_contract.end_date,
         contract.typical_weeks=jsonable_encoder(obj_in.pre_contract.typical_weeks)
 
+        # crud.child_planning.insert_planning(db=db, child=preregistration.child, nursery=preregistration.nursery)
+
         # Delete the old parents data
         db.query(models.ParentGuest).\
             filter(models.ParentGuest.child_uuid==child.uuid).\
@@ -350,6 +354,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 preregistration.code = code
                 preregistration.note = obj_in.note if obj_in.note else preregistration.note
                 db.commit()
+
 
         db.commit()
         db.refresh(child)

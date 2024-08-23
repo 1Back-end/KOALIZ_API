@@ -45,7 +45,7 @@ class MealResponse(BaseModel):
     bottle_milk_ml: Optional[int] = None
     breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
-    meal_type: MealTypeEnum
+    meal_type: Optional[MealTypeEnum] = None
     observation: Optional[str] = None    
     nursery: Optional[NurserySlim]=None
     added_by: Optional[EmployeBase]=None
