@@ -17,6 +17,7 @@ class NurseryMini(BaseModel):
     uuid: str
     email: EmailStr
     name: str
+    address :Optional[AddressSLim] = None
     total_places: int = 0
     phone_number: str
     status: str
