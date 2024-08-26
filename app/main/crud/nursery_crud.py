@@ -465,8 +465,29 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
 
         return children
-    
-        
+
+
+    def get_number_children_per_day_in_current_week(self, db: Session, nursery: models.Nursery):
+        # Get days(Monday to Friday) date of the current week
+        days = []
+        today = date.today()
+        current_week_day = today.weekday()
+        monday = today - timedelta(days=current_week_day)
+        for i in range(5):
+            days.append(monday + timedelta(days=i))
+
+        # Get the number of children per day in the current week
+        children_per_day = []
+        for day in days:
+            children_per_day.append(
+                db.query(models.ChildPlanning).filter(
+                    models.ChildPlanning.nursery_uuid == nursery.uuid,
+                    models.ChildPlanning.current_date == day
+                ).count()
+            )
+
+        return children_per_day
+
 
 
 nursery = CRUDNursery(models.Nursery)

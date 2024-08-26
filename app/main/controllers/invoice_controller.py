@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -34,6 +36,39 @@ def get(
         order_filed=order_filed, keyword=keyword, status=status, reference=reference, month=month, year=year,
         child_uuid=child_uuid
     )
+
+
+@router.get("/dashboard/sales", response_model=list[schemas.NurserySale], status_code=201)
+def get_sales(
+        db: Session = Depends(get_db),
+        month: Optional[int] = date.today().month,
+        year: Optional[int] = date.today().year,
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Get nurseries sales
+    """
+    return crud.invoice.get_sales_by_nurseries_for_given_month_and_previous(db, current_user.uuid, month, year)
+
+
+@router.get("/dashboard", response_model=schemas.DashboardInvoiceList)
+def dashboard_get(
+        nursery_uuid: str,
+        month: int = Query(..., ge=1, le=12),
+        year: int = Query(..., ge=2024),
+        db: Session = Depends(get_db),
+        page: int = 1,
+        per_page: int = 30,
+        order: str = Query("asc", enum=["asc", "desc"]),
+        order_filed: str = "date_to",
+        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    get all with filters
+    """
+    return crud.invoice.get_many(
+        db=db, nursery_uuid=nursery_uuid, owner_uuid=current_user.uuid, page=page,
+        per_page=per_page, order=order, order_filed=order_filed, month=month, year=year)
 
 
 @router.get("/{uuid}", response_model=schemas.InvoiceDetails, status_code=200)

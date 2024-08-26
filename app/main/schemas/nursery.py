@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 
 from fastapi import Body
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
@@ -212,5 +212,14 @@ class NurseryByGuest(BaseModel):
     address: Address
     others: list[OtherNurseryByGuest] = []
     opening_hours: list[OpeningHoursDetails]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DashboardStatistics(BaseModel):
+    children_per_day: list[int]
+    invoice_statistics: dict[str, float]
+    children_per_hour: dict[str, int]
+    # invoice_statistics: dict[Literal["PAID", "PENDING", "UPCOMING"], float]
 
     model_config = ConfigDict(from_attributes=True)
