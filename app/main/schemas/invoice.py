@@ -6,6 +6,7 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
+from app.main.schemas import AddressBase
 from app.main.schemas.base import Items, DataList
 from app.main.schemas.file import File
 
@@ -20,6 +21,7 @@ class InvoiceChildMini(BaseModel):
 
 
 class InvoiceTimeTableItem(BaseModel):
+    uuid: str
     title_fr: str
     title_en: str
     amount: float = 0
@@ -38,6 +40,8 @@ class InvoiceContract(BaseModel):
 class InvoiceNursery(BaseModel):
     uuid: str
     name: str
+    phone_number: str
+    address: AddressBase = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -57,18 +61,27 @@ class InvoiceParentGuest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class InvoiceClientAccount(BaseModel):
-    name: str
-    account_number: str
-    entity_name: str
-    iban: str
-    address: str
-    zip_code: str
-    city: str
-    country: str
-    phone_number: str
-    email: str
+    uuid: Optional[str]
+    name: Optional[str]
+    account_number: Optional[str]
+    entity_name: Optional[str]
+    iban: Optional[str]
+    address: Optional[str]
+    zip_code: Optional[str]
+    city: Optional[str]
+    country: Optional[str]
+    phone_number: Optional[str]
+    email: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PaymentSlim(BaseModel):
+    uuid: str
+    type: models.PaymentType
+    method: models.PaymentMethod
+    amount: float
+    date_added: datetime
 
 
 class InvoiceDetails(BaseModel):
@@ -80,12 +93,14 @@ class InvoiceDetails(BaseModel):
     invoicing_period_start: Optional[date]
     invoicing_period_end: Optional[date]
 
+    nursery: InvoiceNursery
     contract: InvoiceContract
     parent_guest: InvoiceParentGuest
     client_account: Optional[InvoiceClientAccount] = None
 
     items: list[InvoiceTimeTableItem] = []
-    invoices_statistic: dict[str, int] = {}
+    invoices_statistic: dict[str, float] = {}
+    payments: list[PaymentSlim] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -119,3 +134,50 @@ class InvoiceList(DataList):
     data: list[InvoiceTimetableSlim] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PaymentBase(BaseModel):
+    type: models.PaymentType
+    method: models.PaymentMethod
+    amount: Optional[float] = Field(None, gt=0)
+
+    @model_validator(mode="wrap")
+    def validate_amount(self, handler):
+        validated_self = handler(self)
+        if validated_self.type == models.PaymentType.PARTIAL and not validated_self.amount:
+            raise ValueError(__("amount-required"))
+        return validated_self
+
+
+class PaymentCreate(PaymentBase):
+    pass
+
+
+class Payment(PaymentBase):
+    uuid: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ItemsCreateUpdate(BaseModel):
+    uuid: Optional[str] = None
+    title_fr: str
+    title_en: str
+    # amount: float
+    total_hours: Optional[float] = None
+    unit_price: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InvoiceUpdate(BaseModel):
+    items: list[ItemsCreateUpdate] = []
+    uuids_to_delete: list[str] = []
+
+
+class InvoiceCreate(BaseModel):
+    invoice_uuid: str
+    date_to: Optional[date] = None
+    invoicing_period_start: Optional[date] = None
+    invoicing_period_end: Optional[date] = None
+    items: list[ItemsCreateUpdate] = []

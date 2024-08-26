@@ -19,8 +19,7 @@ class AbsenceBase(BaseModel):
 
 class AbsenceCreate(AbsenceBase):
     pass
-
-
+    
 class AbsenceUpdate(AbsenceBase):
     uuid: str
 

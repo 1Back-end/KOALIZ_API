@@ -6,12 +6,13 @@ from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlalchemy import or_
 
-from app.main.core.i18n import __
+from app.main.core.i18n import __, get_language
 from app.main.core.mail import send_account_creation_email
 from app.main.crud.base import CRUDBase
 from app.main.crud.role_crud import role as crud_role
 from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models
+from app.main.core.config import Config
 import uuid
 from app.main.core.security import get_password_hash, verify_password, generate_password
 
@@ -51,8 +52,9 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
         db.add(user)
         db.commit()
         db.refresh(user)
-        send_account_creation_email(email_to=obj_in.email, prefered_language="fr", name=obj_in.firstname,
-                                    password=password)
+        lang: str = get_language()
+        send_account_creation_email(email_to=obj_in.email, prefered_language=lang, name=obj_in.firstname,
+                                    password=password, login_link=Config.LOGIN_LINK.format(lang))
         return user
     
     @classmethod

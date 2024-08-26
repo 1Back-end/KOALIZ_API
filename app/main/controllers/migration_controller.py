@@ -202,9 +202,7 @@ async def create_admin_users(
                         otp_password=data['otp_password'],
                         otp_password_expired_at=data['otp_password_expired_at'],
                         password_hash=get_password_hash(data['password_hash']),
-                        status=data['status'],
-                        date_added=data['date_added'],
-                        date_modified=data['date_modified']
+                        status=data['status']
                     )
                     )
                 else:
@@ -221,9 +219,7 @@ async def create_admin_users(
                         otp_password=data["otp_password"],
                         otp_password_expired_at=data["otp_password_expired_at"],
                         password_hash=get_password_hash(data["password_hash"]),
-                        status=data["status"],
-                        date_added=data["date_added"],
-                        date_modified=data["date_modified"]
+                        status=data["status"]
                     )
                     db.add(db_obj)
                     db.flush()
@@ -310,7 +306,7 @@ async def create_membership(
                     #   db_obj.description = data["description"] if data["description"] else None
                     
                     db_obj.status = data["status"]
-                    db_obj.period_unit = data["perido_unit"]
+                    db_obj.period_unit = data["period_unit"]
                     db_obj.period_from = data["period_from"]
 
                     db_obj.period_to = data["period_to"]
@@ -732,3 +728,44 @@ async def create_user_roles(
         db.add(cmg_a)
     db.commit()
     return {"message": "Default CMG amount created successfully"}
+
+
+@router.put("/set-old-nurseries-code")
+def set_code_old_nurseries(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+):
+    check_user_access_key(admin_key)
+    for nursery in db.query(models.Nursery).all():
+        code_from_name = "".join([word[0] for word in nursery.name.split(" ")])
+        code = code_from_name
+        while db.query(models.Nursery).filter(models.Nursery.code == code).first():
+            if code == code_from_name:
+                code = code + "1"
+            else:
+                if int(code[-1]) <= 9:
+                    code = code_from_name + str(int(code[-1]) + 1)
+                elif code[-2] == "99":
+                    code = code_from_name + str(int(code[-2]) + 1)
+                elif code[-3] == "999":
+                    code = code_from_name + str(int(code[-4]) + 1)
+        nursery.code = code
+        db.commit()
+    return {"message": "Old nurseries code created successfully"}
+
+
+@router.put("/invoice-reference")
+def set_old_invoices_reference(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+):
+    check_user_access_key(admin_key)
+    for nursery in db.query(models.Nursery).all():
+        invoices = db.query(models.Invoice).filter(models.Invoice.nursery_uuid == nursery.uuid).order_by(models.Invoice.date_added.desc()).all()
+
+        ref_number = 1
+        for invoice in invoices:
+            invoice.reference = f"{ref_number}-{invoice.nursery.code}-{datetime.now().strftime('%m%y')}"
+            invoice.id = ref_number
+            db.commit()
+            ref_number += 1

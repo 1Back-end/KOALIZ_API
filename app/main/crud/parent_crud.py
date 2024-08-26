@@ -255,10 +255,11 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
                 )
             )
 
+        # print("1len(record-query)",len(record_query))
         if order and order.lower() == "asc":
-            record_query = record_query.order_by(getattr(models.Child, order_filed).asc())
+            record_query = record_query.order_by(models.Child.date_added, order_filed.asc())
         else:
-            record_query = record_query.order_by(getattr(models.Child, order_filed).desc())
+            record_query = record_query.order_by(models.Child.date_added, order_filed.desc())
 
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)

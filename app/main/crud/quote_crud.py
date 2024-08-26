@@ -12,8 +12,8 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Quote]:
-        return db.query(models.Quote).filter(models.Quote.uuid == uuid).first()
-
+        return db.query(models.Quote).filter(models.Quote.status != models.QuoteStatusType.DELETED).filter(
+            models.Quote.uuid == uuid).first()
 
     @classmethod
     def update_status(cls, db: Session, quote_obj: models.Quote, status: models.QuoteStatusType) -> models.Quote:
@@ -35,7 +35,10 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
             status: Optional[str] = None,
             tag_uuid: str = None
     ):
-        record_query = db.query(models.Quote).filter(models.Quote.nursery_uuid==nursery_uuid).filter(models.Quote.nursery.has(models.Nursery.owner_uuid==owner_uuid))
+        record_query = db.query(models.Quote).filter(models.Quote.status != models.QuoteStatusType.DELETED).filter(
+            models.Quote.nursery_uuid == nursery_uuid).filter(
+            models.Quote.nursery.has(models.Nursery.owner_uuid == owner_uuid))
+
         if status:
             record_query = record_query.filter(models.Quote.status == status)
 
@@ -119,6 +122,15 @@ class CRUDQuote(CRUDBase[models.Quote, None, None]):
 
     def get_cmg_range_by_uuid(cls, db: Session, uuid: str) -> Optional[models.CMGAmountRange]:
         return db.query(models.CMGAmountRange).filter(models.CMGAmountRange.uuid == uuid).first()
+
+
+    def get_cmg_amount_by_family_type_and_number_children(cls, db: Session, family_type: models.FamilyType,
+                                                      number_children: int) -> models.CMGAmountRange:
+        return db.query(models.CMGAmountRange).filter(
+            models.CMGAmountRange.family_type==family_type,
+                    models.CMGAmountRange.number_children==number_children
+            ).first()
+
 
     @classmethod
     def update_cmg_amount_range(cls, db: Session, db_obj: models.CMGAmountRange, obj_in: schemas.CMGAmountRangeUpdate) -> models.CMGAmountRange:

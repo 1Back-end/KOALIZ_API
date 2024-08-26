@@ -70,7 +70,7 @@ def send_email(
 
 
 def send_test_email(email_to: str) -> None:
-    project_name = Config.PROJECT_NAME
+    project_name = Config.EMAIL_PROJECT_NAME
     subject = f"{project_name} - Test email"
     with open(Path(Config.EMAIL_TEMPLATES_DIR) / "test_email.html") as f:
         template_str = f.read()
@@ -78,7 +78,7 @@ def send_test_email(email_to: str) -> None:
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
-        environment={"project_name": Config.PROJECT_NAME, "email": email_to},
+        environment={"project_name": Config.EMAIL_PROJECT_NAME, "email": email_to},
     )
     logging.info(f"new send mail task with id {task.id}")
     
@@ -107,31 +107,28 @@ def send_reset_password_email(email_to: str, code: str, prefered_language: str, 
     )
     # logging.info(f"new send mail task with id {task.id}")
 
-def send_account_creation_email(email_to: str,prefered_language: str, name: str,password:str) -> None:
-    project_name = Config.PROJECT_NAME
+def send_account_creation_email(email_to: str,prefered_language: str, name: str,password:str, login_link: str) -> None:
+    project_name = Config.EMAIL_PROJECT_NAME
     if str(prefered_language) in ["en", "EN", "en-EN"]:
-        subject = f"KOALIZZ | Account created succesfully."
-        content = "is your password. You must change it after the first connection for better security."
-        with open(Path(Config.EMAIL_TEMPLATES_DIR) / "account_creation.html") as f:
-            template_str = f.read()
+        subject = f"KOALIZZ | Account created"
     else:
-        subject = f"KOALIZZ | Compte créé avec succès."
-        content = "est votre mot de passe.Vous avez l'obligation de le modifier aprės la première connexion pour une meilleure sécurité."
+        subject = f"KOALIZZ | Compte créé"
 
-        with open(Path(Config.EMAIL_TEMPLATES_DIR) / "account_creation.html") as f:
-            template_str = f.read()
+    template_path = get_template_path_based_on_lang(prefered_language)
+    with open(Path(template_path) / "account_created.html") as f:
+        template_str = f.read()
 
     task = send_email(
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
         environment={
-            "content": content,
             "project_name": project_name,
             "password": password,
             "name": name,
-            "email": email_to
-        },
+            "email": email_to,
+            "login_link": login_link
+        }
     )
 
 def get_template_path_based_on_lang(lang: str = "fr"):
@@ -143,7 +140,7 @@ def get_template_path_based_on_lang(lang: str = "fr"):
 
 
 def send_reset_password_email(email_to: str, name: str, token: str, valid_minutes: int = None) -> None:
-    project_name = Config.PROJECT_NAME
+    project_name = Config.EMAIL_PROJECT_NAME
     subject = f'{project_name} - {__("mail-subject-reset-password")} {name}'
 
     template_path = get_template_path_based_on_lang()
@@ -156,7 +153,7 @@ def send_reset_password_email(email_to: str, name: str, token: str, valid_minute
         subject_template=subject,
         html_template=template_str,
         environment={
-            "project_name": Config.PROJECT_NAME,
+            "project_name": Config.EMAIL_PROJECT_NAME,
             "name": name,
             "email": email_to,
             "valid_hours": Config.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
@@ -169,7 +166,7 @@ def send_reset_password_email(email_to: str, name: str, token: str, valid_minute
 
 
 def send_password_reset_succes_email(email_to: str, name: str, token: str) -> None:
-    project_name = Config.PROJECT_NAME
+    project_name = Config.EMAIL_PROJECT_NAME
     subject = f'{project_name} - {__("mail-subject-password-reset-succes")} {name}'
 
     template_path = get_template_path_based_on_lang()
@@ -182,7 +179,7 @@ def send_password_reset_succes_email(email_to: str, name: str, token: str) -> No
         subject_template=subject,
         html_template=template_str,
         environment={
-            "project_name": Config.PROJECT_NAME,
+            "project_name": Config.EMAIL_PROJECT_NAME,
             "name": name,
             "email": email_to,
             # "valid_hours": Config.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
@@ -195,7 +192,7 @@ def send_password_reset_succes_email(email_to: str, name: str, token: str) -> No
 
 
 def send_account_confirmation_email(email_to: str, name: str, token: str, valid_minutes: int = None) -> None:
-    project_name = Config.PROJECT_NAME
+    project_name = Config.EMAIL_PROJECT_NAME
     subject = f'{project_name} - {__("mail-subject-account-confirmation-email")} {name}'
 
     template_path = get_template_path_based_on_lang()
@@ -208,7 +205,7 @@ def send_account_confirmation_email(email_to: str, name: str, token: str, valid_
         subject_template=subject,
         html_template=template_str,
         environment={
-            "project_name": Config.PROJECT_NAME,
+            "project_name": Config.EMAIL_PROJECT_NAME,
             "name": name,
             "email": email_to,
             "valid_hours": Config.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
@@ -221,7 +218,7 @@ def send_account_confirmation_email(email_to: str, name: str, token: str, valid_
 
 
 def send_account_created_succes_email(email_to: str, name: str) -> None:
-    project_name = Config.PROJECT_NAME
+    project_name = Config.EMAIL_PROJECT_NAME
     subject = f'{project_name} - {__("mail-subject-account-created")} {name}'
 
     template_path = get_template_path_based_on_lang()
@@ -234,7 +231,7 @@ def send_account_created_succes_email(email_to: str, name: str) -> None:
         subject_template=subject,
         html_template=template_str,
         environment={
-            "project_name": Config.PROJECT_NAME,
+            "project_name": Config.EMAIL_PROJECT_NAME,
             "name": name,
             "email": email_to,
         },
@@ -245,7 +242,7 @@ def send_account_created_succes_email(email_to: str, name: str) -> None:
 
 def send_reset_password_option2_email(email_to: str, name: str, token: str, valid_minutes: int = None,
                                           language: str = "fr", base_url: str = Config.RESET_PASSWORD_LINK) -> None:
-    project_name = Config.PROJECT_NAME
+    project_name = Config.EMAIL_PROJECT_NAME
     subject = f'{project_name} - {__("mail-subject-reset-password", language)} {name}'
 
     template_path = get_template_path_based_on_lang(language)
@@ -260,7 +257,7 @@ def send_reset_password_option2_email(email_to: str, name: str, token: str, vali
         subject_template=subject,
         html_template=template_str,
         environment={
-            "project_name": Config.PROJECT_NAME,
+            "project_name": Config.EMAIL_PROJECT_NAME,
             "name": name,
             "email": email_to,
             "valid_hours": Config.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
@@ -269,6 +266,106 @@ def send_reset_password_option2_email(email_to: str, name: str, token: str, vali
         },
     )
     logging.info(f"new send mail task with id {task}")
+
+
+def admin_send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> None:
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("new-nursery", language)}'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "admin_new_nursery.html") as f:
+        template_str = f.read()
+
+    print("==================Start New Nursery Mail(Admin)===================")
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "user_name": data["user_name"],
+            "email": email_to,
+            "nursery_name": data["nursery_name"],
+            "owner_name": data["creator_name"],
+            "login_link": Config.ADMIN_LOGIN_LINK.format(language)
+        }
+    )
+    print("=====================End New Nursery Mail(Admin)===========================")
+
+
+
+def send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> None:
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("new-nursery", language)}'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "new_nursery.html") as f:
+        template_str = f.read()
+
+    print("==================Start New Nursery Mail===================")
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "user_name": data["user_name"],
+            "email": email_to,
+            "nursery_name": data["nursery_name"],
+            "admin_name": data["creator_name"],
+            "login_link": Config.LOGIN_LINK.format(language)
+        }
+    )
+    print("=====================End New Nursery Mail===========================")
+
+
+
+def admin_send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> None:
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("new-nursery", language)}'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "admin_new_nursery.html") as f:
+        template_str = f.read()
+
+    print("==================Start New Nursery Mail(Admin)===================")
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "user_name": data["user_name"],
+            "email": email_to,
+            "nursery_name": data["nursery_name"],
+            "owner_name": data["creator_name"],
+            "login_link": Config.ADMIN_LOGIN_LINK.format(language)
+        }
+    )
+    print("=====================End New Nursery Mail(Admin)===========================")
+
+
+
+def send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> None:
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("new-nursery", language)}'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "new_nursery.html") as f:
+        template_str = f.read()
+
+    print("==================Start New Nursery Mail===================")
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "user_name": data["user_name"],
+            "email": email_to,
+            "nursery_name": data["nursery_name"],
+            "admin_name": data["creator_name"],
+            "login_link": Config.LOGIN_LINK.format(language)
+        }
+    )
+    print("=====================End New Nursery Mail===========================")
+
 
 def send_unpaid_invoice_email(email_to: str, invoice_number: str,
                               recipient_name: str, company_name: str, company_address: str,

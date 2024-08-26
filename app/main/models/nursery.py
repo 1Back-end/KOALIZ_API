@@ -1,6 +1,7 @@
 from enum import Enum
 
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, event, types,Text,Date,Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, desc, event, types,Text,Date,Boolean
+from sqlalchemy.ext.hybrid  import hybrid_property
 from datetime import datetime, date
 from sqlalchemy.orm import relationship
 from .db.base_class import Base
@@ -34,13 +35,14 @@ class Nursery(Base):
 
     total_places: int = Column(Integer, default=0)
     phone_number: str = Column(String, nullable=False, default="")
-    memberships = relationship("Membership",secondary="nursery_memberships",back_populates="nurseries",overlaps="nursery, memberships")
-    
+    # memberships = relationship("Membership",secondary="nursery_memberships",back_populates="nurseries",overlaps="nursery, memberships")
+    memberships = relationship("NurseryMemberships", back_populates="nursery")
     address_uuid: str = Column(String, ForeignKey('addresses.uuid'), nullable=False)
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
 
-    status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.ACTIVED)
+    status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.UNACTIVED)
     slug: str = Column(String, index=True, default="", unique=True, nullable=False)
+    code: str = Column(String, default="")
     website: str = Column(String, default="")
 
     owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=False)
@@ -58,6 +60,30 @@ class Nursery(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
+    @hybrid_property
+    def nb_memberships(self) -> int:
+        return len(self.memberships ) if self.memberships else 0
+    
+    @hybrid_property
+    def current_membership(self):
+        from app.main.models import Membership,NurseryMemberships,MembershipEnum
+        from app.main.models.db.session import SessionLocal
+        from fastapi.encoders import jsonable_encoder
+        db = SessionLocal()
+        value = None
+        if self.memberships:
+            try:
+                value =  db.query(NurseryMemberships).\
+                            join(Membership, NurseryMemberships.membership_uuid == Membership.uuid).\
+                                filter(NurseryMemberships.nursery_uuid == self.uuid).\
+                                filter(NurseryMemberships.status == MembershipEnum.ACTIVED).\
+                                    first()
+                return value
+            except Exception as e:
+                print(f"Error getting current membership: {e}")
+                db.close()
+                return None
+            
     def __repr__(self):
         return '<Nursery: uuid: {} email: {}>'.format(self.uuid, self.email)
 

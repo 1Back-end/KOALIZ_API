@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import Observation
+from app.main.models import Observation,AbsenceStatusEnum
 from app.main.schemas import ObservationCreate, ObservationUpdate, ObservationList, ObservationMini
 
 
@@ -33,7 +33,9 @@ class CRUDObservation(CRUDBase[Observation, ObservationCreate, ObservationUpdate
     
     @classmethod
     def get_observation_by_uuid(cls, db: Session, uuid: str) -> Optional[ObservationMini]:
-        return db.query(Observation).filter(Observation.uuid == uuid).first()
+        return db.query(Observation).\
+            filter(Observation.uuid == uuid,Observation.status!= AbsenceStatusEnum.DELETED).\
+                first()
     
     @classmethod
     def update(cls, db: Session,obj_in: ObservationUpdate) -> ObservationMini:
@@ -55,6 +57,16 @@ class CRUDObservation(CRUDBase[Observation, ObservationCreate, ObservationUpdate
     def delete(cls,db:Session, uuids:list[str]) -> ObservationMini:
         db.query(Observation).filter(Observation.uuid.in_(uuids)).delete()
         db.commit()
+   
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        observation_tab = db.query(Observation).\
+            filter(Observation.uuid.in_(uuids),Observation.status!=AbsenceStatusEnum.DELETED)\
+                .all()
+        for observation in observation_tab:
+            observation.status = AbsenceStatusEnum.DELETED
+            db.commit()
+    
 
     @classmethod
     def get_multi(

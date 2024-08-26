@@ -67,6 +67,10 @@ def update_cmg_amount_range(
     if not cmg_amount_range:
         raise HTTPException(status_code=404, detail=__("cmg-amount-range-not-found"))
 
+    exists_with_family_type_and_number_children: models.CMGAmountRange = crud.quote.get_cmg_amount_by_family_type_and_number_children(db, obj_in.family_type, obj_in.number_children)
+    if exists_with_family_type_and_number_children and exists_with_family_type_and_number_children.uuid != cmg_amount_range.uuid:
+        raise HTTPException(status_code=400, detail=__("cmg-amount-range-exists"))
+
     return crud.quote.update_cmg_amount_range(db, cmg_amount_range, obj_in)
 
 
@@ -92,7 +96,6 @@ def update_cmg_amount(
     """
     Update quote cmg amount
     """
-    # check if cmg amount exists
     cmg_amount = crud.quote.get_cmg_amount_by_uuid(db, cmg_amount_uuid)
     if not cmg_amount:
         raise HTTPException(status_code=404, detail=__("cmg-amount-not-found"))
@@ -134,6 +137,9 @@ def update_settings(
     if not quote:
         raise HTTPException(status_code=404, detail=__("quote-not-found"))
 
+    if quote.status != models.QuoteStatusType.PENDING:
+        raise HTTPException(status_code=400, detail=__("quote-no-more-editable"))
+
     if quote.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("quote-not-found"))
 
@@ -157,6 +163,9 @@ def update_settings(
 
     if quote.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("quote-not-found"))
+
+    if quote.status != models.QuoteStatusType.PENDING:
+        raise HTTPException(status_code=400, detail=__("quote-no-more-editable"))
 
     crud.quote.update_cmg(db, quote, obj_in)
     return schemas.Msg(message=__("quote-cmg-updated"))

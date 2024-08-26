@@ -95,7 +95,7 @@ def delete_media(
     if not nursery_media or len(nursery_media)!=len(uuids):
         raise HTTPException(status_code=404, detail=__("media-not-found"))
 
-    crud.media.delete(db, uuids)
+    crud.media.soft_delete(db, uuids)
     return {"message": __("media-deleted")}
 
 

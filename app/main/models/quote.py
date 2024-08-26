@@ -45,6 +45,7 @@ class QuoteStatusType(str, Enum):
     ACCEPTED = "ACCEPTED"
     PENDING = "PENDING"
     REFUSED = "REFUSED"
+    DELETED = "DELETED"
 
 
 class Quote(Base):
@@ -339,7 +340,6 @@ class CMGAmountRange(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
-    UniqueConstraint("family_type", "number_children", name="family_type_number_children_unique")
     UniqueConstraint("family_type", "number_children", name="family_type_number_children_unique")
 
 

@@ -22,6 +22,7 @@ class ConfigClass(BaseSettings):
     ADMIN_PASSWORD: str = get_secret("ADMIN_PASSWORD", "JXunRJ1r3g")
 
     PROJECT_NAME: str = get_secret("PROJECT_NAME", "KOALIZZ API")
+    EMAIL_PROJECT_NAME: str = get_secret("EMAIL_PROJECT_NAME", "KOALIZZ")
     PROJECT_VERSION: str = get_secret("PROJECT_VERSION", "0.0.1")
     PREFERRED_LANGUAGE: str = get_secret("PREFERRED_LANGUAGE", 'fr')
     API_STR: str = get_secret("API_STR", "/api/v1")
@@ -80,7 +81,7 @@ class ConfigClass(BaseSettings):
     CELERY_RESULT_BACKEND: str = get_secret("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
     RESET_PASSWORD_LINK: str = get_secret("RESET_PASSWORD_LINK", "https://app.development.koalizz.fr/{}/auth/reset-password")
-
+    
     # Default image size
     IMAGE_MEDIUM_WIDTH: int = get_secret("IMAGE_MEDIUM_WIDTH", 600)
     IMAGE_THUMBNAIL_WIDTH: int = get_secret("IMAGE_THUMBNAIL_WIDTH", 300)

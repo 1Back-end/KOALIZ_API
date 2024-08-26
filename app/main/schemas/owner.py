@@ -34,7 +34,7 @@ class OwnerWithNursery(BaseModel):
     firstname: Optional[str]
     lastname: str
     status: str
-    nurseries:list[NurserySlim1] =[]
+    valid_nurseries:list[NurserySlim1] =[]
     phone_number: Optional[str]
     is_new_user: Optional[bool] = False
     avatar: Optional[File]

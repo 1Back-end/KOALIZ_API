@@ -52,8 +52,105 @@ def get_details(
     if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
         raise HTTPException(status_code=404, detail=__("invoice-not-found"))
 
-    invoice.invoices_statistic = {
-        st.value: crud.invoice.get_child_statistic(db, invoice.child_uuid, status=st) for st in models.InvoiceStatusType
-    }
+    # invoice.invoices_statistic = {
+    #     st.value: crud.invoice.get_child_statistic(db, invoice.child_uuid, status=st) for st in models.InvoiceStatusType
+    # }
+    invoice.invoices_statistic = crud.invoice.get_child_statistic(db, invoice.child_uuid)
 
     return invoice
+
+
+@router.post("/{uuid}/payments", response_model=schemas.Payment)
+def create_payment(
+        uuid: str,
+        payment: schemas.PaymentCreate,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Create payment
+    """
+    invoice = crud.invoice.get_by_uuid(db, uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+    if invoice.status == models.InvoiceStatusType.PAID:
+        raise HTTPException(status_code=400, detail=__("invoice-already-paid"))
+    if invoice.status == models.InvoiceStatusType.PROFORMA:
+        raise HTTPException(status_code=400, detail=__("invoice-still-proforma"))
+
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if payment.type == models.PaymentType.PARTIAL and payment.amount > invoice.amount_due:
+        raise HTTPException(status_code=400, detail=__("payment-amount-exceeds"))
+
+    return crud.invoice.create_payment(db, invoice, payment)
+
+
+@router.put("/{uuid}/pending", response_model=schemas.InvoiceDetails)
+def set_pending(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Set invoice to pending
+    """
+    invoice = crud.invoice.get_by_uuid(db, uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if invoice.status != models.InvoiceStatusType.PROFORMA:
+        raise HTTPException(status_code=400, detail=__("invoice-not-proforma"))
+
+    return crud.invoice.update_status(db, invoice, models.InvoiceStatusType.PENDING)
+
+
+@router.put("/{uuid}/items", response_model=schemas.InvoiceDetails)
+def update_items(
+        uuid: str,
+        items: schemas.InvoiceUpdate,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Update/add invoice items
+    """
+    invoice = crud.invoice.get_by_uuid(db, uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if invoice.status != models.InvoiceStatusType.PROFORMA:
+        raise HTTPException(status_code=400, detail=__("invoice-not-proforma"))
+
+    crud.invoice.add_update_items(db, invoice, items)
+    return crud.invoice.get_by_uuid(db, uuid)
+
+
+@router.post("/", response_model=schemas.InvoiceDetails)
+def create(
+        obj_in: schemas.InvoiceCreate,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Add invoice
+    """
+    invoice = crud.invoice.get_by_uuid(db, obj_in.invoice_uuid)
+    if not invoice:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if current_user.role.code == "owner" and invoice.nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("invoice-not-found"))
+
+    if invoice.status != models.InvoiceStatusType.PROFORMA:
+        raise HTTPException(status_code=400, detail=__("invoice-not-proforma"))
+
+    return crud.invoice.create(db, invoice, obj_in)
+

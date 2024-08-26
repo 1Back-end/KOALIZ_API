@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
-from app.main.models import HygieneChange
+from app.main.models import HygieneChange,AbsenceStatusEnum
 from app.main.schemas import HygieneChangeCreate, HygieneChangeUpdate, HygieneChangeList, HygieneChangeMini
 
 
@@ -25,6 +25,7 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
                 stool_type=obj_in.stool_type,
                 additional_care=obj_in.additional_care,
                 observation=obj_in.observation,
+                product = obj_in.product,
                 child_uuid=child_uuid,
                 nursery_uuid=obj_in.nursery_uuid,
                 added_by_uuid=obj_in.employee_uuid
@@ -37,7 +38,9 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
     
     @classmethod
     def get_hygiene_change_by_uuid(cls, db: Session, uuid: str) -> Optional[HygieneChangeMini]:
-        return db.query(HygieneChange).filter(HygieneChange.uuid == uuid).first()
+        return db.query(HygieneChange).\
+            filter(HygieneChange.uuid == uuid,HygieneChange.status!=AbsenceStatusEnum.DELETED).\
+                first()
     
     @classmethod
     def update(cls, db: Session,obj_in: HygieneChangeUpdate) -> HygieneChangeMini:
@@ -47,17 +50,24 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
                 filter(HygieneChange.uuid == hygiene_change.uuid).\
                 filter(HygieneChange.child_uuid == child_uuid).\
                 first()
-        
-            hygiene_change.time = obj_in.time if obj_in.time else hygiene_change.time
-            hygiene_change.cleanliness = obj_in.cleanliness if obj_in.cleanliness else hygiene_change.cleanliness
-            if obj_in.pipi == False:
-                hygiene_change.pipi = False
-            if obj_in.pipi == True:
-                hygiene_change.pipi = True
-            hygiene_change.stool_type = obj_in.stool_type if obj_in.stool_type else hygiene_change.stool_type
-            hygiene_change.additional_care = obj_in.additional_care if obj_in.additional_care else hygiene_change.additional_care
-            hygiene_change.observation = obj_in.observation if obj_in.observation else hygiene_change.observation
-            db.flush()
+            
+            if exist_hygiene_change_for_child:
+
+                hygiene_change.time = obj_in.time if obj_in.time else hygiene_change.time
+                hygiene_change.cleanliness = obj_in.cleanliness if obj_in.cleanliness else hygiene_change.cleanliness
+                hygiene_change.product = obj_in.product if obj_in.product else hygiene_change.product
+                
+                if obj_in.pipi == False:
+                    hygiene_change.pipi = False
+
+                if obj_in.pipi == True:
+                    hygiene_change.pipi = True
+                
+                exist_hygiene_change_for_child.stool_type = obj_in.stool_type if obj_in.stool_type else exist_hygiene_change_for_child.stool_type
+                exist_hygiene_change_for_child.additional_care = obj_in.additional_care if obj_in.additional_care else exist_hygiene_change_for_child.additional_care
+                exist_hygiene_change_for_child.observation = obj_in.observation if obj_in.observation else exist_hygiene_change_for_child.observation
+
+                db.flush()
             
         db.commit()
         db.refresh(hygiene_change)
@@ -67,6 +77,15 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
     def delete(cls,db:Session, uuids:list[str]) -> HygieneChangeMini:
         db.query(HygieneChange).filter(HygieneChange.uuid.in_(uuids)).delete()
         db.commit()
+    
+    @classmethod
+    def soft_delete(cls,db:Session, uuids:list[str]):
+        attendance_tab = db.query(HygieneChange).\
+            filter(HygieneChange.uuid.in_(uuids),HygieneChange.status!=AbsenceStatusEnum.DELETED)\
+                .all()
+        for attendance in attendance_tab:
+            attendance.status = AbsenceStatusEnum.DELETED
+            db.commit()
 
     @classmethod
     def get_multi(
@@ -84,7 +103,7 @@ class CRUDHygieneChange(CRUDBase[HygieneChange, HygieneChangeCreate, HygieneChan
         stool_type:Optional[str]= None,
         additional_care:Optional[str]= None
     ):
-        record_query = db.query(HygieneChange)
+        record_query = db.query(HygieneChange).filter(HygieneChange.status!= AbsenceStatusEnum.DELETED)
 
         if keyword:
             record_query = record_query.filter(

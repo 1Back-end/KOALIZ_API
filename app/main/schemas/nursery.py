@@ -10,12 +10,14 @@ from app.main.schemas.address import AddressSLim
 from app.main.schemas.nursery_close_hours import NurseryCloseHourDetails
 from app.main.schemas.nursery_holidays import NurseryHolidaysDetails
 from app.main.schemas.user import AddedBy
+from app.main.schemas.membership import MembershipTypeSlim
 
 
 class NurseryMini(BaseModel):
     uuid: str
     email: EmailStr
     name: str
+    address :Optional[AddressSLim] = None
     total_places: int = 0
     phone_number: str
     status: str
@@ -23,16 +25,15 @@ class NurseryMini(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class Membership1(BaseModel):
-    uuid: Optional[str] = None
-    # status: Optional[str] = None
-    title_en:str
-    title_fr:str
-    # duration:Optional[float] = None
-    # period_from:Optional[datetime]= None
-    # period_to:Optional[datetime]= None
-    # date_added: Optional[datetime]= None
-    # date_modified: Optional[datetime]= None
+class NurseryMemberships(BaseModel):
+    uuid: str
+    status: str
+    duration:float
+    period_from: datetime
+    period_to: datetime
+    membership_type: Optional[MembershipTypeSlim]
+    date_added: datetime
+    date_modified:datetime
     model_config = ConfigDict(from_attributes=True)
 
 class Nursery(BaseModel):
@@ -50,7 +51,9 @@ class Nursery(BaseModel):
     stamp: Optional[File]
     address: Address
     owner: AddedBy
-    memberships:Optional[list[Membership1]]=[]
+    memberships:Optional[list[NurseryMemberships]]
+    current_membership:Optional[NurseryMemberships] = None
+
     date_added: datetime
     date_modified: datetime
 
@@ -60,13 +63,14 @@ class NurserySlim(BaseModel):
     uuid: str
     name: str
     is_actived:Optional[bool]=None
-    memberships:Optional[list[Membership1]]=[]
+    memberships:Optional[list[NurseryMemberships]]
 
     model_config = ConfigDict(from_attributes=True)
 
 class NurserySlim1(BaseModel):
     uuid: str
     name: str
+    slug: str
     logo: Optional[File]
     address: AddressSLim
     is_actived:Optional[bool]=None
@@ -84,7 +88,7 @@ class NurseryCreateBase(BaseModel):
     stamp_uuid: Optional[str] = None
     total_places: int = Body(0, ge=0)
     phone_number: str
-    owner_uuid: str
+    owner_uuid: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

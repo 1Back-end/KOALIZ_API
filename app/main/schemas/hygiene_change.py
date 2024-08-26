@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Optional, List
 from pydantic import BaseModel, ConfigDict
 
-from app.main.models.children import AdditionalCare, Cleanliness, StoolType
+from app.main.models.children import AdditionalCare, Cleanliness, StoolType,PipiStoolTypeEnum
 from app.main.schemas.employee import EmployeSlim
 from app.main.schemas.preregistration import ChildMini2
 
@@ -17,8 +17,9 @@ class HygieneChangeBase(BaseModel):
     time: Optional[datetime]= None
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
-    stool_type: Optional[StoolType]= None
+    stool_type: StoolType
     additional_care: Optional[AdditionalCare]= None
+    product:Optional[str] = None
     observation: Optional[str]= None
 
 
@@ -27,7 +28,7 @@ class HygieneChangeCreate(HygieneChangeBase):
 
 
 class HygieneChangeUpdate(HygieneChangeBase):
-    uuid: Optional[str] = None
+    uuid: str
 
 class HygieneChange(BaseModel):
     uuid: Optional[str] = None
@@ -39,6 +40,8 @@ class HygieneChange(BaseModel):
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
     additional_care: Optional[AdditionalCare]= None
+    status: Optional[str]= None
+    product:Optional[str] = None
     observation: Optional[str]= None
     date_added: datetime
     date_modified: datetime
@@ -52,6 +55,8 @@ class HygieneChangeMini(BaseModel):
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
     additional_care: Optional[AdditionalCare]= None
+    product:Optional[str] = None
+    status: Optional[str]= None
     observation: Optional[str]= None
     date_added: datetime
     date_modified: datetime

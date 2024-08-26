@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Text
 
 from fastapi import Body, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
@@ -6,13 +6,14 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, NapQuality, Route, StoolType
+from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, MealTypeEnum, NapQuality, Route, StoolType
 from app.main.schemas import DataList, NurseryMini
 # from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
 from app.main.schemas.user import  Storage
 from app.main.schemas.file import File
+from app.main.schemas import AddressSLim
 
 
 @field_validator("birthdate")
@@ -405,8 +406,10 @@ class MealSlim(BaseModel):
     # child: Optional[ChildMini2] = None
     meal_time: Optional[datetime] = None
     bottle_milk_ml: Optional[int] = None
-    breastfeeding_duration_minutes: Optional[int] = None
+    # breastfeeding_duration_minutes: Optional[int] = None
     meal_quality: Optional[MealQuality] = None
+    meal_type:Optional[MealTypeEnum] = None
+    product:Optional[Text] = None
     observation: Optional[str] = None    
     # nursery: Optional[NurserySlim]=None
     # added_by: Optional[EmployeBase]=None
@@ -452,6 +455,7 @@ class HygieneChangeSlim(BaseModel):
     cleanliness: Optional[Cleanliness]= None
     pipi: Optional[bool] = False
     stool_type: Optional[StoolType]= None
+    product:Optional[str] = None
     additional_care: Optional[AdditionalCare]= None
     observation: Optional[str]= None
     date_added: datetime
@@ -517,9 +521,38 @@ class Transmission(BaseModel):
 
 class ChildTransmissionList(DataList):
     data: list[Transmission] = []
-
     model_config = ConfigDict(from_attributes=True)
 class ChildDetailsList(DataList):
     data: list[ChildDetails] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ClientAccount(BaseModel):
+    name: str
+    account_number: str = ""
+    entity_name: str = ""
+    iban: str = ""
+    address: str
+    zip_code: str
+    city: str
+    country: str
+    phone_number: str
+    email: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ClientAccountUpdate(BaseModel):
+    name: str
+    account_number: str = ""
+    entity_name: str = ""
+    iban: str = ""
+    address: str
+    zip_code: str
+    city: str
+    country: str
+    phone_number: str
+    email: str
 
     model_config = ConfigDict(from_attributes=True)
