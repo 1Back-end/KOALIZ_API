@@ -269,3 +269,32 @@ def send_reset_password_option2_email(email_to: str, name: str, token: str, vali
         },
     )
     logging.info(f"new send mail task with id {task}")
+
+def send_unpaid_invoice_email(email_to: str, invoice_number: str,
+                              recipient_name: str, company_name: str, company_address: str,
+                              contact_phone: str, contact_email: str):
+    # Charger les informations de configuration
+    project_name = Config.PROJECT_NAME
+    subject = f"{project_name} - Invoice Unpaid"
+
+   
+    # Lire le template de l'email
+    template_path = Path(Config.EMAIL_TEMPLATES_DIR) /"invoice_unpaid.html"
+    with open(template_path, 'r') as f:
+        template_str = f.read()
+
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "invoice_number": invoice_number,
+            "recipient_name": recipient_name,
+            "company_name": company_name,
+            "company_address": company_address,
+            "contact_phone": contact_phone,
+            "contact_email": contact_email
+        }
+    )
+    logging.info(f"new send mail task with id {task}")
