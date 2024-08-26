@@ -67,13 +67,23 @@ class Nursery(Base):
     @hybrid_property
     def current_membership(self):
         from app.main.models import Membership,NurseryMemberships,MembershipEnum
+        from app.main.models.db.session import SessionLocal
+        from fastapi.encoders import jsonable_encoder
+        db = SessionLocal()
+        value = None
         if self.memberships:
-            for membership in self.memberships:
-                if membership.status == MembershipEnum.ACTIVED:
-                    return membership
-        else:
-            return None
-    
+            try:
+                value =  db.query(NurseryMemberships).\
+                            join(Membership, NurseryMemberships.membership_uuid == Membership.uuid).\
+                                filter(NurseryMemberships.nursery_uuid == self.uuid).\
+                                filter(NurseryMemberships.status == MembershipEnum.ACTIVED).\
+                                    first()
+                return value
+            except Exception as e:
+                print(f"Error getting current membership: {e}")
+                db.close()
+                return None
+            
     def __repr__(self):
         return '<Nursery: uuid: {} email: {}>'.format(self.uuid, self.email)
 

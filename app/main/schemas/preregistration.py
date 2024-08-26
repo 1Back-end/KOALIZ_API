@@ -6,13 +6,14 @@ from datetime import datetime, time, date
 
 from app.main import models
 from app.main.core.i18n import __
-from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, MealTypeEnum, NapQuality, Route, StoolType,PipiStoolTypeEnum,PipiStoolTypeEnum
+from app.main.models.children import AdditionalCare, CareType, Cleanliness, MealQuality, MealTypeEnum, NapQuality, Route, StoolType
 from app.main.schemas import DataList, NurseryMini
 # from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
 from app.main.schemas.user import  Storage
 from app.main.schemas.file import File
+from app.main.schemas import AddressSLim
 
 
 @field_validator("birthdate")

@@ -17,6 +17,7 @@ class NurseryMini(BaseModel):
     uuid: str
     email: EmailStr
     name: str
+    address :Optional[AddressSLim] = None
     total_places: int = 0
     phone_number: str
     status: str
@@ -51,7 +52,7 @@ class Nursery(BaseModel):
     address: Address
     owner: AddedBy
     memberships:Optional[list[NurseryMemberships]]
-    # current_membership:Optional[NurseryMemberships] = None
+    current_membership:Optional[NurseryMemberships] = None
 
     date_added: datetime
     date_modified: datetime
@@ -69,6 +70,7 @@ class NurserySlim(BaseModel):
 class NurserySlim1(BaseModel):
     uuid: str
     name: str
+    slug: str
     logo: Optional[File]
     address: AddressSLim
     is_actived:Optional[bool]=None

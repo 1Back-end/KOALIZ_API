@@ -241,9 +241,7 @@ async def create_admin_users(
                         otp_password=data['otp_password'],
                         otp_password_expired_at=data['otp_password_expired_at'],
                         password_hash=get_password_hash(data['password_hash']),
-                        status=data['status'],
-                        date_added=data['date_added'],
-                        date_modified=data['date_modified']
+                        status=data['status']
                     )
                     )
                 else:
@@ -260,9 +258,7 @@ async def create_admin_users(
                         otp_password=data["otp_password"],
                         otp_password_expired_at=data["otp_password_expired_at"],
                         password_hash=get_password_hash(data["password_hash"]),
-                        status=data["status"],
-                        date_added=data["date_added"],
-                        date_modified=data["date_modified"]
+                        status=data["status"]
                     )
                     db.add(db_obj)
                     db.flush()
@@ -349,7 +345,7 @@ async def create_membership(
                     #   db_obj.description = data["description"] if data["description"] else None
                     
                     db_obj.status = data["status"]
-                    db_obj.period_unit = data["perido_unit"]
+                    db_obj.period_unit = data["period_unit"]
                     db_obj.period_from = data["period_from"]
 
                     db_obj.period_to = data["period_to"]
