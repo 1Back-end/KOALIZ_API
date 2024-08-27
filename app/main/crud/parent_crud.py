@@ -1,4 +1,5 @@
 import math
+from calendar import monthrange
 from datetime import date, datetime, timedelta
 from typing import Union, Optional
 from fastapi import HTTPException
@@ -485,8 +486,11 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
                 ))
             )
         if year and month:
-            record_query = record_query.filter(models.Invoice.date_to >= f"{year}-{month}-01").filter(
-                models.Invoice.date_to <= f"{year}-{month}-31")
+            current_date_start = date(year, month, 1)
+            current_date_end = current_date_start.replace(
+                day=monthrange(current_date_start.year, current_date_start.month)[1])
+            record_query = record_query.filter(models.Invoice.date_to >= current_date_start).filter(
+                models.Invoice.date_to <= current_date_end)
 
         if child_uuid:
             record_query = record_query.filter(models.Invoice.child_uuid == child_uuid)

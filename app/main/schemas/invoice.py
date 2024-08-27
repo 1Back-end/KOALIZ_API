@@ -136,6 +136,23 @@ class InvoiceList(DataList):
     model_config = ConfigDict(from_attributes=True)
 
 
+class DashboardInvoiceTimetableSlim(BaseModel):
+    uuid: str
+    reference: str
+    amount: float = 0
+    status: str
+    total_hours: float = 0
+    child: InvoiceChildSlim
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DashboardInvoiceList(DataList):
+    data: list[DashboardInvoiceTimetableSlim] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PaymentBase(BaseModel):
     type: models.PaymentType
     method: models.PaymentMethod
@@ -181,3 +198,12 @@ class InvoiceCreate(BaseModel):
     invoicing_period_start: Optional[date] = None
     invoicing_period_end: Optional[date] = None
     items: list[ItemsCreateUpdate] = []
+
+
+class NurserySale(BaseModel):
+    uuid: str
+    name: str
+    current_month: float
+    previous_month: float
+
+    model_config = ConfigDict(from_attributes=True)

@@ -278,9 +278,28 @@ def update(
     return crud.nursery.update_status(db, nursery, status)
 
 
+@router.get("/{uuid}/dashboard/statistics", status_code=200, response_model=schemas.DashboardStatistics)
+def get_statistics(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Get statistics
+    """
+    nursery = crud.nursery.get_by_uuid(db, uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
+    if current_user.role.code == "owner" and nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
+    children_per_day = crud.nursery.get_number_children_per_day_in_current_week(db, nursery)
 
+    invoice_statistics = crud.invoice.get_nursery_statistic(db, nursery.uuid)
 
-
-
+    return {
+        "children_per_day": children_per_day,
+        "invoice_statistics": invoice_statistics,
+        "children_per_hour": {}
+    }
