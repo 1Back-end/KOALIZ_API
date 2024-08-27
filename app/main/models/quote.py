@@ -12,6 +12,7 @@ class NurseryStatusType(str, Enum):
     UNACTIVED = "UNACTIVED"
     DELETED = "DELETED"
 
+
 class QuoteTimetableItemType(str, Enum):
     REGISTRATION = "REGISTRATION"
     DEPOSIT = "DEPOSIT"

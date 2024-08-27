@@ -1,7 +1,8 @@
+import math
 from typing import Optional, Any
 
 from fastapi import Body, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator, AliasPath
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator, AliasPath, computed_field
 from datetime import datetime, time, date
 
 from app.main import models
@@ -27,6 +28,13 @@ class InvoiceTimeTableItem(BaseModel):
     amount: float = 0
     total_hours: Optional[float] = None
     unit_price: Optional[float] = None
+
+    @model_validator(mode='wrap')
+    def round_hours(self, handler):
+        validated_self = handler(self)
+        validated_self.total_hours = round(validated_self.total_hours, 2)
+
+        return validated_self
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -142,7 +150,21 @@ class DashboardInvoiceTimetableSlim(BaseModel):
     amount: float = 0
     status: str
     total_hours: float = 0
+    total_overtime_hours: float = 0
     child: InvoiceChildSlim
+
+    @computed_field(return_type=float)
+    @property
+    def sum_hours(self):
+        return self.total_hours + self.total_overtime_hours
+
+    @model_validator(mode='wrap')
+    def round_hours(self, handler):
+        validated_self = handler(self)
+        validated_self.total_hours = round(validated_self.total_hours, 2)
+        validated_self.total_overtime_hours = round(validated_self.total_overtime_hours, 2)
+
+        return validated_self
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -183,6 +205,7 @@ class ItemsCreateUpdate(BaseModel):
     # amount: float
     total_hours: Optional[float] = None
     unit_price: float
+    type: Optional[models.InvoiceItemType] = None
 
     model_config = ConfigDict(from_attributes=True)
 
