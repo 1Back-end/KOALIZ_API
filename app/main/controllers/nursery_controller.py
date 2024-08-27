@@ -135,7 +135,7 @@ def read_children_by_nursery(
         db=db, 
         nursery_uuid=nursery_uuid,
         child_uuid=child_uuid,
-        filter_date=datetime.combine(filter_date, datetime.max.time()) if filter_date else None
+        filter_date=filter_date
         # page=page,
         # per_page=per_page,
         # order=order,
