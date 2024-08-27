@@ -344,9 +344,10 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
 
 
         
-        media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
 
         for child in children:
+            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
+
             child.meals = db.query(models.Meal).\
                     filter(models.Meal.child_uuid == child.uuid, 
                         models.Meal.is_deleted !=True,

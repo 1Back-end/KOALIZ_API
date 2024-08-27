@@ -14,11 +14,12 @@ from app.main.core.security import generate_code
 router = APIRouter(prefix="/parents", tags=["parents"])
 
 
-@router.get("/children-transmissions", response_model=schemas.ParentTransmissionsList, status_code=200)
+@router.get("/children-transmissions", response_model=list[schemas.ParentTransmission], status_code=200)
 def get_children_transmissions(
+    nursery_uuid: Optional[str] = None,
+    child_uuid: Optional[str] = None,
     date: date = None,
     db: Session = Depends(get_db),
-    nursery_uuid: Optional[str] = None,
     current_parent: models.Parent = Depends(TokenRequired(roles=["parent"]))
 ):
     """ Get children transmissions """
@@ -28,7 +29,8 @@ def get_children_transmissions(
         db=db, 
         current_parent=current_parent, 
         filter_date=date,
-        nursery_uuid=nursery_uuid
+        nursery_uuid=nursery_uuid,
+        child_uuid= child_uuid
     )
 
 
@@ -38,6 +40,10 @@ def get(
     db: Session = Depends(get_db),
     page: int = 1,
     per_page: int = 30,
+    filter_date:date = None,
+    contrat_uuid: Optional[str] = None,
+    nursery_uuid:Optional[str] = None,
+    child_uuid : Optional[str] = None,
     order: str = Query("desc", enum =["asc", "desc"]),
     order_filed: str = "date_added",
     keyword: Optional[str] = None,
@@ -53,6 +59,10 @@ def get(
         order=order,
         order_filed=order_filed,
         keyword=keyword,
+        nursery_uuid = nursery_uuid,
+        child_uuid = child_uuid,
+        contrat_uuid = contrat_uuid,
+        filter_date=filter_date,
         parent_uuid=current_user.uuid
     )
 
@@ -98,6 +108,7 @@ def get(*,
         month: Optional[int] = None,
         year: Optional[int] = None,
         reference: Optional[str] = None,
+        contract_uuid: Optional[str] = None,
         nursery_uuid :Optional[str] = None,
         child_uuid: Optional[str] = None,
         current_user: models.Parent = Depends(TokenRequired(roles=["parent"]))
@@ -116,6 +127,7 @@ def get(*,
         reference=reference, 
         month=month, 
         year=year,
+        contract_uuid = contract_uuid,
         child_uuid=child_uuid,
         nursery_uuid=nursery_uuid,
         parent_uuid=current_user.uuid

@@ -13,8 +13,7 @@ from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
 from app.main.schemas.user import  Storage
 from app.main.schemas.file import File
-from app.main.schemas import AddressSLim
-
+from  app.main.schemas.parent import Parent
 
 @field_validator("birthdate")
 class ChildSchema(BaseModel):
@@ -487,7 +486,14 @@ class MediaSlim(BaseModel):
     date_modified: datetime
     model_config = ConfigDict(from_attributes=True)
 
-class ParentTransmissionsList(BaseModel):
+class ParentTransmission(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: str
+    age:int = 0
+    accepted_date:Optional[date]
+    avatar:Optional[File] = None
     meals:Optional[list[MealSlim]] 
     activities:Optional[list[ActivitySlim]]
     naps:Optional[list[NapSlim]]
@@ -495,6 +501,10 @@ class ParentTransmissionsList(BaseModel):
     hygiene_changes:Optional[list[HygieneChangeSlim]]
     media:Optional[list[MediaSlim]]
     observations:Optional[list[ObservationSlim]]
+    model_config = ConfigDict(from_attributes=True)
+
+class ParentTransmissionsList(BaseModel):
+    data: list[ParentTransmission] = []
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -507,6 +517,7 @@ class Transmission(BaseModel):
     accepted_date:Optional[date]
     avatar:Optional[File] = None
     nb_parent: int
+    parents:list[Parent]
     meals:Optional[list[MealSlim]] 
     # activities:Optional[list[ActivitySlim]]
     naps:Optional[list[NapSlim]]
@@ -522,6 +533,7 @@ class Transmission(BaseModel):
 class ChildTransmissionList(DataList):
     data: list[Transmission] = []
     model_config = ConfigDict(from_attributes=True)
+
 class ChildDetailsList(DataList):
     data: list[ChildDetails] = []
 

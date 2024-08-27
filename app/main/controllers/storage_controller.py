@@ -22,7 +22,6 @@ def upload_file(
         *,
         db: Session = Depends(dependencies.get_db),
         obj_in: schemas.FileUpload = Body(...),
-        current_user: models.User = Depends(TokenRequired())
 ) -> Any:
     """
     Upload a file.
