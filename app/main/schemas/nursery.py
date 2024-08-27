@@ -216,10 +216,15 @@ class NurseryByGuest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class DashboardStatistics(BaseModel):
-    children_per_day: list[int]
-    invoice_statistics: dict[str, float]
-    children_per_hour: dict[str, int]
-    # invoice_statistics: dict[Literal["PAID", "PENDING", "UPCOMING"], float]
+class InvoiceStatistics(BaseModel):
+    PAID: float = 0
+    PENDING: float = 0
+    UPCOMING: float = 0
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class DashboardStatistics(BaseModel):
+    children_per_day: list[int]
+    invoice_statistics: Optional[InvoiceStatistics]
+    children_per_hour: dict[str, int]
