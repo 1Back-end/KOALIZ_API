@@ -9,6 +9,7 @@ from typing import Optional,List
 
 router = APIRouter(prefix="/nursery-holidays", tags=["nursery-holidays"])
 
+
 @router.post("/nursery_holidays/",response_model=schemas.NurseryHoliday)
 def create_nursery_holiday(
     *,
@@ -23,6 +24,7 @@ def create_nursery_holiday(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.get("/{uuid}",response_model=schemas.NurseryHoliday)
 def read_nursery_holiday(

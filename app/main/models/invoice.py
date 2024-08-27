@@ -3,6 +3,7 @@ from enum import Enum
 from datetime import datetime, date
 from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, event, types,UniqueConstraint, \
     Float
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped
 from .db.base_class import Base
 
@@ -13,6 +14,15 @@ class InvoiceStatusType(str, Enum):
     PENDING = "PENDING"
     PROFORMA = "PROFORMA"
     UNPAID = "UNPAID"
+
+
+class InvoiceItemType(str, Enum):
+    REGISTRATION = "REGISTRATION"
+    DEPOSIT = "DEPOSIT"
+    ADAPTATION = "ADAPTATION"
+    INVOICE = "INVOICE"
+    CUSTOM = "CUSTOM"
+    OVERTIME = "OVERTIME"
 
 
 class Invoice(Base):
@@ -60,6 +70,16 @@ class Invoice(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
+    @hybrid_property
+    def total_hours(self):
+        return sum([item.total_hours for item in self.items if
+                    item.total_hours is not None and item.type != InvoiceItemType.OVERTIME])
+
+    @hybrid_property
+    def total_overtime_hours(self):
+        return sum([item.total_hours for item in self.items if
+                    item.total_hours is not None and item.type == InvoiceItemType.OVERTIME])
+
 
 @event.listens_for(Invoice, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
@@ -87,6 +107,8 @@ class InvoiceItem(Base):
     amount: float = Column(Float, nullable=0)
     total_hours: float = Column(Float)
     unit_price: float = Column(Float)
+
+    type: str = Column(types.Enum(InvoiceItemType))
 
     invoice_uuid: str = Column(String, ForeignKey('invoices.uuid', ondelete='CASCADE'), nullable=False)
     invoice: Mapped[any] = relationship("Invoice", foreign_keys=invoice_uuid, uselist=False, back_populates="items")

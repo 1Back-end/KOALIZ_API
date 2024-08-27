@@ -72,7 +72,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
-        return schemas.InvoiceList(
+        return schemas.DataList(
             total=total,
             pages=math.ceil(total / per_page),
             per_page=per_page,
@@ -142,7 +142,8 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                     title_en=quote_item.title_en,
                     amount=quote_item.amount,
                     total_hours=quote_item.total_hours,
-                    unit_price=quote_item.unit_price
+                    unit_price=quote_item.unit_price,
+                    type=quote_item.type if quote_item.type in [_type.value for _type in models.InvoiceItemType] else None
                 )
                 db.add(timetable_item)
         db.commit()
@@ -247,6 +248,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                         "title_en": item.title_en,
                         "total_hours": item.total_hours,
                         "unit_price": item.unit_price,
+                        "type": item.type,
                         "amount": amount
                     })
                 else:
@@ -257,7 +259,8 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                         "title_fr": item.title_fr,
                         "title_en": item.title_en,
                         "total_hours": item.total_hours,
-                        "unit_price": item.unit_price
+                        "unit_price": item.unit_price,
+                        "type": item.type
                     })
             else:
                 if item.total_hours and item.unit_price:
@@ -272,6 +275,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                     title_en=item.title_en,
                     total_hours=item.total_hours,
                     unit_price=item.unit_price,
+                    type=item.type,
                     amount=amount
                 )
                 db.add(new_item)
@@ -298,6 +302,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 title_en=item.title_en,
                 total_hours=item.total_hours,
                 unit_price=item.unit_price,
+                type=item.type,
                 amount=amount
             )
             db.add(new_item)
