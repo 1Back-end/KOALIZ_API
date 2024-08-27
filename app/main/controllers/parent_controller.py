@@ -100,7 +100,7 @@ def get(*,
         reference: Optional[str] = None,
         nursery_uuid :Optional[str] = None,
         child_uuid: Optional[str] = None,
-        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+        current_user: models.Parent = Depends(TokenRequired(roles=["parent"]))
 ):
     """
     get invoices with filters
