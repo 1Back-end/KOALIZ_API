@@ -1,15 +1,12 @@
-import math
-from typing import Optional, Any
+from typing import Optional
 
-from fastapi import Body, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator, AliasPath, computed_field
-from datetime import datetime, time, date
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator, computed_field
+from datetime import datetime, date
 
 from app.main import models
 from app.main.core.i18n import __
 from app.main.schemas import AddressBase
-from app.main.schemas.base import Items, DataList
-from app.main.schemas.file import File
+from app.main.schemas.base import DataList
 
 
 class InvoiceChildMini(BaseModel):
@@ -28,11 +25,13 @@ class InvoiceTimeTableItem(BaseModel):
     amount: float = 0
     total_hours: Optional[float] = None
     unit_price: Optional[float] = None
+    type: Optional[models.InvoiceItemType] = None
 
     @model_validator(mode='wrap')
     def round_hours(self, handler):
         validated_self = handler(self)
-        validated_self.total_hours = round(validated_self.total_hours, 2)
+        if validated_self.total_hours:
+            validated_self.total_hours = round(validated_self.total_hours, 2)
 
         return validated_self
 
@@ -161,8 +160,10 @@ class DashboardInvoiceTimetableSlim(BaseModel):
     @model_validator(mode='wrap')
     def round_hours(self, handler):
         validated_self = handler(self)
-        validated_self.total_hours = round(validated_self.total_hours, 2)
-        validated_self.total_overtime_hours = round(validated_self.total_overtime_hours, 2)
+        if validated_self.total_hours:
+            validated_self.total_hours = round(validated_self.total_hours, 2)
+        if validated_self.total_overtime_hours:
+            validated_self.total_overtime_hours = round(validated_self.total_overtime_hours, 2)
 
         return validated_self
 

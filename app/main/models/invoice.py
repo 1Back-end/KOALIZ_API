@@ -72,14 +72,13 @@ class Invoice(Base):
 
     @hybrid_property
     def total_hours(self):
-        # Check cases in which item.total_hours is not a float
-        return sum([item.total_hours for item in self.items if item.total_hours is not None])
-
-
+        return sum([item.total_hours for item in self.items if
+                    item.total_hours is not None and item.type != InvoiceItemType.OVERTIME])
 
     @hybrid_property
     def total_overtime_hours(self):
-        return sum([item.total_overtime_hours for item in self.items if item.total_overtime_hours is not None])
+        return sum([item.total_hours for item in self.items if
+                    item.total_hours is not None and item.type == InvoiceItemType.OVERTIME])
 
 
 @event.listens_for(Invoice, 'before_insert')
@@ -107,7 +106,6 @@ class InvoiceItem(Base):
     title_en: str = Column(String, nullable=False)
     amount: float = Column(Float, nullable=0)
     total_hours: float = Column(Float)
-    total_overtime_hours: float = Column(Float)
     unit_price: float = Column(Float)
 
     type: str = Column(types.Enum(InvoiceItemType))

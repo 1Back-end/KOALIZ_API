@@ -66,13 +66,9 @@ def dashboard_get(
     """
     get all with filters
     """
-    res = crud.invoice.get_many(
+    return crud.invoice.get_many(
         db=db, nursery_uuid=nursery_uuid, owner_uuid=current_user.uuid, page=page,
         per_page=per_page, order=order, order_filed=order_filed, month=month, year=year)
-
-    # for r in res.data:
-    #     print(f"{r.uuid} {r.total_hours} {r.total_overtime_hours}")
-    return res
 
 
 @router.get("/{uuid}", response_model=schemas.InvoiceDetails, status_code=200)
