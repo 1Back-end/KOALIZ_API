@@ -1,18 +1,21 @@
-from pydantic import BaseModel,ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import List, Optional
+
 
 class NurseryCloseHourBase(BaseModel):
     name_fr: str
     name_en: str 
-    start_day: int
-    start_month: int
-    end_day: int
-    end_month: int
+    start_day: int = Field(..., ge=1, le=31)
+    start_month: int = Field(..., ge=1, le=12)
+    end_day: int = Field(..., ge=1, le=31)
+    end_month: int = Field(..., ge=1, le=12)
     nursery_uuid: str
+
 
 class NurseryCloseHourCreate(NurseryCloseHourBase):
     pass
+
 
 class NurseryCloseHourUpdate(BaseModel):
     name_fr: Optional[str] = None
@@ -22,7 +25,8 @@ class NurseryCloseHourUpdate(BaseModel):
     end_day: Optional[int] = None
     end_month: Optional[int] = None
     is_active: Optional[bool] = None
-    
+
+
 class NurseryCloseHour(NurseryCloseHourBase):
     uuid: str
     is_active: bool
@@ -30,6 +34,7 @@ class NurseryCloseHour(NurseryCloseHourBase):
     date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class NurseryCloseHourResponsiveList(BaseModel):
     total: int
@@ -39,6 +44,7 @@ class NurseryCloseHourResponsiveList(BaseModel):
     data: list[NurseryCloseHour]
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class NurseryCloseHourDetails(BaseModel):
     uuid : str
