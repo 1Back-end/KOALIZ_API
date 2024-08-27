@@ -35,8 +35,7 @@ class CRUDAdministrator(CRUDBase[models.Administrator, schemas.AdministratorCrea
                 parent_email = obj_in.parent_email,
                 nursery_uuid = obj_in.nursery_uuid,
                 child_uuid = obj_in.child_uuid,
-                added_by_uuid = added_by.uuid,
-                parent_uuid = parent.uuid
+                added_by_uuid = added_by.uuid
             )
             db.add(parent_child)
             db.commit()

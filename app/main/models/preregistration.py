@@ -190,8 +190,8 @@ class ParentChild(Base):
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
 
-    added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
-    added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
+    added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
