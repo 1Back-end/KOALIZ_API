@@ -159,17 +159,11 @@ class NuseryHoliday(Base):
     is_active: bool = Column(Boolean, default=False, nullable=False)  # Ajout de la colonne is_active
     is_deleted: bool = Column(Boolean, default=False)
 
-
-
-
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)
     nursery = relationship("Nursery", foreign_keys=[nursery_uuid], uselist=False)
 
-
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now)
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
-
-
 
 
 @event.listens_for(NurseryCloseHour, 'before_insert')
@@ -183,6 +177,7 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
+
 
 @event.listens_for(NuseryHoliday, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
