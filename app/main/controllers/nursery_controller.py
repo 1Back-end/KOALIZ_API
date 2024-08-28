@@ -19,12 +19,12 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.NurseryCreate,
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
+    current_user = Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
 ):
     """
     Create nursery
     """
-    if current_user.role.code == "administrator" and not obj_in.owner_uuid:
+    if current_user.role.group == "administrators" and not obj_in.owner_uuid:
         raise HTTPException(status_code=400, detail=__("owner-required"))
 
     current_user_uuid = current_user.uuid
@@ -70,7 +70,7 @@ def delete(
         *,
         db: Session = Depends(get_db),
         uuids: list[str],
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Delete many(or one)
@@ -91,7 +91,7 @@ def get(
         status: Optional[str] = Query(None, enum=[st.value for st in models.NurseryStatusType]),
         total_places: int = None,
         owner_uuid: str = None,
-        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
 ):
     """
     get all with filters
@@ -222,7 +222,7 @@ def get_by_slug_guest(
 def get_details(
         uuid: str,
         db: Session = Depends(get_db),
-        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
 ):
     """
     Get nursery details
@@ -242,7 +242,7 @@ def update(
         uuid: str,
         obj_in: schemas.NurseryUpdateBase,
         db: Session = Depends(get_db),
-        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
 ):
     """
     Update nursery
@@ -263,7 +263,7 @@ def update(
         status: str = Query(..., enum=[st.value for st in models.NurseryStatusType if
                                        st.value != models.NurseryStatusType.DELETED]),
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Update nursery owner status

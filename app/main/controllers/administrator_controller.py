@@ -14,7 +14,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorCreate,
-    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Create new administrator
@@ -64,7 +64,7 @@ def update(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.AdministratorUpdate,
-    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Update new administrator
@@ -96,7 +96,7 @@ def delete(
     *,
     db: Session = Depends(get_db),
     uuid: str,
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     Delete administrator
@@ -120,7 +120,7 @@ def get(
     status: str = Query(None, enum =["ACTIVED","UNACTIVED"]),
     keyword:Optional[str] = None,
     # order_filed: Optional[str] = None
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     get administrator with all data by passing filters

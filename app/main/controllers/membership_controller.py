@@ -14,7 +14,7 @@ def create(
     db: Session = Depends(get_db),
     *,
     obj_in:list[schemas.MembershipCreate],
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
 ):
     memberships_errors =[]
     nursery_errors = []
@@ -54,7 +54,7 @@ def create(
 def update(
     obj_in: schemas.MembershipUpdate,
     db: Session = Depends(get_db),
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
 ):
     """
     Update membership
@@ -113,7 +113,7 @@ def get(
     keyword:Optional[str] = None,
     # membership_type:Optional[str] = None,
     # order_filed: Optional[str] = None
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
 ):
     """
     get membership with all data by passing filters
@@ -139,7 +139,7 @@ def change_status(
     uuid: str,
     db: Session = Depends(get_db),
     status:str = Query(None, enum =["ACTIVED","UNACTIVED","PENDING","SUSPENDED"]),
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator,owner"] ))
+    current_user=Depends(TokenRequired(roles=["administrator", "edimester", "accountant", "owner"]))
 ):
     """
     Change membership status
@@ -149,12 +149,3 @@ def change_status(
         raise HTTPException(status_code=404, detail=__("membership-not-found"))
 
     return crud.membership.update_status(db, uuid, status)
-
-
-
-
-
-    
-
-
-

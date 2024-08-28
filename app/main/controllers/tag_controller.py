@@ -14,7 +14,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.TagCreate,
-    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Create new Tag
@@ -35,7 +35,7 @@ def update(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.TagUpdate,
-    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator", "edimester"]))
 ):
     """
     update a Tag
@@ -85,7 +85,7 @@ def delete(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.TagDelete,
-    current_user:models.Administrator = Depends(TokenRequired(roles =["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     delete a Tag
@@ -103,7 +103,7 @@ def add_tag_to_element(
     *,
     db: Session = Depends(get_db),
     obj_in:schemas.TagElementCreate,
-    current_user:models.User = Depends(TokenRequired(roles =[]))
+    current_user=Depends(TokenRequired(roles =[]))
 ):
     """
     update a Tag
@@ -128,7 +128,7 @@ def remove_tag_from_element(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.TagElementDelete,
-    current_user: models.User = Depends(TokenRequired(roles =[]))
+    current_user=Depends(TokenRequired(roles =[]))
 ):
     """
     remove a Tag
@@ -156,7 +156,7 @@ def get(
     icon_uuid:Optional[str] = None,
     uuid:Optional[str] = None,
     # order_filed: Optional[str] = None
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     get tags with all data by passing filters
@@ -188,7 +188,7 @@ def get(
     uuid:Optional[str] = None,
     type:Optional[str] = Query(None, enum =["CHILDREN","TEAM","PARENTS","DOCUMENTS","PRE_ENROLLMENT","PICTURE","BILL"]),
     # order_filed: Optional[str] = None
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     get tags with all data by passing filters
