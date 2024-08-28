@@ -37,7 +37,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.OwnerCreate,
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Create owner
@@ -58,7 +58,7 @@ def update(
     uuid: str,
     obj_in: schemas.OwnerUpdateBase,
     db: Session = Depends(get_db),
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"] ))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Update nursery owner
@@ -79,7 +79,7 @@ def update(
         uuid: str,
         status: str = Query(..., enum=[st.value for st in models.UserStatusType if st.value != models.UserStatusType.DELETED]),
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Update nursery owner status
@@ -98,7 +98,7 @@ def update(
 def get_details(
         uuid: str,
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
 ):
     """
     Get nursery owner details
@@ -115,7 +115,7 @@ def delete(
     *,
     db: Session = Depends(get_db),
     uuids: list[str],
-    current_user: models.Administrator = Depends(TokenRequired(roles =["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Delete many(or one)
@@ -133,7 +133,7 @@ def get(
     order: str = Query("desc", enum =["asc", "desc"]),
     order_filed: str = "date_added",
     keyword: Optional[str] = None,
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
 ):
     """
     get all with filters
@@ -147,4 +147,3 @@ def get(
         order_filed,
         keyword
     )
-    

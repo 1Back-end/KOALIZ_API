@@ -22,8 +22,6 @@ def upload_file(
         *,
         db: Session = Depends(dependencies.get_db),
         obj_in: schemas.FileUpload = Body(...)
-
-
 ) -> Any:
     """
     Upload a file.
