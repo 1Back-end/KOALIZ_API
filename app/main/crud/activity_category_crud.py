@@ -49,9 +49,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
     @classmethod
     def get_activity_category_by_uuid(cls, db: Session, uuid: str) -> Optional[ActivityCategory]:
         return db.query(ActivityCategory).\
-            filter(
-                ActivityCategory.uuid == uuid,
-                ActivityCategory.status!=AbsenceStatusEnum.DELETED).\
+            filter(ActivityCategory.uuid == uuid,ActivityCategory.status!=AbsenceStatusEnum.DELETED).\
                 first()
     
     @classmethod
