@@ -341,12 +341,14 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
             Child.uuid.in_(child_uuids),
             Child.is_accepted == True
         )
+        if child_uuid:
+            children = children.filter(Child.uuid == child_uuid)
 
 
         
 
         for child in children:
-            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
+            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child.uuid).all()]
 
             child.meals = db.query(models.Meal).\
                     filter(models.Meal.child_uuid == child.uuid, 
@@ -475,8 +477,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         #         )
         #     )
 
-        if child_uuid:
-            children = children.filter(Child.uuid == child_uuid)
+        # if child_uuid:
+        #     children = children.filter(Child.uuid == child_uuid)
 
         if order == "asc":
             children = children.order_by(getattr(models.Child, order_filed).asc())
