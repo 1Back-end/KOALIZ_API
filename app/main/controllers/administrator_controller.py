@@ -120,7 +120,7 @@ def get(
     status: str = Query(None, enum =["ACTIVED","UNACTIVED"]),
     keyword:Optional[str] = None,
     # order_filed: Optional[str] = None
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
 ):
     """
     get administrator with all data by passing filters

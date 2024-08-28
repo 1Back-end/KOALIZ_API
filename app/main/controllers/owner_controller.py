@@ -102,7 +102,7 @@ def update(
 def get_details(
         uuid: str,
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
 ):
     """
     Get nursery owner details
@@ -137,7 +137,7 @@ def get(
     order: str = Query("desc", enum =["asc", "desc"]),
     order_filed: str = "date_added",
     keyword: Optional[str] = None,
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
 ):
     """
     get all with filters

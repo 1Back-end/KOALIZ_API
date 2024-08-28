@@ -19,7 +19,7 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.NurseryCreate,
-    current_user = Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
+    current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
 ):
     """
     Create nursery
@@ -91,7 +91,7 @@ def get(
         status: Optional[str] = Query(None, enum=[st.value for st in models.NurseryStatusType]),
         total_places: int = None,
         owner_uuid: str = None,
-        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "accountant", "owner"]))
 ):
     """
     get all with filters
@@ -167,7 +167,6 @@ def get_employee_home_page(
     )
     return nursery_details
 
-"c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
 
 @router.get("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
 async def get_opening_hours(
@@ -222,7 +221,7 @@ def get_by_slug_guest(
 def get_details(
         uuid: str,
         db: Session = Depends(get_db),
-        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "accountant", "owner"]))
 ):
     """
     Get nursery details

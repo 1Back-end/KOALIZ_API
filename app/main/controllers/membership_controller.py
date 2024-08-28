@@ -14,7 +14,7 @@ def create(
     db: Session = Depends(get_db),
     *,
     obj_in:list[schemas.MembershipCreate],
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     memberships_errors =[]
     nursery_errors = []
@@ -54,7 +54,7 @@ def create(
 def update(
     obj_in: schemas.MembershipUpdate,
     db: Session = Depends(get_db),
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester", "accountant"]))
+    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Update membership
@@ -139,7 +139,7 @@ def change_status(
     uuid: str,
     db: Session = Depends(get_db),
     status:str = Query(None, enum =["ACTIVED","UNACTIVED","PENDING","SUSPENDED"]),
-    current_user=Depends(TokenRequired(roles=["administrator", "edimester", "accountant", "owner"]))
+    current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
 ):
     """
     Change membership status
