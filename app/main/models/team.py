@@ -138,6 +138,38 @@ class TeamEmployees(Base):
     def __repr__(self):
         return '<TeamEmployee: uuid: {} employee_uuid: {} team_uuid: {}>'.format(self.uuid, self.employee_uuid, self.team_uuid)
 
+@dataclass
+class Group(Base):
+    __tablename__ = 'groups'
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    title_en: str = Column(String, nullable=False)
+    title_fr: str = Column(String, nullable=False)
+
+    code: str = Column(String, nullable=False,unique=True)
+    description: str = Column(String, nullable=True)
+
+    def __repr__(self):
+        return '<Group: uuid: {} title_fr: {} title_en: {}>'.format(self.uuid, self.title_fr, self.title_en)
+
+
+@dataclass
+class EmployeeRoles(Base):
+    __tablename__ = 'employee_roles'
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    employee_uuid: str = Column(String, ForeignKey('employees.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
+    employee = relationship("Employee", foreign_keys=[employee_uuid], uselist=False, overlaps="teams")
+
+    team_uuid: str = Column(String, ForeignKey('teams.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
+    team = relationship("Team", foreign_keys=[team_uuid], uselist=False,overlaps="employees")
+
+    status:str = Column(String, index=True, nullable=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    def __repr__(self):
+        return '<TeamEmployee: uuid: {} employee_uuid: {} team_uuid: {}>'.format(self.uuid, self.employee_uuid, self.team_uuid)
+
 @event.listens_for(TeamEmployees, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""

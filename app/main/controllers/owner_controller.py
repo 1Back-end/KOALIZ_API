@@ -28,10 +28,6 @@ def confirm_child_for_parent(
     if not child:
         raise HTTPException(status_code=404, detail=__("child-not-found"))
     
-    parent = db.query(models.Parent).filter(models.Parent.email.ilike(obj_in.parent_email)).first()
-    if not parent:
-        raise HTTPException(status_code=404, detail=__("user-not-found"))
-
     crud.administrator.confirm_child_for_parent(db=db, obj_in=obj_in, added_by=current_user)
 
     return child
