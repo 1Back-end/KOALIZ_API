@@ -457,7 +457,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
                 
                 child.media = db.query(models.Media).\
                     filter(models.Media.uuid.in_(media_uuids),
-                        models.Media.status!=models.AbsenceStatusEnum.DELETED, 
+                        models.Media.status!=models.AbsenceStatusEnum.DELETED,
+                        models.Observation.nursery_uuid == nursery_uuid,
                         models.Media.date_added.between(start_date,end_date)).\
                         order_by(models.Media.date_added.desc()).\
                     all()
