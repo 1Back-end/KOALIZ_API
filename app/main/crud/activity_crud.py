@@ -59,6 +59,7 @@ class CRUDActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.Activ
             uuid=str(uuid.uuid4()),
             name_fr=obj_in.name_fr,
             name_en=obj_in.name_en,
+            is_default=True,
         )
         db.add(db_obj)
         
@@ -91,7 +92,10 @@ class CRUDActivity(CRUDBase[models.Activity,schemas.ActivityCreate,schemas.Activ
         return db_obj
     @classmethod
     def get_category_activity_by_uuid(cls, uuid: str, db: Session):
-        return db.query(models.ActivityCategory).filter(models.ActivityCategory.uuid == uuid).first()
+        return db.query(models.ActivityCategory).\
+            filter(models.ActivityCategory.uuid == uuid,
+                   models.ActivityCategory.status!=models.AbsenceStatusEnum.DELETED).\
+                    first()
     
     @classmethod
     def get_activity_by_uuid(cls,uuid:str,db:Session):

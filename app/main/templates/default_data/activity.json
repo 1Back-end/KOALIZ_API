@@ -2,74 +2,253 @@
     {
         "uuid": "d6a7a1c8-64a3-4f56-98a7-2f6e2e7a5b8f",
         "name_fr": "Eveil au goût",
-        "name_en": "Taste Awakening"
+        "name_en": "Taste Awakening",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "8b2c4f3d-b5c7-4d9e-a15f-36e7c8c48a3a",
         "name_fr": "Eveil tout-petits",
-        "name_en": "Early Childhood Awakening"
+        "name_en": "Early Childhood Awakaening",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "a123f9e4-234a-4f6b-baa5-86a3e99f042c",
         "name_fr": "Eveil Sonore",
-        "name_en": "Sound Awakening"
-       
-
+        "name_en": "Sound Awakening",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "c6789e0b-1d3f-4c9f-a6a2-3b9e2b1c7c42",
         "name_fr": "Construction et Encastrement",
-        "name_en": "Construction and Fitting"
+        "name_en": "Construction and Fitting",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "b345f1c2-4d9e-4a76-9a1d-5c6f4c8b9a11",
         "name_fr": "Manuelle",
-        "name_en": "Manual"
+        "name_en": "Manual",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "d4a9e0b1-3c5f-4b6a-9c8a-7d1e2f3b6a67",
         "name_fr": "Manipulation",
-        "name_en": "Manipulation"
-
+        "name_en": "Manipulation",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "e234b6f2-4d6a-4e9c-b5a7-6f3e7d8c9a1e",
         "name_fr": "Motricité",
-        "name_en": "Motor Skills"
+        "name_en": "Motor Skills",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "f6c9e1b3-2d4a-4e6b-8a3e-9b7e1c5a7d2f",
         "name_fr": "Jeux symboliques",
-        "name_en": "Symbolic Play"
+        "name_en": "Symbolic Play",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "a1b2c3d4-e5f6-7a8b-9c0d-e1f2g3h4i5j6",
         "name_fr": "Langage",
-        "name_en": "Language"
+        "name_en": "Language",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "c7d8e9f0-1a2b-3c4d-5e6f-7g8h9i0j1k2l",
         "name_fr": "Jardin",
-        "name_en": "Garden"
+        "name_en": "Garden",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "b2c3d4e5-f6g7-8h9i-0j1k-2l3m4n5o6p7q",
-        "name_fr": "Extérieur de l’etablissement",
-        "name_en": "Outside the Establishment"
+        "name_fr": "Extérieur de l'établissement",
+        "name_en": "Outside the Establishment",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6",
         "name_fr": "Cube en bois",
-        "name_en": "Wooden Cube"
+        "name_en": "Wooden Cube",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "f7g8h9i0-1j2k-3l4m-5n6o-7p8q9r0s1t2u",
         "name_fr": "Coussin sensoriel",
-        "name_en": "Sensory Cushion"
+        "name_en": "Sensory Cushion",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     },
     {
         "uuid": "b1c2d3e4-f5g6-7h8i-9j0k-l1m2n3o4p5q6",
         "name_fr": "Autres",
-        "name_en": "Others"
+        "name_en": "Others",
+        "activity_category_uuid_tab": [
+            "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+            "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+            "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+            "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+            "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+            "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+            "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+            "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+            "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+            "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+            "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6"
+        ]
     }
 ]

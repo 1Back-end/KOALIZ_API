@@ -100,14 +100,13 @@ async def create_database_tables(
         raise ProgrammingError(status_code=512, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
-@router.post("/create-activity",response_model=schemas.Msg,status_code=201)
-async def create_activity(
+@router.post("/create-activity-type",response_model=schemas.Msg,status_code=201)
+async def create_activity_type(
     db: Session = Depends(dependencies.get_db),
     admin_key: schemas.AdminKey = Body(...)
 )-> dict[str, str]:
-    """ Create a new activity """
+    """ Create a new activity type """
     check_user_access_key(admin_key)
     try:
         with open('{}/app/main/templates/default_data/activity.json'.format(os.getcwd()), encoding='utf-8') as f:
@@ -124,9 +123,54 @@ async def create_activity(
                         uuid=data["uuid"]
                     )
                     db.add(activity)
+                    db.flush()
+                    if data["activity_category_uuid_tab"]:
+
+                        for category_uuid in data["activity_category_uuid_tab"]:
+                            activity_category = crud.activity_category.get_activity_category_by_uuid(category_uuid, db)
+                            if activity_category:
+                                exist_activity_category = db.query(models.activity_category_table)\
+                                    .filter(models.activity_category_table.c.activity_uuid == activity.uuid)\
+                                    .filter(models.activity_category_table.c.category_uuid == activity_category.uuid).first()
+
+                                if not exist_activity_category:
+                                    activity.activity_categories.append(activity_category)
+                                    db.flush()
+            db.commit()
+        return {"message": "Les activitées ont été créés avec succès"}
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+    
+@router.post("/create-default-activity-categories",response_model=schemas.Msg,status_code=201)
+async def create_default_activity_categories(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+)-> dict[str, str]:
+    """ Create default activity categories """
+    check_user_access_key(admin_key)
+    try:
+        with open('{}/app/main/templates/default_data/activity_category.json'.format(os.getcwd()), encoding='utf-8') as f:
+            datas = json.load(f)
+            
+            for data in datas:
+                activity = crud.activity_category.get_activity_category_by_uuid(db=db, uuid=data["uuid"])
+                if activity:
+                    crud.activity_category.update(db, schemas.ActivityCategoryUpdate(**data))
+                else:
+                    activity = models.ActivityCategory(
+                        name_fr=data["name_fr"],
+                        name_en=data["name_en"],
+                        uuid=data["uuid"]
+                    )
+                    db.add(activity)
                     db.commit()
                     db.refresh(activity)
-        return {"message": "Les activitées ont été créés avec succès"}
+                    
+        return {"message": "Les categories d'activités ont été créées avec succès"}
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("conflict"))
