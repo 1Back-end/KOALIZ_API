@@ -42,8 +42,9 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         if child_uuid:
             children = children.filter(models.Child.uuid==child_uuid)
 
+        media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([child.uuid for child in children])).all()]
+
         for child in children:
-            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid==child_uuid).all()]
 
             child.naps = db.query(models.Nap).\
                 filter(models.Nap.child_uuid == child.uuid,
