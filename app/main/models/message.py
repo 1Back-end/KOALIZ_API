@@ -37,7 +37,7 @@ class Message(Base):
     payload_json: dict = Column(JSONB, nullable=True)
     is_file: bool = Column(Boolean, nullable=True, default=False)
     is_image: bool = Column(Boolean, nullable=True, default=False)
-    status:str = Column(String, index=True, nullable=False,default = "DELIVERED")
+    status:str = Column(String, index=True, nullable=True, default = "DELIVERED")
     sender_uuid: str = Column(String, nullable=False)
     file_uuid = Column(String(255), ForeignKey('storages.uuid', ondelete="CASCADE"), nullable=True)
     file = relationship("Storage", foreign_keys=[file_uuid])

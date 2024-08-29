@@ -145,6 +145,44 @@ async def create_activity_type(
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
     
+@router.put("/update-contract",response_model=schemas.Msg,status_code=201)
+async def update_contract(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+)-> dict[str, str]:
+    
+    """ Update contract """
+
+    check_user_access_key(admin_key)
+
+    try:
+        
+        for data in db.query(models.PreRegistration).filter(models.PreRegistration.status==models.PreRegistrationStatusType.ACCEPTED).all():
+            print("data.contract_uuid: ",data.contract_uuid)
+            if data.contract_uuid:
+                contract = crud.contract.get_contract_by_uuid(db=db, uuid=data.contract_uuid)
+                print("contract: ",contract)
+                if contract:
+                    print("data.child_uuid: ",data.child_uuid)
+                    parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == data.child_uuid).first()
+                    if parent_child:
+                        parent_child.parent.contracts.append(contract)
+
+                    contract.nursery_uuid = data.nursery_uuid
+                    contract.status = "ACCEPTED"
+                    contract.date_of_acceptation = datetime.now()
+                    contract.owner_uuid = data.nursery.owner_uuid
+                    contract.has_company_contract = False
+
+            db.commit()
+        return {"message": "Les contracts ont été modifiés avec succès"}
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+    
 @router.post("/create-default-activity-categories",response_model=schemas.Msg,status_code=201)
 async def create_default_activity_categories(
     db: Session = Depends(dependencies.get_db),

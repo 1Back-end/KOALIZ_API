@@ -209,6 +209,10 @@ class ClientAccount(Base):
     phone_number: str = Column(String, nullable=False)
     email: str = Column(String, nullable=False)
 
+    bic = Column(String(11), nullable=True)
+    rum = Column(String(100), nullable=True, unique=True)
+    signed_date = Column(Date, nullable=True)
+
     invoices: Mapped[list[any]] = relationship("Invoice", uselist=True, back_populates="client_account")
     contracts = relationship("Contract", secondary="client_account_contracts", back_populates="client_accounts", uselist=True, overlaps="contract,client_account")
     children = relationship("Child", secondary="client_account_children", back_populates="client_accounts", uselist=True, overlaps="child,client_account")

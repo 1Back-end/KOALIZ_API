@@ -4,7 +4,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, Tabl
 from datetime import datetime, date
 from sqlalchemy.orm import relationship
 from .db.base_class import Base
-
+from .preregistration import parent_contract
 
 
 @dataclass
@@ -35,6 +35,8 @@ class Parent(Base):
     password_hash: str = Column(String(100), nullable=True, default="")
     status = Column(String, index=True, nullable=False)
     is_new_user: bool = Column(Boolean, nullable=True, default=False)
+
+    contracts = relationship("Contract", secondary=parent_contract, back_populates="parents")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
