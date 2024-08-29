@@ -83,7 +83,10 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                     begin_date=exist_folder.pre_contract.begin_date,
                     end_date=exist_folder.pre_contract.end_date,
                     typical_weeks=exist_folder.pre_contract.typical_weeks,
-                    type=models.ContractType.REGULAR
+                    type=models.ContractType.REGULAR,
+                    nursery_uuid=exist_folder.nursery.uuid,
+                    status="ACCEPTED",
+                    owner_uuid=exist_folder.nursery.owner_uuid
                 )
                 db.add(contract)
                 exist_folder.contract_uuid = contract.uuid
@@ -119,6 +122,10 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 exist_folder.contract.end_date = exist_folder.pre_contract.end_date
                 exist_folder.contract.typical_weeks = exist_folder.pre_contract.typical_weeks
                 exist_folder.contract.type = models.ContractType.REGULAR
+                exist_folder.contract.nursery_uuid = exist_folder.nursery.uuid
+                exist_folder.contract.owner_uuid = exist_folder.nursery.owner_uuid
+                exist_folder.contract.status = "ACCEPTED"
+                exist_folder.contract.date_of_acceptation = datetime.now()
 
             if exist_folder.quote and exist_folder.quote.status != models.QuoteStatusType.ACCEPTED:
                 exist_folder.quote.status = models.QuoteStatusType.ACCEPTED

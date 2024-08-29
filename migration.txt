@@ -23,3 +23,22 @@ CREATE TYPE mealtypeenum AS ENUM (
         
 ALTER TYPE public.MealTypeEnum
     ADD VALUE 'OTHER' AFTER 'BREAST_FEEDING';
+
+
+CREATE TYPE invoiceitemtype AS ENUM (
+            'REGISTRATION',
+            'DEPOSIT',  
+            'ADAPTATION',           
+            'INVOICE',           
+            'CUSTOM',           
+            'OVERTIME'           
+        );
+ALTER TABLE invoice_items ADD COLUMN type invoiceitemtype
+
+CREATE TYPE messagetype AS ENUM (
+            'RESERVATION',
+            'MESSAGE',  
+            'ABSENCE',           
+            'LATE'          
+        );
+ALTER TABLE messages ADD COLUMN message_type messagetype
