@@ -200,7 +200,25 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         parent.firstname = obj_in.firstname if obj_in.firstname else parent.firstname
         parent.lastname = obj_in.lastname if obj_in.lastname else parent.lastname
         parent.avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else parent.avatar_uuid
+
         parent.email = obj_in.email if obj_in.email else parent.email
+        parent.fix_phone = obj_in.fix_phone if obj_in.fix_phone else parent.fix_phone
+        parent.phone = obj_in.phone if obj_in.phone else parent.phone
+
+        parent.zip_code = obj_in.zip_code if obj_in.zip_code else parent.zip_code
+        parent.recipient_number = obj_in.recipient_number if obj_in.recipient_number else parent.recipient_number
+        parent.city = obj_in.city if obj_in.city else parent.city
+
+        parent.country = obj_in.country if obj_in.country else parent.country
+        parent.profession = obj_in.profession if obj_in.profession else parent.profession
+        parent.annual_income = obj_in.annual_income if obj_in.annual_income else parent.annual_income
+
+        parent.company_name = obj_in.company_name if obj_in.company_name else parent.company_name
+        parent.has_company_contract = obj_in.has_company_contract if obj_in.has_company_contract else parent.has_company_contract
+        parent.dependent_children = obj_in.dependent_children if obj_in.dependent_children else parent.dependent_children
+        
+        parent.disabled_children = obj_in.disabled_children if obj_in.disabled_children else parent.disabled_children
+        parent.is_paying_parent = obj_in.is_paying_parent if obj_in.is_paying_parent else parent.is_paying_parent
         db.commit()
         db.refresh(parent)
         return parent

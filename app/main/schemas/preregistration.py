@@ -11,7 +11,7 @@ from app.main.schemas import DataList, NurseryMini
 # from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
-from app.main.schemas.user import  Storage
+from app.main.schemas.user import  AddedBy, Storage
 from app.main.schemas.file import File
 from  app.main.schemas.parent import Parent
 
@@ -507,6 +507,11 @@ class ParentTransmissionsList(BaseModel):
     data: list[ParentTransmission] = []
     model_config = ConfigDict(from_attributes=True)
 
+class AppParent(BaseModel):
+    uuid: str 
+    parent:Parent
+    child:ChildDetails
+    added_by:AddedBy
 
 class Transmission(BaseModel):
     uuid: str
@@ -518,8 +523,10 @@ class Transmission(BaseModel):
     avatar:Optional[File] = None
     nb_parent: int
     parents:list[Parent]
+    app_parents:Optional[list[AppParent]]
+    pickup_parents: Optional[list[AppParent]]
     meals:Optional[list[MealSlim]] 
-    # activities:Optional[list[ActivitySlim]]
+    activities:Optional[list[ActivitySlim]]
     naps:Optional[list[NapSlim]]
     health_records:Optional[list[HealthRecordSlim]] 
     hygiene_changes:Optional[list[HygieneChangeSlim]]

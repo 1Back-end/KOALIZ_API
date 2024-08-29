@@ -69,6 +69,14 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
             exist_folder.accepted_date = datetime.now()
             exist_folder.child.is_accepted = True
 
+            guest_parents = exist_folder.child.parents
+            for guest_parent in guest_parents:
+                parent = crud.parent.get_by_email(db, guest_parent.email)
+                
+                if parent and parent.status == models.UserStatusType.ACTIVED:
+                    exist_folder.contract.parents.append(parent)
+                    db.flush()
+
             if not exist_folder.contract_uuid:
                 contract = models.Contract(
                     uuid=str(uuid.uuid4()),

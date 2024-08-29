@@ -70,6 +70,9 @@ class Child(Base):
 
     parents: Mapped[list[any]] = relationship("ParentGuest", back_populates="child", uselist=True)
 
+    pickup_parents: Mapped[list[any]] = relationship("PickUpParentChild", back_populates="child", uselist=True)
+    app_parents: Mapped[list[any]] = relationship("ParentChild", back_populates="child", uselist=True)
+
     preregistrations: Mapped[list[any]] = relationship("PreRegistration", back_populates="child", uselist=True)
 
     meals: Mapped[list[any]] = relationship("Meal", back_populates="child", uselist=True) # Repas
@@ -188,7 +191,7 @@ class ParentChild(Base):
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
-    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False,back_populates="app_parents")
 
     added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
@@ -208,7 +211,45 @@ def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
 
+class PickUpParentChild(Base):
+    """
+    database model for storing parint whose can pick up children in a nursery
+    """
 
+    __tablename__ = "pickup_parent_children"
+    
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+
+    parent_uuid = Column(String, ForeignKey('parents.uuid'), nullable=True)
+    parent: Mapped[any] = relationship("Parent", foreign_keys=parent_uuid, uselist=False)
+
+    parent_email = Column(String, nullable=False)
+    # fix_phone: str = Column(String, nullable=True)
+    # phone: str = Column(String, nullable=True)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False,back_populates="pickup_parents")
+
+    added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
+    added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+@event.listens_for(PickUpParentChild, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+@event.listens_for(PickUpParentChild, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+    
 class ParentGuest(Base):
     """
          database model for storing Nursery Opening Hour related details
