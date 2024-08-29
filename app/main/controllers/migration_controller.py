@@ -127,7 +127,7 @@ async def create_activity_type(
                     if data["activity_category_uuid_tab"]:
 
                         for category_uuid in data["activity_category_uuid_tab"]:
-                            activity_category = crud.activity_category.get_activity_category_by_uuid(category_uuid, db)
+                            activity_category = crud.activity_category.get_activity_category_by_uuid(db, category_uuid)
                             if activity_category:
                                 exist_activity_category = db.query(models.activity_category_table)\
                                     .filter(models.activity_category_table.c.activity_uuid == activity.uuid)\
