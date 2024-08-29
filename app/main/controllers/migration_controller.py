@@ -166,7 +166,8 @@ async def update_contract(
                     print("data.child_uuid: ",data.child_uuid)
                     parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == data.child_uuid).first()
                     if parent_child:
-                        parent_child.parent.contracts.append(contract)
+                        parent = db.query(models.Parent).filter(models.Parent.uuid == parent_child.parent_uuid).first()
+                        parent.contracts.append(contract)
 
                     contract.nursery_uuid = data.nursery_uuid
                     contract.status = "ACCEPTED"
