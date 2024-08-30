@@ -183,7 +183,8 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
             parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == obj_in.child_uuid).first()
             if parent_child:
                 parent = db.query(models.Parent).filter(models.Parent.uuid == parent_child.parent_uuid).first()
-                parent.contracts.append(contract)
+                if parent:
+                    parent.contracts.append(contract)
 
         db.commit()
         db.refresh(parent_child)

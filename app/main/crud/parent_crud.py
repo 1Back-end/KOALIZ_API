@@ -219,6 +219,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         
         parent.disabled_children = obj_in.disabled_children if obj_in.disabled_children else parent.disabled_children
         parent.is_paying_parent = obj_in.is_paying_parent if obj_in.is_paying_parent else parent.is_paying_parent
+        parent.link = obj_in.link if obj_in.link else parent.link
         db.commit()
         db.refresh(parent)
         return parent

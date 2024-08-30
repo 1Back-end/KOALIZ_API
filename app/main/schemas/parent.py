@@ -52,6 +52,7 @@ class ParentUpdate(BaseModel):
     lastname: Optional[str]=None
     fix_phone:Optional[str] = None
     phone:Optional[str] = None
+    link: Optional[models.ParentRelationship] = None
     email: Optional[EmailStr]= None
     avatar_uuid: Optional[str]=None
     recipient_number: Optional[str]=None
@@ -99,8 +100,19 @@ class Parent(BaseModel):
     lastname: str
     fix_phone: Optional[str] = None
     phone: Optional[str] = None 
-    link: models.ParentRelationship = None
+    link: Optional[models.ParentRelationship] = None
+    recipient_number: Optional[str]=None
+    zip_code: Optional[str]=None
+    city: Optional[str]=None
+    country: Optional[str]=None
+    profession: Optional[str]=None
+    annual_income: Optional[float] = None
+    company_name: Optional[str]= None
+    has_company_contract: Optional[bool] = None
+    dependent_children: Optional[int] = None
+    disabled_children: Optional[int] = None
 
+    is_paying_parent: Optional[bool] = None
     is_new_user: Optional[bool] = False
     avatar: Optional[File]= None
     date_added: datetime
