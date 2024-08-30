@@ -137,5 +137,6 @@ translation = {
     "membership-not-found": "Membership not found",
     "payment-amount-exceeds": "The payment amount exceeds the amount due",
     "not-authorized": "You are not authorized to perform this action",
-    "parent-not-found": "Parent not found"
+    "parent-not-found": "Parent not found",
+    "at-least-one-phone-number-required": "At least one phone number is required",
 }
