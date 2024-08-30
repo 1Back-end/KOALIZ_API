@@ -144,7 +144,7 @@ translation = {
     "payment-amount-exceeds": "Le montant du paiement dépasse le montant total de la facture",
     "not-authorized":"Vous n'etes pas autorisés á effectuer cette action",
     "parent-not-found":"Le parent n'existe pas",
-    "at-least-one-phone-number-required": "Au moins un numéro de téléphone est requis",,
+    "at-least-one-phone-number-required": "Au moins un numéro de téléphone est requis",
     "parent-status-not-allowed":"Le statut du parent n'est pas actif",
     "child-not-registered-in-nursery": "L'enfant n'est pas inscrit à la crèche ou alors son dossier d'inscription n'a pas encore été accepté",
 }

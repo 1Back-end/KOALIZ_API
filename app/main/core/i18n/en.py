@@ -138,7 +138,7 @@ translation = {
     "payment-amount-exceeds": "The payment amount exceeds the amount due",
     "not-authorized": "You are not authorized to perform this action",
     "parent-not-found": "Parent not found",
-    "at-least-one-phone-number-required": "At least one phone number is required",,
+    "at-least-one-phone-number-required": "At least one phone number is required",
     "parent-status-not-allowed":"Parent status not actived",
     "child-not-registered-in-nursery": "The child is not registered in the nursery or their registration file has not yet been accepted",
 
