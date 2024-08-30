@@ -228,6 +228,7 @@ class ParentGuest(Base):
     zip_code: str = Column(String, default="")
     city: str = Column(String, default="")
     country: str = Column(String, default="")
+    address: str = Column(String, default="")
     profession: str = Column(String, default="")
     annual_income: float = Column(Float, default=0)
     company_name: str = Column(String, default="")
