@@ -176,9 +176,18 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
                 added_by_uuid = added_by.uuid
             )
             db.add(parent_child)
-            db.commit()
-            db.refresh(parent_child)
-    
+            db.flush()
+            
+        contract = crud.contract.get_contract_by_uuid(db=db, uuid=preregistration.contract_uuid)
+        if contract:
+            parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == obj_in.child_uuid).first()
+            if parent_child:
+                parent = db.query(models.Parent).filter(models.Parent.uuid == parent_child.parent_uuid).first()
+                parent.contracts.append(contract)
+
+        db.commit()
+        db.refresh(parent_child)
+
         return parent_child
     
 owner = CRUDOwner(models.Owner)

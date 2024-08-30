@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.main import models
+from app.main.models.db.session import SessionLocal
 from app.main.schemas.parent import ParentResponse
 from app.main.schemas.preregistration import ChildMini3, TimeSlotInputSchema
 from app.main.schemas.tag import Tag
@@ -93,6 +94,7 @@ class ClientAccountContractSchema(BaseModel):
 
 class Contract(BaseModel):
     uuid: Optional[str] = None
+    nursery_uuid: str 
     child: Optional[ChildMini3] = None
     begin_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
@@ -109,6 +111,34 @@ class Contract(BaseModel):
     date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+    @model_validator(mode='wrap')
+    def validate_data(self, handler):
+        validated_self = handler(self)
+        session = SessionLocal()
+        try:
+            data = session.query(models.Contract).filter(models.Contract.nursery_uuid == validated_self.nursery_uuid).first()
+
+            for parent in data.parents:
+                exist_parent = session.query(models.Parent).\
+                    filter(models.Parent.uuid == parent.uuid).\
+                    filter(models.Parent.status.not_in(["DELETED"])).\
+                        first()
+                if not exist_parent:
+                    raise ValueError("Parent not found.")
+                
+            # values["has_pickup_child_authorization"] = False
+            # values["has_app_authorization"] = False
+    
+            
+            return 
+        except Exception as e:
+            print("Error getting data: " + str(e))
+        finally:
+            session.close()
+
+
 class ContractMini(BaseModel):
     uuid: str
     child: Optional[ChildMini3] = None
