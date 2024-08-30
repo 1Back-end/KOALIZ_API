@@ -554,9 +554,9 @@ class AppParent(BaseModel):
     uuid: str 
     parent_uuid :str
     parent_email:EmailStr
-    parent:Parent
+    parent:Optional[Parent] = None
     # child:ChildMiniDetails
-    added_by:AddedBy
+    added_by:Optional[AddedBy] = None
     model_config = ConfigDict(from_attributes=True)
 
 
