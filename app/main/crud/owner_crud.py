@@ -11,7 +11,7 @@ from app.main.core.mail import send_account_creation_email
 from app.main.crud.base import CRUDBase
 from app.main.crud.role_crud import role as crud_role
 from sqlalchemy.orm import Session,joinedload
-from app.main import schemas, models
+from app.main import crud, schemas, models
 from app.main.core.config import Config
 import uuid
 from app.main.core.security import get_password_hash, verify_password, generate_password
@@ -132,6 +132,68 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
     def get_by_uuids(cls, db: Session, uuids: list[str]) -> list[Optional[models.Owner]]:
         return db.query(models.Owner).filter(models.Owner.uuid.in_(uuids))\
             .filter(models.Owner.status.notin_([models.UserStatusType.DELETED])).all()
+    
+    @classmethod
+    def give_parent_pickup_child_authorization_for_nursery(cls, db: Session, obj_in: schemas.ChildrenConfirmation, added_by: models.Owner):
+        
+        parent = crud.parent.get_by_email(db, obj_in.parent_email)
+
+        exist_pickup_parent_child_for_nursery  = db.query(models.PickUpParentChild).\
+            filter(models.PickUpParentChild.parent_email == obj_in.parent_email).\
+            filter(models.PickUpParentChild.child_uuid == obj_in.child_uuid).\
+            filter(models.PickUpParentChild.nursery_uuid == obj_in.nursery_uuid).\
+            first()
+        
+        if not exist_pickup_parent_child_for_nursery:
+            exist_pickup_parent_child_for_nursery = models.PickUpParentChild(
+                uuid= str(uuid.uuid4()),
+                parent_uuid = parent.uuid,
+                parent_email = obj_in.parent_email,
+                nursery_uuid = obj_in.nursery_uuid,
+                child_uuid = obj_in.child_uuid,
+                added_by_uuid = added_by.uuid
+            )
+            db.add(exist_pickup_parent_child_for_nursery)
+            db.commit()
+            db.refresh(exist_pickup_parent_child_for_nursery)
+    
+        return exist_pickup_parent_child_for_nursery
+    
+    @classmethod
+    def confirm_child_for_parent(cls, db: Session, obj_in: schemas.ChildrenConfirmation, added_by: models.Owner,preregistration:models.PreRegistration):
+        
+        parent = crud.parent.get_by_email(db, obj_in.parent_email)
+
+        parent_child  = db.query(models.ParentChild).\
+            filter(models.ParentChild.parent_email == parent.email).\
+            filter(models.ParentChild.child_uuid == obj_in.child_uuid).\
+            filter(models.ParentChild.nursery_uuid == obj_in.nursery_uuid).\
+            first()
+        
+        if not parent_child:
+            parent_child = models.ParentChild(
+                uuid= str(uuid.uuid4()),
+                parent_uuid = parent.uuid,
+                parent_email = obj_in.parent_email,
+                nursery_uuid = obj_in.nursery_uuid,
+                child_uuid = obj_in.child_uuid,
+                added_by_uuid = added_by.uuid
+            )
+            db.add(parent_child)
+            db.flush()
+            
+        contract = crud.contract.get_contract_by_uuid(db=db, uuid=preregistration.contract_uuid)
+        if contract:
+            parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == obj_in.child_uuid).first()
+            if parent_child:
+                parent = db.query(models.Parent).filter(models.Parent.uuid == parent_child.parent_uuid).first()
+                if parent:
+                    parent.contracts.append(contract)
+
+        db.commit()
+        db.refresh(parent_child)
+
+        return parent_child
     
 owner = CRUDOwner(models.Owner)
 

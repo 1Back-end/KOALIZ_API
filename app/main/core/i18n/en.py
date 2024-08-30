@@ -137,5 +137,8 @@ translation = {
     "membership-not-found": "Membership not found",
     "payment-amount-exceeds": "The payment amount exceeds the amount due",
     "not-authorized": "You are not authorized to perform this action",
-    "parent-not-found": "Parent not found"
+    "parent-not-found": "Parent not found",
+    "parent-status-not-allowed":"Parent status not actived",
+    "child-not-registered-in-nursery": "The child is not registered in the nursery or their registration file has not yet been accepted",
+
 }

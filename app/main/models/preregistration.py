@@ -71,6 +71,9 @@ class Child(Base):
 
     parents: Mapped[list[any]] = relationship("ParentGuest", back_populates="child", uselist=True)
 
+    pickup_parents: Mapped[list[any]] = relationship("PickUpParentChild", back_populates="child", uselist=True)
+    app_parents: Mapped[list[any]] = relationship("ParentChild", back_populates="child", uselist=True)
+
     preregistrations: Mapped[list[any]] = relationship("PreRegistration", back_populates="child", uselist=True)
 
     meals: Mapped[list[any]] = relationship("Meal", back_populates="child", uselist=True) # Repas
@@ -188,7 +191,7 @@ class ParentChild(Base):
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
-    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False,back_populates="app_parents")
 
     added_by_uuid: str = Column(String, nullable=True)
 
@@ -239,6 +242,69 @@ parent_contract = Table('parent_contract', Base.metadata,
     Column('contract_uuid', String, ForeignKey('contracts.uuid'), primary_key=True),
     Column('parent_uuid', String, ForeignKey('parent_guests.uuid'), primary_key=True)
 )
+
+class PickUpParentChild(Base):
+    """
+    database model for storing parint whose can pick up children in a nursery
+    """
+
+    __tablename__ = "pickup_parent_children"
+    
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+
+    parent_uuid = Column(String,nullable=True)
+
+    parent_email = Column(String, nullable=False)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False,back_populates="pickup_parents")
+
+    added_by_uuid: str = Column(String, nullable=True)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    @hybrid_property
+    def added_by(self):
+        db = SessionLocal()
+        user = db.query(models.Administrator).\
+            filter(models.Administrator.uuid==self.added_by_uuid,
+                   models.Administrator.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                    first()
+        if not user:
+            user = db.query(models.Owner).\
+                filter(models.Owner.uuid==self.added_by_uuid,
+                     models.Owner.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                        first()
+        return user
+    @hybrid_property
+    def parent(self):
+        db = SessionLocal()
+        user = db.query(models.ParentGuest).\
+            filter(models.ParentGuest.uuid==self.added_by_uuid,
+                   models.ParentGuest.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                    first()
+        if not user:
+            user = db.query(models.Parent).\
+                filter(models.Parent.uuid==self.added_by_uuid,
+                     models.Parent.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                        first()
+        return user
+
+@event.listens_for(PickUpParentChild, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+@event.listens_for(PickUpParentChild, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+    
 class ParentGuest(Base):
     """
          database model for storing Nursery Opening Hour related details
@@ -270,11 +336,29 @@ class ParentGuest(Base):
     # contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
     # contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
 
+    role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=True )
+    role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
+
+    avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
+    avatar = relationship("Storage", foreign_keys=[avatar_uuid])
+
+    otp: str = Column(String(5), nullable=True, default="")
+    otp_expired_at: datetime = Column(DateTime, nullable=True, default=None)
+
+    otp_password: str = Column(String(5), nullable=True, default="")
+    otp_password_expired_at: datetime = Column(DateTime, nullable=True, default=None)
+
+    password_hash: str = Column(String(100), nullable=True, default="")
+    status = Column(String, index=True, nullable=True)
+    is_new_user: bool = Column(Boolean, nullable=True, default=False)
+
+    contracts = relationship("Contract", secondary=parent_contract, back_populates="parents")
+
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, back_populates="parents", uselist=False)
 
-    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
-    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_added: datetime = Column(DateTime, nullable=True, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=True, default=datetime.now())
 
 
 @event.listens_for(ParentGuest, 'before_insert')
@@ -432,7 +516,7 @@ class Contract(Base):
     # invoice = relationship("Owner", foreign_keys=[invoice_uuid], uselist=False)
 
     owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
-    owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False)
+    owner = relationship("Owner", foreign_keys=owner_uuid, uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

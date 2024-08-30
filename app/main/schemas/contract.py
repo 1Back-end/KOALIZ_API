@@ -4,6 +4,8 @@ from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.main import models
+from app.main.core.i18n import __
+from app.main.models.db.session import SessionLocal
 from app.main.schemas.parent import ParentResponse
 from app.main.schemas.preregistration import ChildMini3, TimeSlotInputSchema
 from app.main.schemas.tag import Tag
@@ -93,6 +95,7 @@ class ClientAccountContractSchema(BaseModel):
 
 class Contract(BaseModel):
     uuid: Optional[str] = None
+    nursery_uuid: str 
     child: Optional[ChildMini3] = None
     begin_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
@@ -103,12 +106,52 @@ class Contract(BaseModel):
     tags: Optional[list[Tag]] = []
     typical_weeks: list[Any]
     parents: list[ParentResponse]=[]
-    client_accounts: list[ClientAccountContractSchema]=[]
+    # client_accounts: list[ClientAccountContractSchema]=[]
 
     date_added: datetime
     date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+    @model_validator(mode='wrap')
+    def validate_data(self, handler):
+        validated_self = handler(self)
+        session = SessionLocal()
+        try:
+            data = session.query(models.Contract).filter(models.Contract.nursery_uuid == validated_self.nursery_uuid).first()
+
+            for parent in data.parents:
+                exist_parent = session.query(models.Parent).\
+                    filter(models.Parent.uuid == parent.uuid).\
+                    filter(models.Parent.status.not_in(["DELETED"])).\
+                        first()
+                if not exist_parent:
+                    raise ValueError(__("parent-not-found"))
+                
+                parent_child = session.query(models.ParentChild).\
+                    filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
+                        first()
+                pickup_parent = session.query(models.PickUpParentChild).\
+                    filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
+                        first()
+                
+                # Update the boolean flags based on the query results
+                has_pickup_child_authorization = bool(pickup_parent)
+                has_app_authorization = bool(parent_child)
+
+                # Update the parent object in the parents list
+                parent.has_pickup_child_authorization = has_pickup_child_authorization
+                parent.has_app_authorization = has_app_authorization
+
+            return validated_self
+
+        except Exception as e:
+            print("Error getting data: " + str(e))
+        finally:
+            session.close()
+
+
 class ContractMini(BaseModel):
     uuid: str
     child: Optional[ChildMini3] = None

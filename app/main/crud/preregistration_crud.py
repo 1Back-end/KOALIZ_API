@@ -118,7 +118,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 exist_folder.contract.owner_uuid = exist_folder.nursery.owner_uuid
                 exist_folder.contract.status = "ACCEPTED"
                 exist_folder.contract.date_of_acceptation = datetime.now()
-
+   
             if exist_folder.quote and exist_folder.quote.status != models.QuoteStatusType.ACCEPTED:
                 exist_folder.quote.status = models.QuoteStatusType.ACCEPTED
                 crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
