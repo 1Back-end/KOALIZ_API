@@ -143,5 +143,6 @@ translation = {
     "membership-not-found": "Adhésion non trouvée",
     "payment-amount-exceeds": "Le montant du paiement dépasse le montant total de la facture",
     "not-authorized":"Vous n'etes pas autorisés á effectuer cette action",
-    "parent-not-found":"Le parent n'existe pas"
+    "parent-not-found":"Le parent n'existe pas",
+    "at-least-one-phone-number-required": "Au moins un numéro de téléphone est requis",
 }
