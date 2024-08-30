@@ -164,9 +164,10 @@ async def update_contract(
                 print("contract: ",contract)
                 if contract:
                     print("data.child_uuid: ",data.child_uuid)
-                    parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == data.child_uuid).first()
-                    if parent_child:
-                        parent = db.query(models.Parent).filter(models.Parent.uuid == parent_child.parent_uuid).first()
+                    print(data.Child.parents)
+
+                    parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in data.Child.parents])).all()
+                    for parent in parents:
                         parent.contracts.append(contract)
 
                     contract.nursery_uuid = data.nursery_uuid
@@ -175,13 +176,14 @@ async def update_contract(
                     contract.owner_uuid = data.nursery.owner_uuid
                     contract.has_company_contract = False
 
-            db.commit()
+        #     db.commit()
         return {"message": "Les contracts ont été modifiés avec succès"}
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("conflict"))
     except Exception as e:
         logger.error(str(e))
+        print(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
     
 @router.post("/create-default-activity-categories",response_model=schemas.Msg,status_code=201)

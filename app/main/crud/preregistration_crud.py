@@ -83,6 +83,12 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 db.add(contract)
                 exist_folder.contract_uuid = contract.uuid
                 exist_folder.child.contract_uuid = contract.uuid
+
+                # Add contract to parents
+                parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in exist_folder.child.parents])).all()
+                for parent in parents:
+                    parent.contracts.append(contract)
+
                 client_account = models.ClientAccount(
                     uuid=str(uuid.uuid4()),
                     name=f"{exist_folder.child.paying_parent.firstname} {exist_folder.child.paying_parent.lastname}" if not exist_folder.child.paying_parent.has_company_contract else exist_folder.child.paying_parent.company_name,

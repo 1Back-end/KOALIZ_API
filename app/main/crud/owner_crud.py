@@ -160,12 +160,15 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
         return exist_pickup_parent_child_for_nursery
     
     @classmethod
-    def confirm_child_for_parent(cls, db: Session, obj_in: schemas.ChildrenConfirmation, added_by: models.Owner,preregistration:models.PreRegistration):
+    def confirm_apps_authorization(cls, db: Session, obj_in: schemas.ChildrenConfirmation, added_by: models.Owner,preregistration:models.PreRegistration):
         
-        parent = crud.parent.get_by_email(db, obj_in.parent_email)
+        parent = db.query(models.Parent).filter(models.Parent.email.ilike(obj_in.parent_email)).first()
+        if not parent:
+            is_parent_guest = True
+            parent = db.query(models.ParentGuest).filter(models.ParentGuest.email.ilike(obj_in.parent_email)).first()
 
         parent_child  = db.query(models.ParentChild).\
-            filter(models.ParentChild.parent_email == parent.email).\
+            filter(models.ParentChild.parent_email == obj_in.parent_email).\
             filter(models.ParentChild.child_uuid == obj_in.child_uuid).\
             filter(models.ParentChild.nursery_uuid == obj_in.nursery_uuid).\
             first()
@@ -182,13 +185,19 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
             db.add(parent_child)
             db.flush()
             
-        contract = crud.contract.get_contract_by_uuid(db=db, uuid=preregistration.contract_uuid)
-        if contract:
-            parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == obj_in.child_uuid).first()
-            if parent_child:
-                parent = db.query(models.Parent).filter(models.Parent.uuid == parent_child.parent_uuid).first()
+        if is_parent_guest == True:
+            contract = crud.contract.get_contract_by_uuid(db=db, uuid=preregistration.contract_uuid)
+            if contract:
+                parent = db.query(models.ParentGuest).filter(models.ParentGuest.uuid == parent_child.parent_uuid).first()
                 if parent:
                     parent.contracts.append(contract)
+
+            # Generate password and send to user : username and password on the email
+            password = generate_password()
+            print("Parent Guest: ", password)
+            parent.password_hash = get_password_hash(password)
+            db.commit()
+            db.refresh(parent)
 
         db.commit()
         db.refresh(parent_child)
