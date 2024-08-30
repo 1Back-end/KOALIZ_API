@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, Mapped
+from app.main import models
 from app.main.models.db.session import SessionLocal
 from app.main.models.quote import FamilyType
 from .db.base_class import Base
@@ -226,8 +227,7 @@ class PickUpParentChild(Base):
     
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    parent_uuid = Column(String, ForeignKey('parents.uuid'), nullable=True)
-    parent: Mapped[any] = relationship("Parent", foreign_keys=parent_uuid, uselist=False)
+    parent_uuid = Column(String,nullable=True)
 
     parent_email = Column(String, nullable=False)
 
@@ -237,11 +237,37 @@ class PickUpParentChild(Base):
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False,back_populates="pickup_parents")
 
-    added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
-    added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, nullable=True)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    @hybrid_property
+    def added_by(self):
+        db = SessionLocal()
+        user = db.query(models.Administrator).\
+            filter(models.Administrator.uuid==self.added_by_uuid,
+                   models.Administrator.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                    first()
+        if not user:
+            user = db.query(models.Owner).\
+                filter(models.Owner.uuid==self.added_by_uuid,
+                     models.Owner.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                        first()
+        return user
+    @hybrid_property
+    def parent(self):
+        db = SessionLocal()
+        user = db.query(models.ParentGuest).\
+            filter(models.ParentGuest.uuid==self.added_by_uuid,
+                   models.ParentGuest.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                    first()
+        if not user:
+            user = db.query(models.Parent).\
+                filter(models.Parent.uuid==self.added_by_uuid,
+                     models.Parent.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                        first()
+        return user
 
 @event.listens_for(PickUpParentChild, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
@@ -285,11 +311,29 @@ class ParentGuest(Base):
     # contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
     # contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
 
+    role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=True )
+    role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
+
+    avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
+    avatar = relationship("Storage", foreign_keys=[avatar_uuid])
+
+    otp: str = Column(String(5), nullable=True, default="")
+    otp_expired_at: datetime = Column(DateTime, nullable=True, default=None)
+
+    otp_password: str = Column(String(5), nullable=True, default="")
+    otp_password_expired_at: datetime = Column(DateTime, nullable=True, default=None)
+
+    password_hash: str = Column(String(100), nullable=True, default="")
+    status = Column(String, index=True, nullable=True)
+    is_new_user: bool = Column(Boolean, nullable=True, default=False)
+
+    contracts = relationship("Contract", secondary=parent_contract, back_populates="parents")
+
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, back_populates="parents", uselist=False)
 
-    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
-    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_added: datetime = Column(DateTime, nullable=True, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=True, default=datetime.now())
 
 
 @event.listens_for(ParentGuest, 'before_insert')

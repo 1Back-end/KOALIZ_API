@@ -74,7 +74,7 @@ router = APIRouter(prefix="/contracts", tags=["contracts"])
 #     return {"message": __("contract-deleted")}
 
 
-@router.get("", response_model=schemas.ContractSlimList)
+@router.get("", response_model=schemas.ContractList)
 def get_contracts(
     *,
     db: Session = Depends(get_db),

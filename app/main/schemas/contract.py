@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.main import models
+from app.main.core.i18n import __
 from app.main.models.db.session import SessionLocal
 from app.main.schemas.parent import ParentResponse
 from app.main.schemas.preregistration import ChildMini3, TimeSlotInputSchema
@@ -105,7 +106,7 @@ class Contract(BaseModel):
     tags: Optional[list[Tag]] = []
     typical_weeks: list[Any]
     parents: list[ParentResponse]=[]
-    client_accounts: list[ClientAccountContractSchema]=[]
+    # client_accounts: list[ClientAccountContractSchema]=[]
 
     date_added: datetime
     date_modified: datetime
@@ -126,13 +127,25 @@ class Contract(BaseModel):
                     filter(models.Parent.status.not_in(["DELETED"])).\
                         first()
                 if not exist_parent:
-                    raise ValueError("Parent not found.")
+                    raise ValueError(__("parent-not-found"))
                 
-            # values["has_pickup_child_authorization"] = False
-            # values["has_app_authorization"] = False
-    
-            
-            return 
+                parent_child = session.query(models.ParentChild).\
+                    filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
+                        first()
+                pickup_parent = session.query(models.PickUpParentChild).\
+                    filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
+                        first()
+                
+                # Update the boolean flags based on the query results
+                has_pickup_child_authorization = bool(pickup_parent)
+                has_app_authorization = bool(parent_child)
+
+                # Update the parent object in the parents list
+                parent.has_pickup_child_authorization = has_pickup_child_authorization
+                parent.has_app_authorization = has_app_authorization
+
+            return validated_self
+
         except Exception as e:
             print("Error getting data: " + str(e))
         finally:
