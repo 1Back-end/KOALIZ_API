@@ -136,6 +136,8 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
     @classmethod
     def give_parent_pickup_child_authorization_for_nursery(cls, db: Session, obj_in: schemas.ChildrenConfirmation, added_by: models.Owner):
         
+        parent = crud.parent.get_by_email(db, obj_in.parent_email)
+
         exist_pickup_parent_child_for_nursery  = db.query(models.PickUpParentChild).\
             filter(models.PickUpParentChild.parent_email == obj_in.parent_email).\
             filter(models.PickUpParentChild.child_uuid == obj_in.child_uuid).\
@@ -145,6 +147,7 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
         if not exist_pickup_parent_child_for_nursery:
             exist_pickup_parent_child_for_nursery = models.PickUpParentChild(
                 uuid= str(uuid.uuid4()),
+                parent_uuid = parent.uuid,
                 parent_email = obj_in.parent_email,
                 nursery_uuid = obj_in.nursery_uuid,
                 child_uuid = obj_in.child_uuid,
@@ -170,6 +173,7 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
         if not parent_child:
             parent_child = models.ParentChild(
                 uuid= str(uuid.uuid4()),
+                parent_uuid = parent.uuid,
                 parent_email = obj_in.parent_email,
                 nursery_uuid = obj_in.nursery_uuid,
                 child_uuid = obj_in.child_uuid,

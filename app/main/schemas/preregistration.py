@@ -356,6 +356,17 @@ class ChildSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+# class ChildMiniDetails(ChildSlim):
+#     birthplace: str
+#     parents: list[ParentGuest]
+#     pre_contract: PreContract
+#     date_added: datetime
+#     date_modified: datetime
+#     preregistrations: list[PreregistrationMini]
+
+#     model_config = ConfigDict(from_attributes=True)
+
+
 
 class PreContractSlim(BaseModel):
     begin_date: date
@@ -521,9 +532,13 @@ class ParentTransmissionsList(BaseModel):
 
 class AppParent(BaseModel):
     uuid: str 
+    parent_uuid :str
+    parent_email:EmailStr
     parent:Parent
-    child:ChildDetails
+    # child:ChildMiniDetails
     added_by:AddedBy
+    model_config = ConfigDict(from_attributes=True)
+
 
 class Transmission(BaseModel):
     uuid: str
