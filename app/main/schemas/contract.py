@@ -103,7 +103,7 @@ class Contract(BaseModel):
     tags: Optional[list[Tag]] = []
     typical_weeks: list[Any]
     parents: list[ParentResponse]=[]
-    client_accounts: list[ClientAccountContractSchema]=[]
+    # client_accounts: list[ClientAccountContractSchema]=[]
 
     date_added: datetime
     date_modified: datetime
