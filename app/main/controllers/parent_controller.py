@@ -251,7 +251,16 @@ def delete(
     """
     Delete many(or one)
     """
-    crud.parent.delete(db, uuids)
+    exist_parents = []
+    for uuid in uuids:
+        parent = crud.parent.get_by_uuid(db, uuid)
+        if parent:
+            exist_parents.append(parent)
+    
+    if not len(exist_parents) or len(exist_parents) != len(uuids):
+        raise HTTPException(status_code=404, detail=__("parent-not-found"))
+    
+    crud.parent.soft_delete(db, uuids)
     return {"message": __("user-deleted")}
 
 

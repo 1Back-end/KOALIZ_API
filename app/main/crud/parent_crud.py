@@ -231,10 +231,11 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         db.commit()
 
     @classmethod
-    def soft_delete(cls,db:Session, uuid) -> models.Parent:
-        parent = cls.get_by_uuid(db, uuid)
-        parent.status = models.UserStatusType.DELETED
-        db.commit()
+    def soft_delete(cls,db:Session, uuids):
+        for uuid in uuids:
+            parent = cls.get_by_uuid(db, uuid)
+            parent.status = models.UserStatusType.DELETED
+            db.commit()
 
     @classmethod
     def get_by_email(cls,db:Session,email:EmailStr) -> models.Parent:
