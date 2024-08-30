@@ -183,8 +183,7 @@ class ParentChild(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    parent_uuid = Column(String, ForeignKey('parents.uuid'), nullable=True)
-    parent: Mapped[any] = relationship("Parent", foreign_keys=parent_uuid, uselist=False)
+    parent_uuid = Column(String, nullable=True)
 
     parent_email = Column(String, nullable=False)
 
@@ -194,11 +193,37 @@ class ParentChild(Base):
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False,back_populates="app_parents")
 
-    added_by_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
-    added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, nullable=True)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    @hybrid_property
+    def added_by(self):
+        db = SessionLocal()
+        user = db.query(models.Administrator).\
+            filter(models.Administrator.uuid==self.added_by_uuid,
+                   models.Administrator.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                    first()
+        if not user:
+            user = db.query(models.Owner).\
+                filter(models.Owner.uuid==self.added_by_uuid,
+                     models.Owner.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                        first()
+        return user
+    @hybrid_property
+    def parent(self):
+        db = SessionLocal()
+        user = db.query(models.ParentGuest).\
+            filter(models.ParentGuest.uuid==self.added_by_uuid,
+                   models.ParentGuest.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                    first()
+        if not user:
+            user = db.query(models.Parent).\
+                filter(models.Parent.uuid==self.added_by_uuid,
+                     models.Parent.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                        first()
+        return user
 
 
 @event.listens_for(ParentChild, 'before_insert')
@@ -215,7 +240,7 @@ def update_modified_on_update_listener(mapper, connection, target):
 # Table d'association many-to-many entre Parent et Contract
 parent_contract = Table('parent_contract', Base.metadata,
     Column('contract_uuid', String, ForeignKey('contracts.uuid'), primary_key=True),
-    Column('parent_uuid', String, ForeignKey('parents.uuid'), primary_key=True)
+    Column('parent_uuid', String, ForeignKey('parent_guests.uuid'), primary_key=True)
 )
 
 class PickUpParentChild(Base):
@@ -477,7 +502,7 @@ class Contract(Base):
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
-    parents = relationship("Parent", secondary=parent_contract, back_populates="contracts")
+    parents = relationship("ParentGuest", secondary=parent_contract, back_populates="contracts")
 
     client_accounts: Mapped[list[any]] = relationship("ClientAccount", secondary="client_account_contracts", back_populates="contracts", uselist=True)
 

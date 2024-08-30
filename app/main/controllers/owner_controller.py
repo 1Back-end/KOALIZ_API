@@ -44,24 +44,26 @@ def give_parent_pickup_child_authorization_for_nursery(
 
     return child
 
-@router.post("/children-confirmation", response_model=schemas.ChildMini, status_code=201)
-def confirm_child_for_parent(
+@router.post("/apps-authorization", response_model=schemas.ChildMini, status_code=201)
+def confirm_apps_authorization(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.ChildrenConfirmation = Body(...),
-    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner", "administrator"]))
 ):
-    """ Confirm child for parent """
+    """ Confirm apps authorization """
 
     parent = crud.parent.get_by_email(db, obj_in.parent_email)
     if not parent:
-        raise HTTPException(status_code=404, detail=__("parent-not-found"))
+        parent = db.query(models.ParentGuest).filter(models.ParentGuest.email == obj_in.parent_email).first()
+        if not parent:
+            raise HTTPException(status_code=404, detail=__("parent-not-found"))
     
-    if parent.status in [st.value for st in models.UserStatusType if st.value == models.UserStatusType.DELETED or st.value == models.UserStatusType.BLOCKED]:
+    if parent.status in ["DELETED", "BLOCKED"]:
         raise HTTPException(status_code=403, detail=__("parent-status-not-allowed"))
     
-    if not obj_in.nursery_uuid  in [current_nursery.uuid for current_nursery in current_user.nurseries]:
-        raise HTTPException(status_code = 400,detail = __("nursery-owner-not-authorized"))
+    # if not obj_in.nursery_uuid  in [current_nursery.uuid for current_nursery in current_user.nurseries]:
+    #     raise HTTPException(status_code = 400,detail = __("nursery-owner-not-authorized"))
     
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
     if not nursery:
@@ -76,7 +78,7 @@ def confirm_child_for_parent(
     if not accepted_preregistration:
         raise HTTPException(status_code=404, detail=__("child-not-registered-in-nursery"))
     
-    crud.owner.confirm_child_for_parent(db=db, obj_in=obj_in, added_by=current_user,preregistration = accepted_preregistration)
+    crud.owner.confirm_apps_authorization(db=db, obj_in=obj_in, added_by=current_user, preregistration = accepted_preregistration)
 
     return child
 
