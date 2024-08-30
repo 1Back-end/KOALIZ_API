@@ -444,7 +444,7 @@ class Contract(Base):
     date_of_rupture: datetime = Column(DateTime, nullable=True) 
 
     # invoice_uuid: str = Column(String, ForeignKey('invoices.uuid'), nullable=True)
-    # invoice = relationship("Invoice", foreign_keys=invoice_uuid, uselist=False)
+    # invoice = relationship("Owner", foreign_keys=[invoice_uuid], uselist=False)
 
     owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     owner = relationship("Owner", foreign_keys=owner_uuid, uselist=False)
