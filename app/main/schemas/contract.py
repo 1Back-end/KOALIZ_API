@@ -123,11 +123,11 @@ class Contract(BaseModel):
     has_company_contract: Optional[bool] = False
     status: Optional[str] = None
     hourly_volume: Optional[float] = 0
-    tags: Optional[list[Tag]] = []
+    tags: Optional[list[Tag]]=None
     typical_weeks: list[Any]
-    parents: list[ParentContractSchema]=[]
+    parents: list[ParentContractSchema]=None
     client_account: Optional[ClientAccountContractSchema]=None
-    invoices: list[InvoiceMiniDetails]=[]
+    invoices: list[InvoiceMiniDetails]=None
 
     date_added: datetime
     date_modified: datetime
@@ -144,7 +144,7 @@ class ContractMini(BaseModel):
     type: Optional[str] = None
     status: Optional[str] = None
     hourly_volume: Optional[float] = 0
-    tags:Optional[list[Tag]] = []
+    tags:Optional[list[Tag]] =None
 
     model_config = ConfigDict(from_attributes=True)
 

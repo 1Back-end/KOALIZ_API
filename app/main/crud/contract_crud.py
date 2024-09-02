@@ -135,7 +135,7 @@ class CRUDContract(CRUDBase[Contract, ContractCreate, ContractUpdate]):
 
         return client_account
     @classmethod
-    def contract_prolonge(cls, db: Session,obj_in: schemas.ProlongeContract, performed_by_uuid: str) -> ContractMini:
+    def extend_the_contract(cls, db: Session,obj_in: schemas.ProlongeContract, performed_by_uuid: str) -> ContractMini:
         contract = cls.get_contract_by_uuid(db, obj_in.uuid)
 
         child = db.query(models.Child).filter(models.Child.uuid == obj_in.child_uuid).first()
@@ -157,6 +157,40 @@ class CRUDContract(CRUDBase[Contract, ContractCreate, ContractUpdate]):
             entity_type="Contract",
             entity_id=contract.uuid,
             action="UPDATE",
+            before_changes=convert_dates_to_strings(before_changes),
+            performed_by_uuid=performed_by_uuid,
+            after_changes=convert_dates_to_strings(after_changes)
+        )
+
+        return contract
+    
+    @classmethod
+    def publish_the_contract(cls, db: Session,contract_uuid: str, performed_by_uuid: str) -> ContractMini:
+        exist_contract = cls.get_contract_by_uuid(db, contract_uuid)
+
+        # Create the log tracking
+        before_changes = schemas.Contract.model_validate(exist_contract).model_dump()
+
+        contract = models.Contract(
+            uuid=str(uuid.uuid4()),
+            begin_date=exist_contract.begin_date,
+            end_date=exist_contract.end_date,
+            typical_weeks=exist_contract.typical_weeks,
+            type=exist_contract.type,
+            nursery_uuid=exist_contract.nursery_uuid,
+            status=exist_contract.status,
+            owner_uuid=exist_contract.owner_uuid
+        )
+        db.add(contract)
+        db.flush()
+
+        after_changes = schemas.Contract.model_validate(contract).model_dump()
+
+        crud.audit_log.create(
+            db=db,
+            entity_type="Contract",
+            entity_id=contract.uuid,
+            action="DUPLICATE",
             before_changes=convert_dates_to_strings(before_changes),
             performed_by_uuid=performed_by_uuid,
             after_changes=convert_dates_to_strings(after_changes)

@@ -73,14 +73,14 @@ def update_client_account(
     return contract
 
 
-@router.put("/prolonge", response_model=schemas.Contract, status_code=200)
-def contract_prolonge(
+@router.put("/extend", response_model=schemas.Contract, status_code=200)
+def extend_the_contract(
     obj_in: schemas.ProlongeContract,
     db: Session = Depends(get_db),
-    current_user: models.Parent = Depends(TokenRequired(roles=["owner"] ))
+    current_user: models.Parent = Depends(TokenRequired(roles=["owner"]))
 ):
     """
-        Update contract to prolonge it
+        Extend the contract
     """
 
     contract = crud.contract.get_contract_by_uuid(db, obj_in.uuid)
@@ -95,9 +95,29 @@ def contract_prolonge(
     if obj_in.end_date <= contract.begin_date:
         raise HTTPException(status_code=404, detail="End date must be after to begin date.")
 
-    crud.contract.contract_prolonge(db=db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
+    crud.contract.extend_the_contract(db=db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
 
     return contract
+
+# @router.put("/publish/{contract_uuid}", response_model=schemas.Contract, status_code=200)
+# def publish_the_contract(
+#     contract_uuid: str,
+#     db: Session = Depends(get_db),
+#     current_user: models.Parent = Depends(TokenRequired(roles=["owner"]))
+# ):
+#     """
+#         Publish the contract
+#     """
+
+#     exist_contract = crud.contract.get_contract_by_uuid(db, contract_uuid)
+#     print("contract-updated",contract)
+#     if not exist_contract:
+#         raise HTTPException(status_code=404, detail=__("contract-not-found"))
+    
+
+#     contract = crud.contract.publish_the_contract(db=db, contract_uuid=contract_uuid, performed_by_uuid=current_user.uuid)
+
+#     return contract
 
 
 @router.delete("", response_model=schemas.Msg)
@@ -113,7 +133,7 @@ def delete_contract(
     return {"message": __("contract-deleted")}
 
 
-@router.get("", response_model=schemas.ContractList)
+@router.get("", response_model=schemas.ContractSlimList)
 def get_contracts(
     *,
     db: Session = Depends(get_db),
@@ -125,7 +145,7 @@ def get_contracts(
     nursery_uuid: str,
     child_uuid: Optional[str] = None,
     keyword: Optional[str] = None,
-    status: str = Query(None, enum=["ACCEPTED", "REFUSED", "CANCELLED", "TERMINATED", "BLOCKED", "RUPTURED"]),
+    status: str = Query(None, enum=["ACCEPTED", "TERMINATED", "RUPTURED"]),
     current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """
@@ -150,7 +170,7 @@ def get_contracts(
             exist_parent = db.query(models.ParentGuest).\
                 filter(models.ParentGuest.uuid == parent.uuid).\
                 filter(or_(models.ParentGuest.status != "DELETED", models.ParentGuest.status.is_(None))).\
-                    first()
+                first()
             if not exist_parent:
                 raise HTTPException(status_code=404, detail=__("parent-not-found"))
                         
@@ -175,7 +195,7 @@ def get_contracts(
 def get_contract_details(
     uuid: str,
     db: Session = Depends(get_db),
-    current_user: models.Owner = Depends(TokenRequired(roles =["owner"]))
+    # current_user: models.Owner = Depends(TokenRequired(roles =["owner"]))
 ):
     """ Get contract details """
 

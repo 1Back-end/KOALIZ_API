@@ -1,4 +1,5 @@
 from enum import Enum
+import math
 
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table, event, types,Date,Float, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -563,7 +564,7 @@ class Contract(Base):
                     week_hours += hours
             total_hours += week_hours
         
-        return total_hours
+        return math.ceil(total_hours)
 
 
 @event.listens_for(Contract, 'before_insert')
