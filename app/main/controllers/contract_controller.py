@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from app.main.core.dependencies import TokenRequired, get_db
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
@@ -92,7 +93,7 @@ def get_contracts(
     """
     get all with filters
     """
-    return crud.contract.get_multi(
+    query = crud.contract.get_multi(
         db=db,
         page=page,
         per_page=per_page,
@@ -105,6 +106,37 @@ def get_contracts(
         status=status,
         # owner_uuid=current_user.uuid
     )
+
+    for r in query.data:
+        for parent in r.parents:
+            exist_parent = db.query(models.ParentGuest).\
+                filter(models.ParentGuest.uuid == parent.uuid).\
+                filter(or_(models.ParentGuest.status != "DELETED", models.ParentGuest.status.is_(None))).\
+                    first()
+            if not exist_parent:
+                raise ValueError(__("parent-not-found"))
+            
+            print("parent_uuid",exist_parent.uuid)
+            
+            parent_child = db.query(models.ParentChild).\
+                filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
+                    first()
+            print("parent_child",parent_child)
+            pickup_parent = db.query(models.PickUpParentChild).\
+                filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
+                    first()
+            
+            # Update the boolean flags based on the query results
+            has_pickup_child_authorization = bool(pickup_parent)
+            has_app_authorization = bool(parent_child)
+            print("has_pickup_child_authorization",has_pickup_child_authorization)
+            print("has_app_authorization",has_app_authorization)
+
+            # Update the parent object in the parents list
+            parent.has_pickup_child_authorization = has_pickup_child_authorization
+            parent.has_app_authorization = has_app_authorization
+
+    return query
 
 @router.get("/{uuid}", response_model=schemas.Contract, status_code=201)
 def get_contract_details(

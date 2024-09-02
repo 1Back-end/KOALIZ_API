@@ -1,6 +1,6 @@
 from enum import Enum
 
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table, event, types, Date, ARRAY, Float, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table, event, types,Date,Float, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, date
 from sqlalchemy.orm import joinedload
@@ -215,13 +215,12 @@ class ParentChild(Base):
     def parent(self):
         db = SessionLocal()
         user = db.query(models.ParentGuest).\
-            filter(models.ParentGuest.uuid==self.added_by_uuid,
-                   models.ParentGuest.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
-                    first()
+            filter(models.ParentGuest.uuid==self.added_by_uuid).\
+                first()
         if not user:
             user = db.query(models.Parent).\
                 filter(models.Parent.uuid==self.added_by_uuid,
-                     models.Parent.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                     models.Parent.status!= "DELETED").\
                         first()
         return user
 

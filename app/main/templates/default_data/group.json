@@ -1,39 +1,44 @@
 [
-    {
-      "uuid":"4f6771b1-87f9-4fb8-9bfd-8edc7d3672da",
-      "title_en": "Administrator",
-      "title_fr": "Administrateur",
-      "description_fr": ""
-    },
-    {
-      "uuid":"5f6771b1-87f9-4fb8-9bfd-8edc7d3672db",
-      "title_en": "Owner",
-      "title_fr": "Propriétaire",
-      "description": ""
-
-    },
-    {
-      "uuid":"6f6771b1-87f9-4fb8-9bfd-8edc7d3672dc",
-      "title_en": "Parent",
-      "title_fr": "Parent",
-      "description_fr": ""
-    },
-    {
-      "uuid":"8f6771b1-87f9-4fb8-9bfd-8edc7d3673dd",
-      "title_fr": "Edimestre",
-      "title_en": "Edimester",
-      "description_fr": ""
-    },
-    {
-      "uuid":"9f6771b1-87f9-4fb8-9bfd-8edc7d3672de",
-      "title_en": "Manager",
-      "title_fr": "Gestionnaire",
-      "description_fr": ""
-    },
-    {
-      "uuid":"f61771b1-87f9-4fb8-9bfd-8edc7d3672dg",
-      "title_fr": "Comptable",
-      "title_en":"Accountant",
-      "description_fr": ""
-    }
-  ]
+  {
+    "uuid": "4f6771b1-87f9-4fb8-9bfd-8edc7d3672da",
+    "title_en": "Administrator",
+    "title_fr": "Administrateur",
+    "description": "",
+    "code": "admin"
+  },
+  {
+    "uuid": "5f6771b1-87f9-4fb8-9bfd-8edc7d3672db",
+    "title_en": "Owner",
+    "title_fr": "Propriétaire",
+    "description": "",
+    "code": "owner"
+  },
+  {
+    "uuid": "6f6771b1-87f9-4fb8-9bfd-8edc7d3672dc",
+    "title_en": "Parent",
+    "title_fr": "Parent",
+    "description": "",
+    "code": "parent"
+  },
+  {
+    "uuid": "8f6771b1-87f9-4fb8-9bfd-8edc7d3673dd",
+    "title_fr": "Edimestre",
+    "title_en": "Edimester",
+    "description": "",
+    "code": "edimester"
+  },
+  {
+    "uuid": "9f6771b1-87f9-4fb8-9bfd-8edc7d3672de",
+    "title_en": "Manager",
+    "title_fr": "Gestionnaire",
+    "description": "",
+    "code": "manager"
+  },
+  {
+    "uuid": "f61771b1-87f9-4fb8-9bfd-8edc7d3672dg",
+    "title_fr": "Comptable",
+    "title_en": "Accountant",
+    "description": "",
+    "code": "accountant"
+  }
+]

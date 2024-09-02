@@ -553,9 +553,8 @@ class ParentTransmissionsList(BaseModel):
 class AppParent(BaseModel):
     uuid: str 
     parent_uuid :str
-    parent_email:EmailStr
+    parent_email :EmailStr
     parent:Optional[Parent] = None
-    # child:ChildMiniDetails
     added_by:Optional[AddedBy] = None
     model_config = ConfigDict(from_attributes=True)
 
