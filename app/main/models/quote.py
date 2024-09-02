@@ -2,7 +2,7 @@ from enum import Enum
 
 from datetime import datetime, date
 from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, event, types, UniqueConstraint, \
-    Float, Index, column
+    Float, Index
 from sqlalchemy.orm import relationship, Mapped
 from .db.base_class import Base
 
@@ -244,7 +244,6 @@ class QuoteSetting(Base):
 
     hourly_rate_ranges: Mapped[list[any]] = relationship("HourlyRateRange", back_populates="quote_setting",
                                                          uselist=True, order_by="HourlyRateRange.number_of_hours",
-                                                         # filter_condition="HourlyRateRange.is_deleted == False",
                                                          primaryjoin="and_(HourlyRateRange.quote_setting_uuid == QuoteSetting.uuid, HourlyRateRange.is_deleted == False)")
 
     has_deposit: bool = Column(Boolean, default=True)
@@ -303,11 +302,6 @@ class HourlyRateRange(Base):
     """
     __tablename__ = "hourly_rate_ranges"
 
-    # __table_args__ = (
-    #     UniqueConstraint("number_of_day", "quote_setting_uuid", name="number_of_day_quote_setting_uuid_unique",
-    #                      postgresql_where=Column(is_deleted='True')),
-    # )
-
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     number_of_day: int = Column(Integer, default=0)
@@ -322,7 +316,6 @@ class HourlyRateRange(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
-    # UniqueConstraint("number_of_day", "quote_setting_uuid", name="number_of_day_quote_setting_uuid_unique")
     __table_args__ = (
         Index(
             'idx_unique_day_setting_not_deleted',
