@@ -333,9 +333,6 @@ class ParentGuest(Base):
 
     is_paying_parent: bool = Column(Boolean, default=False)
 
-    # contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
-    # contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
-
     role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=True )
     role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
 
@@ -511,9 +508,6 @@ class Contract(Base):
     date_of_termination: datetime = Column(DateTime, nullable=True) 
     date_of_acceptation: datetime = Column(DateTime, nullable=True) 
     date_of_rupture: datetime = Column(DateTime, nullable=True) 
-
-    # invoice_uuid: str = Column(String, ForeignKey('invoices.uuid'), nullable=True)
-    # invoice = relationship("Owner", foreign_keys=[invoice_uuid], uselist=False)
 
     owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     owner = relationship("Owner", foreign_keys=owner_uuid, uselist=False)

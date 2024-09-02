@@ -164,9 +164,9 @@ async def update_contract(
                 print("contract: ",contract)
                 if contract:
                     print("data.child_uuid: ",data.child_uuid)
-                    print(data.Child.parents)
+                    print(data.child.parents)
 
-                    parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in data.Child.parents])).all()
+                    parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in data.child.parents])).all()
                     for parent in parents:
                         parent.contracts.append(contract)
 
@@ -176,7 +176,7 @@ async def update_contract(
                     contract.owner_uuid = data.nursery.owner_uuid
                     contract.has_company_contract = False
 
-        #     db.commit()
+            db.commit()
         return {"message": "Les contracts ont été modifiés avec succès"}
     except IntegrityError as e:
         logger.error(str(e))

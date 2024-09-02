@@ -55,8 +55,6 @@ class Parent(Base):
     status = Column(String, index=True, nullable=False)
     is_new_user: bool = Column(Boolean, nullable=True, default=False)
 
-    contracts = relationship("Contract", secondary=parent_contract, back_populates="parents")
-
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 

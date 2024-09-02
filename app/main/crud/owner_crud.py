@@ -162,6 +162,7 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
     @classmethod
     def confirm_apps_authorization(cls, db: Session, obj_in: schemas.ChildrenConfirmation, added_by: models.Owner,preregistration:models.PreRegistration):
         
+        is_parent_guest = False
         parent = db.query(models.Parent).filter(models.Parent.email.ilike(obj_in.parent_email)).first()
         if not parent:
             is_parent_guest = True

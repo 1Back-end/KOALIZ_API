@@ -496,6 +496,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
             models.Parent.role.has(models.Role.group == role_group)
         ).first()
         if not db_obj:
+            
             return None
         if not verify_password(password, db_obj.password_hash):
             return None
