@@ -139,4 +139,10 @@ translation = {
     "not-authorized": "You are not authorized to perform this action",
     "parent-not-found": "Parent not found",
     "at-least-one-phone-number-required": "At least one phone number is required",
+    "quote-setting-not-found": "Quote setting not found",
+    "default-quote-setting-not-deletable": "The default quote setting cannot be deleted",
+    "quote-setting-deleted": "Quote setting deleted",
+    "hourly-rate-range-not-found": "Hourly rate range not found",
+    "hourly-rate-range-deleted": "Hourly rate range deleted",
+    "hourly-rate-range-exists": "Hourly rate range already exists",
 }
