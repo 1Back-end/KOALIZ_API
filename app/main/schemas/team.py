@@ -56,3 +56,33 @@ class TeamResponseList(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class GroupBase(BaseModel):
+    title_fr: str
+    title_en:str
+    description: Optional[str] = None
+    code:str
+    model_config = ConfigDict(from_attributes=True)
+
+class GroupCreate(GroupBase):
+    team_uuid_tab: Optional[list[str]] = []
+
+class GroupUpdate(GroupBase):
+    uuid:str
+    # status:str
+    team_uuid_tab: Optional[list[str]] = []
+
+
+class GroupInDB(GroupBase):
+    uuid: str
+    status:str
+    date_added: datetime
+    date_modified: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class Group(GroupInDB):
+    model_config = ConfigDict(from_attributes=True)
+
+
+   
+

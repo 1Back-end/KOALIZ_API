@@ -36,6 +36,7 @@ class Team(Base):
     
     status:str = Column(String, index=True, nullable=False)
     employees = relationship("Employee", secondary="team_employees", back_populates="teams",overlaps="employee,team")
+    groups = relationship("GroupTeams", back_populates="team")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -69,6 +70,7 @@ class Employee(Base):
     avatar = relationship("Storage", foreign_keys=[avatar_uuid], uselist=False)
 
     teams = relationship("Team",secondary="team_employees", back_populates="employees",overlaps="team,employee")
+    job = relationship("JobEmployees", back_populates="employee")
 
     nurseries = relationship("Nursery", secondary="nursery_employees", back_populates="employees",overlaps="employee,nursery")
     # nurseries = relationship("Nursery", secondary="nursery_memberships", back_populates="memberships",overlaps="memberships, nursery")
@@ -148,6 +150,10 @@ class Group(Base):
     code: str = Column(String, nullable=False,unique=True)
     description: str = Column(String, nullable=True)
     teams = relationship("GroupTeams", back_populates="group")
+    status:str = Column(String, index=True, nullable=False,default="CREATED")
+    
+    added_by_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=True)
+    added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -155,14 +161,52 @@ class Group(Base):
     def __repr__(self):
         return '<Group: uuid: {} title_fr: {} title_en: {} code: {}>'.format(self.uuid, self.title_fr, self.title_en,self.code)
 
-@event.listens_for(Group, 'before_insert')
+@dataclass
+class Job(Base):
+    __tablename__ = 'jobs'
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    title_fr: str = Column(String, nullable=False)
+    title_en: str = Column(String, nullable=False)
+
+    description: str = Column(String, nullable=True)
+    code: str = Column(String, nullable=True)
+    status:str = Column(String, index=True, nullable=False,default="CREATED")
+    employees = relationship("JobEmployees", back_populates="job")
+
+    added_by_uuid: str = Column(String, ForeignKey('owners.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=True)
+    added_by = relationship("Owner", foreign_keys=[added_by_uuid], uselist=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    def __repr__(self):
+        return '<Job: uuid: {} title_fr: {} title_en: {} code: {} status: {}>'.format(self.uuid, self.title_fr, self.title_en,self.code,self.status)
+
+@dataclass
+class JobEmployees(Base):
+    __tablename__ = 'job_employees'
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+    employee_uuid: str = Column(String, ForeignKey('employees.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
+    employee = relationship("Employee", foreign_keys=[employee_uuid], uselist=False)
+    
+    job_uuid: str = Column(String, ForeignKey('jobs.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
+    job = relationship("Job", foreign_keys=[job_uuid], uselist=False)
+
+    status:str = Column(String, index=True, nullable=False,default="CREATED")
+    
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    def __repr__(self):
+        return '<JobEmployees: uuid: {} employee_uuid: {} job_uuid: {} status: {}>'.format(self.uuid, self.employee_uuid, self.job_uuid,self.status)
+
+@event.listens_for(JobEmployees, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
     target.date_modified = datetime.now()
 
-
-@event.listens_for(Group, 'before_update')
+@event.listens_for(JobEmployees, 'before_update')
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
@@ -187,7 +231,7 @@ class GroupTeams(Base):
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     def __repr__(self):
-        return '<Team: uuid: {} team_uuid: {} group_uuid: {} status: {}>'.format(self.uuid, self.team_uuid, self.group_uuid,self.status)
+        return '<GroupTeams: uuid: {} team_uuid: {} group_uuid: {} status: {}>'.format(self.uuid, self.team_uuid, self.group_uuid,self.status)
 
 
 @event.listens_for(GroupTeams, 'before_insert')
@@ -200,34 +244,3 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
-
-
-@dataclass
-class EmployeeRoles(Base):
-    __tablename__ = 'employee_roles'
-    uuid: str = Column(String, primary_key=True, unique=True, index=True)
-    employee_uuid: str = Column(String, ForeignKey('employees.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
-    employee = relationship("Employee", foreign_keys=[employee_uuid], uselist=False, overlaps="teams")
-
-    team_uuid: str = Column(String, ForeignKey('teams.uuid',ondelete="CASCADE",onupdate="CASCADE"), nullable=False)
-    team = relationship("Team", foreign_keys=[team_uuid], uselist=False,overlaps="employees")
-
-    status:str = Column(String, index=True, nullable=False)
-
-    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
-    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
-
-    def __repr__(self):
-        return '<TeamEmployee: uuid: {} employee_uuid: {} team_uuid: {}>'.format(self.uuid, self.employee_uuid, self.team_uuid)
-
-@event.listens_for(TeamEmployees, 'before_insert')
-def update_created_modified_on_create_listener(mapper, connection, target):
-    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
-    target.date_added = datetime.now()
-    target.date_modified = datetime.now()
-
-
-@event.listens_for(TeamEmployees, 'before_update')
-def update_modified_on_update_listener(mapper, connection, target):
-    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
-    target.date_modified = datetime.now()   
