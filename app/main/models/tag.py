@@ -4,9 +4,10 @@ from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, event, typ
 from datetime import datetime, date
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+
 from .db.base_class import Base
 from app.main.models.db.session import SessionLocal
-from app.main.models import PreRegistration,Membership,ParentGuest,Storage,Child
+from app.main.models import PreRegistration, Membership, ParentGuest, Storage, Child, Contract
 
 class TagTypeEnum(str, Enum):
     CHILDREN = "CHILDREN"
@@ -18,6 +19,7 @@ class TagTypeEnum(str, Enum):
     PICTURE = "PICTURE"
     BILL = "BILL"
     QUOTE = "QUOTE"
+    CONTRACT = "CONTRACT"
 
 
 @dataclass
@@ -83,6 +85,7 @@ class TagElement(Base):
             "CHILDREN": Child,
             "PARENTS": ParentGuest,
             "PICTURE":Storage,
+            "CONTRACT": Contract
             # "Administrator":Administrator,
             # "CUSTOMER_ACCOUNT": Owner,
             # Ajoutez d'autres mappages ici si nécessaire

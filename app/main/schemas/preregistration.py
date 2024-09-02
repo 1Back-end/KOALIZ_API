@@ -270,11 +270,23 @@ class ChildMini2(BaseModel):
     firstname: str
     lastname: str
     gender: models.Gender
+    age : int
     birthdate: date
     birthplace: str
     date_added: datetime
     date_modified: datetime
     paying_parent: Optional[PayingParentGuest] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+class ChildMini3(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    age : int
+    birthdate: date
+    birthplace: str
+    
     model_config = ConfigDict(from_attributes=True)
 
 

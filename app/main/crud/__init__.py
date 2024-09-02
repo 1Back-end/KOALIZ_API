@@ -33,4 +33,5 @@ from .media_crud import media
 from .attendance_crud import attendance
 from .absence_crud import absence
 from .occasional_presence_crud import occasional_presence
+from .contract_crud import contract
 from .invoicing_settings_crud import invoicing_settings

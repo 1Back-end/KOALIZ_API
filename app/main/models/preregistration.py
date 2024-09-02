@@ -1,6 +1,6 @@
 from enum import Enum
 
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, event, types, Date, ARRAY, Float, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table, event, types, Date, ARRAY, Float, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, date
 from sqlalchemy.orm import joinedload
@@ -208,7 +208,11 @@ def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
 
-
+# Table d'association many-to-many entre Parent et Contract
+parent_contract = Table('parent_contract', Base.metadata,
+    Column('contract_uuid', String, ForeignKey('contracts.uuid'), primary_key=True),
+    Column('parent_uuid', String, ForeignKey('parents.uuid'), primary_key=True)
+)
 class ParentGuest(Base):
     """
          database model for storing Nursery Opening Hour related details
@@ -377,22 +381,70 @@ class Contract(Base):
     end_date: date = Column(Date, nullable=False)
     typical_weeks: list[any] = Column(JSONB, nullable=False)
     child: Mapped[any] = relationship("Child", back_populates="contract", uselist=False)
+    
     type: str = Column(String, nullable=False)
-    # type: str = Column(types.Enum(ContractType), nullable=False, default=ContractType.REGULAR)
-    # has_company_contract: bool = Column(Boolean, default=True)
-    # annual_income: float = Column(Float, default=0)
+    status: str = Column(String, nullable=True, default="DRAFT") # DRAFT, ACCEPTED, REFUSED, CANCELLED, TERMINATED, BLOCKED, RUPTURED, DELETED
+    
+    has_company_contract: bool = Column(Boolean, default=True)
+    annual_income: float = Column(Float, default=0)
+    caution: float = Column(Float, default=0)
 
-    # parent_guest_uuid: str = Column(String, ForeignKey('parent_guests.uuid'), nullable=True)
-    # parent_guest: Mapped[any] = relationship("ParentGuest", foreign_keys=parent_guest_uuid, back_populates="contract", uselist=False)
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
-    sepa_direct_debit_uuid: str = Column(String, ForeignKey('sepa_direct_debits.uuid'))
-    sepa_direct_debit: Mapped[any] = relationship("SEPADirectDebit", foreign_keys=sepa_direct_debit_uuid, uselist=False)
-    reference: str = Column(String, default="")
+    parents = relationship("Parent", secondary=parent_contract, back_populates="contracts")
 
     client_accounts: Mapped[list[any]] = relationship("ClientAccount", secondary="client_account_contracts", back_populates="contracts", uselist=True)
 
+    reference: str = Column(String, default="")
+    note: str = Column(String, default="")
+
+    date_of_termination: datetime = Column(DateTime, nullable=True) 
+    date_of_acceptation: datetime = Column(DateTime, nullable=True) 
+    date_of_rupture: datetime = Column(DateTime, nullable=True) 
+
+    # invoice_uuid: str = Column(String, ForeignKey('invoices.uuid'), nullable=True)
+    # invoice = relationship("Owner", foreign_keys=[invoice_uuid], uselist=False)
+
+    owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
+    owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False)
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    @hybrid_property
+    def tags(self):
+        db = SessionLocal()
+        from app.main.models import TagElement,Tags  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            record = db.query(Tags).\
+                outerjoin(TagElement,Tags.uuid == TagElement.tag_uuid).\
+                    filter(TagElement.element_uuid == self.uuid,TagElement.element_type == "CONTRACT").\
+                    options(joinedload(Tags.icon)).\
+                        all()
+            return record
+        except Exception as e:
+            print(f"Erreur lors de la récupération des tags : {e}")
+        finally:
+            db.close()
+
+    @hybrid_property
+    def hourly_volume(self):
+        total_hours = 0
+        
+        for week in self.typical_weeks:
+            week_hours = 0
+            for day in week:
+                for period in day:
+                    from_time = datetime.strptime(period['from_time'], "%H:%M")
+                    to_time = datetime.strptime(period['to_time'], "%H:%M")
+                    delta = to_time - from_time
+                    hours = delta.total_seconds() / 3600
+                    week_hours += hours
+            total_hours += week_hours
+        
+        return total_hours
 
 
 @event.listens_for(Contract, 'before_insert')

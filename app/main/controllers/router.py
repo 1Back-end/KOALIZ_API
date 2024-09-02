@@ -33,6 +33,7 @@ from .absence_controller import router as absence
 from .attendance_controller import router as attendance
 from .activity_category_controller import router as activity_category
 from .activity_controller import router as activity_controller
+from .contract_controller import router as contract
 from .invoicing_settings_controller import router as invoicing_settings
 api_router = APIRouter()
 
@@ -41,6 +42,7 @@ api_router.include_router(team_device)
 api_router.include_router(authentication)
 api_router.include_router(administrator)
 api_router.include_router(owner)
+api_router.include_router(contract)
 api_router.include_router(membership)
 api_router.include_router(nursery)
 api_router.include_router(parent)
