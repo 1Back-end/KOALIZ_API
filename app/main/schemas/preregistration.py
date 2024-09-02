@@ -109,22 +109,23 @@ class PreContractUpdateSchema(BaseModel):
 
 class ParentGuestSchema(BaseModel):
     link: models.ParentRelationship
-    firstname: str
-    lastname: str
-    birthplace: str
-    fix_phone: str = None
-    phone: str
-    email: EmailStr
-    recipient_number: str
-    zip_code: str
-    city: str
-    country: str
-    profession: str
-    annual_income: float
-    company_name: str
-    has_company_contract: bool
-    dependent_children: int
-    disabled_children: int
+    firstname: Optional[str] = ""
+    lastname: Optional[str] = ""
+    birthplace: Optional[str] = ""
+    fix_phone: Optional[str] = ""
+    phone: Optional[str] = ""
+    email: Optional[EmailStr] = ""
+    recipient_number: Optional[str] = ""
+    zip_code: Optional[str] = ""
+    city: Optional[str] = ""
+    country: Optional[str] = ""
+    address: Optional[str] = ""
+    profession: Optional[str] = ""
+    annual_income: Optional[float] = 0
+    company_name: Optional[str] = ""
+    has_company_contract: Optional[bool] = False
+    dependent_children: Optional[int] = 0
+    disabled_children: Optional[int] = 0
 
 
 class PreregistrationCreate(BaseModel):
@@ -133,6 +134,21 @@ class PreregistrationCreate(BaseModel):
     pre_contract: PreContractSchema
     parents: list[ParentGuestSchema]
     note: str = None
+
+    model_validator(mode='wrap')
+
+    @model_validator(mode='wrap')
+    def validate_parents_contacts(self, handler):
+        validated_self = handler(self)
+        one_phonenumber: bool = False
+        for parent in validated_self.parents:
+            if (parent.phone and parent.phone.strip()) or (parent.fix_phone and parent.fix_phone.strip()):
+                one_phonenumber = True
+                break
+
+        if not one_phonenumber:
+            raise HTTPException(status_code=422, detail=__("at-least-one-phone-number-required"))
+        return validated_self
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -147,15 +163,16 @@ class PreContract(BaseModel):
 
 class ParentGuest(BaseModel):
     link: models.ParentRelationship
-    firstname: str
-    lastname: str
+    firstname: str = None
+    lastname: str = None
     fix_phone: str = None
-    phone: str
-    email: EmailStr
-    zip_code: str
-    city: str
-    country: str
-    profession: str
+    phone: str = None
+    email: str = None
+    zip_code: str = None
+    address: str = None
+    city: str = None
+    country: str = None
+    profession: str = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -190,25 +207,27 @@ class ChildDetails(BaseModel):
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
 
+
 class ParentDisplay(BaseModel):
-    uuid: str= None
-    link: models.ParentRelationship= None
-    firstname: str= None
-    lastname: str= None
-    birthplace: str= None
+    uuid: str = None
+    link: models.ParentRelationship = None
+    firstname: str = None
+    lastname: str = None
+    birthplace: str = None
     fix_phone: str = None
-    phone: str= None
-    email: EmailStr= None
-    recipient_number: str= None
-    zip_code: str= None
-    city: str= None
-    country: str= None
-    profession: str= None
-    annual_income: float= None
-    company_name: str= None
-    has_company_contract: bool= None
-    dependent_children: int= None
-    disabled_children: int= None
+    phone: str = None
+    email: EmailStr = None
+    recipient_number: str = None
+    zip_code: str = None
+    address: str = None
+    city: str = None
+    country: str = None
+    profession: str = None
+    annual_income: float = None
+    company_name: str = None
+    has_company_contract: bool = None
+    dependent_children: int = None
+    disabled_children: int = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -307,6 +326,7 @@ class PreregistrationUpdate(BaseModel):
     note: str = None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class TrackingCase(BaseModel):
     preregistration_uuid: str
@@ -498,6 +518,7 @@ class ChildrenConfirmation(BaseModel):
     parent_email: str
     nursery_uuid: str
     child_uuid: str
+    status: str = "AUTHORIZED" # REFUSED
 
 class MediaSlim(BaseModel):
     uuid: str
@@ -533,10 +554,9 @@ class ParentTransmissionsList(BaseModel):
 class AppParent(BaseModel):
     uuid: str 
     parent_uuid :str
-    parent_email:EmailStr
-    parent:Parent
-    # child:ChildMiniDetails
-    added_by:AddedBy
+    parent_email :EmailStr
+    parent:Optional[Parent] = None
+    added_by:Optional[AddedBy] = None
     model_config = ConfigDict(from_attributes=True)
 
 

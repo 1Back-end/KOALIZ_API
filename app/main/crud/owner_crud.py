@@ -7,14 +7,14 @@ from pydantic import EmailStr
 from sqlalchemy import or_
 
 from app.main.core.i18n import __, get_language
-from app.main.core.mail import send_account_creation_email
+from app.main.core.mail import send_account_confirmation_email, send_account_creation_email
 from app.main.crud.base import CRUDBase
 from app.main.crud.role_crud import role as crud_role
 from sqlalchemy.orm import Session,joinedload
 from app.main import crud, schemas, models
 from app.main.core.config import Config
 import uuid
-from app.main.core.security import get_password_hash, verify_password, generate_password
+from app.main.core.security import generate_code, get_password_hash, verify_password, generate_password
 
 
 class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.AdministratorUpdate]):
@@ -174,34 +174,74 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
             filter(models.ParentChild.nursery_uuid == obj_in.nursery_uuid).\
             first()
         
-        if not parent_child:
-            parent_child = models.ParentChild(
-                uuid= str(uuid.uuid4()),
-                parent_uuid = parent.uuid,
-                parent_email = obj_in.parent_email,
-                nursery_uuid = obj_in.nursery_uuid,
-                child_uuid = obj_in.child_uuid,
-                added_by_uuid = added_by.uuid
-            )
-            db.add(parent_child)
-            db.flush()
-            
-        if is_parent_guest == True:
-            contract = crud.contract.get_contract_by_uuid(db=db, uuid=preregistration.contract_uuid)
-            if contract:
-                parent = db.query(models.ParentGuest).filter(models.ParentGuest.uuid == parent_child.parent_uuid).first()
-                if parent:
-                    parent.contracts.append(contract)
-
-            # Generate password and send to user : username and password on the email
-            password = generate_password()
-            print("Parent Guest: ", password)
-            parent.password_hash = get_password_hash(password)
+        if obj_in.status in ['REFUSED']:
+            db.delete(parent_child)
             db.commit()
-            db.refresh(parent)
+            parent_child = None
+        
+        else:
+        
+            if not parent_child:
+                parent_child = models.ParentChild(
+                    uuid= str(uuid.uuid4()),
+                    parent_uuid = parent.uuid,
+                    parent_email = obj_in.parent_email,
+                    nursery_uuid = obj_in.nursery_uuid,
+                    child_uuid = obj_in.child_uuid,
+                    added_by_uuid = added_by.uuid
+                )
+                db.add(parent_child)
+                db.flush()
+                
+            if is_parent_guest == True:
+                contract = crud.contract.get_contract_by_uuid(db=db, uuid=preregistration.contract_uuid)
+                if contract:
+                    parent = db.query(models.ParentGuest).filter(models.ParentGuest.uuid == parent_child.parent_uuid).first()
+                    if parent:
+                        parent.contracts.append(contract)
 
-        db.commit()
-        db.refresh(parent_child)
+                # To check this TODO
+                code = generate_code(length=12)
+                code= str(code[0:6]) 
+                
+                parent.is_new_user = True
+                
+                user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+                models.ParentActionValidation.user_uuid == parent.uuid)
+
+                if user_code.count() > 0:
+                    user_code.delete()
+
+                # print("user_code1:")
+                db_code = models.ParentActionValidation(
+                    uuid=str(uuid.uuid4()),
+                    code=code,
+                    user_uuid=parent.uuid,
+                    value=code,
+                    expired_date=datetime.now() + timedelta(minutes=30)
+                )
+
+                db.add(db_code)
+                db.commit()
+
+                role = crud.role.get_by_code(db=db, code="parent")
+                if not role:
+                    raise HTTPException(status_code=404, detail=__("role-not-found"))
+                    
+                # Generate password and send to user : username and password on the email
+                password = generate_password()
+                print("Parent Guest: ", password)
+                parent.password_hash = get_password_hash(password)
+
+                parent.role_uuid = role.uuid,
+                parent.status = models.UserStatusType.UNACTIVED
+                db.commit()
+                db.refresh(parent)
+
+                send_account_confirmation_email(email_to=parent.email, name=(parent.firstname+parent.lastname), token=code, valid_minutes=30)
+
+            db.commit()
+            db.refresh(parent_child)
 
         return parent_child
     

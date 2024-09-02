@@ -265,7 +265,7 @@ async def create_user_groups(
         admin_key: schemas.AdminKey = Body(...)
 ) -> dict[str, str]:
     """
-    Create user roles.
+    Create user groups.
     """
     check_user_access_key(admin_key)
 
@@ -278,13 +278,15 @@ async def create_user_groups(
                 if user_group:
                     user_group.title_fr=data["title_fr"]
                     user_group.title_en=data["title_en"]
-                    user_group.description=data["description"]
+                    user_group.code = data["code"]
+                    user_group.description=data["description"] if data["description"] else None
 
                 else:
                     user_group = models.Group(
                         title_fr=data["title_fr"],
                         title_en=data["title_en"],
-                        description=data["description"],
+                        code = data["code"],
+                        description=data["description"] if data["description"] else None,
                         uuid=data["uuid"]
                     )
                     db.add(user_group)

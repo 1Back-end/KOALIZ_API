@@ -74,9 +74,9 @@ class ParentDelete(BaseModel):
 
 class ParentResponse(ParentBase):
     uuid:str
-    status:str
+    status:Optional[str] = None
     avatar : Optional[Avatar] = None
-    role: Roleslim
+    role: Optional[Roleslim] = None
     added_by: Optional[AddedBy2] = None
     date_added: Any
     date_modified: Any

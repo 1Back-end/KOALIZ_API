@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from app.main.core.dependencies import TokenRequired, get_db
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
@@ -33,45 +34,83 @@ router = APIRouter(prefix="/contracts", tags=["contracts"])
 #     return crud.contract.create(db=db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
 
 
-# @router.put("", response_model=schemas.Contract, status_code=200)
-# def update_contract(
-#     obj_in: schemas.ContractUpdate,
-#     db: Session = Depends(get_db),
-#     current_user: models.Owner = Depends(TokenRequired(roles =["owner"] ))
-# ):
-#     """ Update contract for children """
+@router.put("", response_model=schemas.Contract, status_code=200)
+def update_contract(
+    obj_in: schemas.ContractUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles =["owner"] ))
+):
+    """ Update contract for children """
 
-#     contract = crud.contract.get_contract_by_uuid(db, obj_in.uuid)
-#     print("contract-updated",contract)
-#     if not contract:
-#         raise HTTPException(status_code=404, detail=__("contract-not-found"))
+    contract = crud.contract.get_contract_by_uuid(db, obj_in.uuid)
+    print("contract-updated",contract)
+    if not contract:
+        raise HTTPException(status_code=404, detail=__("contract-not-found"))
 
-#     childs = crud.preregistration.get_child_by_uuids(db, obj_in.child_uuid_tab)
-#     if not childs or len(childs)!=len(obj_in.child_uuid_tab):
-#         raise HTTPException(status_code=404, detail=__("child-not-found"))
+    return crud.contract.update(db=db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
 
-#     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
-#     if not nursery:
-#         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+@router.put("/client-account", response_model=schemas.Contract, status_code=200)
+def update_client_account(
+    obj_in: schemas.ClientAccountContractUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.Parent = Depends(TokenRequired(roles=["owner"] ))
+):
+    """
+    Update client account
+    """
+
+    contract = crud.contract.get_contract_by_uuid(db, obj_in.uuid)
+    print("contract-updated",contract)
+    if not contract:
+        raise HTTPException(status_code=404, detail=__("contract-not-found"))
+
+    client_account = crud.contract.get_client_account_by_uuid(db, obj_in.uuid)
+    if not client_account:
+        raise HTTPException(status_code=404, detail=__("client-account-not-found"))
+
+    crud.contract.update_client_account(db=db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
+
+    return contract
+
+
+@router.put("/prolonge", response_model=schemas.Contract, status_code=200)
+def contract_prolonge(
+    obj_in: schemas.ProlongeContract,
+    db: Session = Depends(get_db),
+    current_user: models.Parent = Depends(TokenRequired(roles=["owner"] ))
+):
+    """
+        Update contract to prolonge it
+    """
+
+    contract = crud.contract.get_contract_by_uuid(db, obj_in.uuid)
+    print("contract-updated",contract)
+    if not contract:
+        raise HTTPException(status_code=404, detail=__("contract-not-found"))
     
-#     employe = crud.employe.get_by_uuid(db, obj_in.employee_uuid)
-#     if not employe:
-#         raise HTTPException(status_code=404, detail=__("member-not-found"))
+    child = db.query(models.Child).filter(models.Child.uuid == obj_in.child_uuid).first()
+    if not child:
+        raise HTTPException(status_code=404, detail=__("child-not-found"))
 
-#     return crud.contract.update(db=db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
+    if obj_in.end_date <= contract.begin_date:
+        raise HTTPException(status_code=404, detail="End date must be after to begin date.")
+
+    crud.contract.contract_prolonge(db=db, obj_in=obj_in, performed_by_uuid=current_user.uuid)
+
+    return contract
 
 
-# @router.delete("", response_model=schemas.Msg)
-# def delete_contract(
-#     *,
-#     db: Session = Depends(get_db),
-#     uuids: list[str],
-#     current_user: models.Owner = Depends(TokenRequired(roles =["owner"] ))
-# ):
-#     """ Delete many(or one) """
+@router.delete("", response_model=schemas.Msg)
+def delete_contract(
+    *,
+    db: Session = Depends(get_db),
+    uuids: list[str],
+    current_user: models.Owner = Depends(TokenRequired(roles =["owner"] ))
+):
+    """ Delete many(or one) """
 
-#     crud.contract.soft_delete(db=db, uuids=uuids, performed_by_uuid=current_user.uuid)
-#     return {"message": __("contract-deleted")}
+    crud.contract.soft_delete(db=db, uuids=uuids, performed_by_uuid=current_user.uuid)
+    return {"message": __("contract-deleted")}
 
 
 @router.get("", response_model=schemas.ContractList)
@@ -92,7 +131,7 @@ def get_contracts(
     """
     get all with filters
     """
-    return crud.contract.get_multi(
+    query = crud.contract.get_multi(
         db=db,
         page=page,
         per_page=per_page,
@@ -105,6 +144,32 @@ def get_contracts(
         status=status,
         # owner_uuid=current_user.uuid
     )
+
+    for r in query.data:
+        for parent in r.parents:
+            exist_parent = db.query(models.ParentGuest).\
+                filter(models.ParentGuest.uuid == parent.uuid).\
+                filter(or_(models.ParentGuest.status != "DELETED", models.ParentGuest.status.is_(None))).\
+                    first()
+            if not exist_parent:
+                raise HTTPException(status_code=404, detail=__("parent-not-found"))
+                        
+            parent_child = db.query(models.ParentChild).\
+                filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
+                    first()
+            pickup_parent = db.query(models.PickUpParentChild).\
+                filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
+                    first()
+            
+            # Update the boolean flags based on the query results
+            has_pickup_child_authorization = bool(pickup_parent)
+            has_app_authorization = bool(parent_child)
+
+            # Update the parent object in the parents list
+            parent.has_pickup_child_authorization = has_pickup_child_authorization
+            parent.has_app_authorization = has_app_authorization
+
+    return query
 
 @router.get("/{uuid}", response_model=schemas.Contract, status_code=201)
 def get_contract_details(

@@ -6,7 +6,6 @@ from sqlalchemy import Column, Float, ForeignKey, Integer, String, DateTime, Tex
 from datetime import datetime, date
 from sqlalchemy.orm import relationship
 from .db.base_class import Base
-from .preregistration import parent_contract
 
 
 @dataclass
@@ -80,7 +79,7 @@ class ParentActionValidation(Base):
 
     uuid: str = Column(String, primary_key=True)
 
-    user_uuid: str = Column(String, ForeignKey('parents.uuid'), nullable=True)
+    user_uuid: str = Column(String, nullable=True)
     code: str = Column(String, unique=False, nullable=True)
     expired_date: any = Column(DateTime, default=datetime.now())
     value: str = Column(String, default="", nullable=True)

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table, event, types, Date, ARRAY, Float, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table, event, types,Date,Float, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, date
 from sqlalchemy.orm import joinedload
@@ -215,13 +215,12 @@ class ParentChild(Base):
     def parent(self):
         db = SessionLocal()
         user = db.query(models.ParentGuest).\
-            filter(models.ParentGuest.uuid==self.added_by_uuid,
-                   models.ParentGuest.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
-                    first()
+            filter(models.ParentGuest.uuid==self.added_by_uuid).\
+                first()
         if not user:
             user = db.query(models.Parent).\
                 filter(models.Parent.uuid==self.added_by_uuid,
-                     models.Parent.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                     models.Parent.status!= "DELETED").\
                         first()
         return user
 
@@ -314,20 +313,21 @@ class ParentGuest(Base):
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     link: str = Column(types.Enum(ParentRelationship), nullable=False)
-    firstname: str = Column(String, nullable=False)
-    lastname: str = Column(String, nullable=False)
-    birthplace: str = Column(String)
-    fix_phone: str = Column(String, nullable=False)
-    phone: str = Column(String, nullable=False)
-    email: str = Column(String, nullable=False)
-    recipient_number: str = Column(String, nullable=False)
-    zip_code: str = Column(String, nullable=False)
-    city: str = Column(String, nullable=False)
-    country: str = Column(String, nullable=False)
-    profession: str = Column(String, nullable=False)
+    firstname: str = Column(String, default="")
+    lastname: str = Column(String, default="")
+    birthplace: str = Column(String, default="")
+    fix_phone: str = Column(String, default="")
+    phone: str = Column(String, default="")
+    email: str = Column(String, default="")
+    recipient_number: str = Column(String, default="")
+    zip_code: str = Column(String, default="")
+    city: str = Column(String, default="")
+    country: str = Column(String, default="")
+    address: str = Column(String, default="")
+    profession: str = Column(String, default="")
     annual_income: float = Column(Float, default=0)
-    company_name: str = Column(String, default=0)
-    has_company_contract: bool = Column(Boolean, default=True)
+    company_name: str = Column(String, default="")
+    has_company_contract: bool = Column(Boolean, default=False)
     dependent_children: int = Column(Integer, default=0)
     disabled_children: int = Column(Integer, default=0)
 
@@ -529,6 +529,22 @@ class Contract(Base):
             return record
         except Exception as e:
             print(f"Erreur lors de la récupération des tags : {e}")
+        finally:
+            db.close()
+    @hybrid_property
+    def client_account(self):
+        return self.client_accounts[0] if len(self.client_accounts) else None
+
+    @hybrid_property
+    def invoices(self):
+        db = SessionLocal()
+        from app.main.models import Invoice  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            record = db.query(Invoice).filter(Invoice.contract_uuid == self.uuid).all()
+            return record
+        except Exception as e:
+            print(f"Erreur lors de la récupération des invoices : {e}")
         finally:
             db.close()
 
