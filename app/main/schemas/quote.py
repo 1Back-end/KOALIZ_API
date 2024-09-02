@@ -136,6 +136,7 @@ class QuoteSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class QuoteList(DataList):
     data: list[QuoteSlim] = []
 

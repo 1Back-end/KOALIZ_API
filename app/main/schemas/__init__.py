@@ -34,3 +34,4 @@ from .media import *
 from .attendance import *
 from .absence import *
 from .occasional_presence import *
+from .invoicing_settings import *
