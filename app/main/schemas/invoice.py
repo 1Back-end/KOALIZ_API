@@ -106,6 +106,8 @@ class InvoiceDetails(BaseModel):
     uuid: str
     date_to: date
     amount: float = 0
+    amount_paid: float = 0
+    amount_due: float = 0
     status: str = None
     reference: str
     invoicing_period_start: Optional[date]

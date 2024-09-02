@@ -141,5 +141,10 @@ translation = {
     "at-least-one-phone-number-required": "At least one phone number is required",
     "parent-status-not-allowed":"Parent status not actived",
     "child-not-registered-in-nursery": "The child is not registered in the nursery or their registration file has not yet been accepted",
-
+    "quote-setting-not-found": "Quote setting not found",
+    "default-quote-setting-not-deletable": "The default quote setting cannot be deleted",
+    "quote-setting-deleted": "Quote setting deleted",
+    "hourly-rate-range-not-found": "Hourly rate range not found",
+    "hourly-rate-range-deleted": "Hourly rate range deleted",
+    "hourly-rate-range-exists": "Hourly rate range already exists",
 }

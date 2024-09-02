@@ -95,7 +95,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
         db:Session,
         page:int = 1,
         per_page:int = 30,
-        order:Optional[str] = None,
+        order:Optional[str] = "desc",
         # employee_uuid:Optional[str] = None,
         # nursery_uuid:Optional[str] = None,
         # child_uuid:Optional[str] = None,
@@ -116,7 +116,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
 
         if order == "asc":
             record_query = record_query.order_by(getattr(ActivityCategory, order_field).asc())
-        else:
+        if order == "desc":
             record_query = record_query.order_by(getattr(ActivityCategory, order_field).desc())
 
 

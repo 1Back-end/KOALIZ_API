@@ -169,7 +169,7 @@ class ParentGuest(BaseModel):
     phone: str = None
     email: str = None
     zip_code: str = None
-    address: str = None
+    address: Optional[str] = None
     city: str = None
     country: str = None
     profession: str = None
@@ -219,7 +219,7 @@ class ParentDisplay(BaseModel):
     email: EmailStr = None
     recipient_number: str = None
     zip_code: str = None
-    address: str = None
+    address: Optional[str] = None
     city: str = None
     country: str = None
     profession: str = None
