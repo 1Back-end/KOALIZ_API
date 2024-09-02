@@ -8,15 +8,22 @@ router = APIRouter(prefix="/owners", tags=["owners"])
 
 
 
-@router.post("/children-confirmation", response_model=schemas.ChildMini, status_code=201)
-def confirm_child_for_parent(
+@router.post("/parent-pickup-child-authorization-for-nursery", response_model=schemas.ChildMini, status_code=201)
+def give_parent_pickup_child_authorization_for_nursery(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.ChildrenConfirmation = Body(...),
     current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
-    """ Confirm child for parent """
+    """ give parent permission to pickup child from nursery """
 
+    parent = crud.parent.get_by_email(db, obj_in.parent_email)
+    if not parent:
+        raise HTTPException(status_code=404, detail=__("parent-not-found"))
+    
+    if parent.status in [st.value for st in models.UserStatusType if st.value == models.UserStatusType.DELETED or st.value == models.UserStatusType.BLOCKED]:
+        raise HTTPException(status_code=403, detail=__("parent-status-not-allowed"))
+    
     if not obj_in.nursery_uuid  in [current_nursery.uuid for current_nursery in current_user.nurseries]:
         raise HTTPException(status_code = 400,detail = __("nursery-owner-not-authorized"))
     
@@ -28,9 +35,75 @@ def confirm_child_for_parent(
     if not child:
         raise HTTPException(status_code=404, detail=__("child-not-found"))
     
-    crud.administrator.confirm_child_for_parent(db=db, obj_in=obj_in, added_by=current_user)
+    accepted_preregistration = next((pr for pr in child.preregistrations if pr.nursery_uuid == obj_in.nursery_uuid and pr.status == models.PreRegistrationStatusType.ACCEPTED), None) 
+    
+    if not accepted_preregistration:
+        raise HTTPException(status_code=404, detail=__("child-not-registered-in-nursery"))
+    
+    crud.owner.give_parent_pickup_child_authorization_for_nursery(db=db, obj_in=obj_in, added_by=current_user)
 
     return child
+
+@router.post("/apps-authorization", response_model=schemas.ChildMini, status_code=201)
+def confirm_apps_authorization(
+    *,
+    db: Session = Depends(get_db),
+    obj_in: schemas.ChildrenConfirmation = Body(...),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner", "administrator"]))
+):
+    """ Confirm apps authorization """
+
+    parent = crud.parent.get_by_email(db, obj_in.parent_email)
+    if not parent:
+        parent = db.query(models.ParentGuest).filter(models.ParentGuest.email == obj_in.parent_email).first()
+        if not parent:
+            raise HTTPException(status_code=404, detail=__("parent-not-found"))
+    
+    if parent.status in ["DELETED", "BLOCKED"]:
+        raise HTTPException(status_code=403, detail=__("parent-status-not-allowed"))
+    
+    # if not obj_in.nursery_uuid  in [current_nursery.uuid for current_nursery in current_user.nurseries]:
+    #     raise HTTPException(status_code = 400,detail = __("nursery-owner-not-authorized"))
+    
+    nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
+    if not child:
+        raise HTTPException(status_code=404, detail=__("child-not-found"))
+    
+    accepted_preregistration = next((pr for pr in child.preregistrations if pr.nursery_uuid == obj_in.nursery_uuid and pr.status == models.PreRegistrationStatusType.ACCEPTED), None) 
+    
+    if not accepted_preregistration:
+        raise HTTPException(status_code=404, detail=__("child-not-registered-in-nursery"))
+    
+    crud.owner.confirm_apps_authorization(db=db, obj_in=obj_in, added_by=current_user, preregistration = accepted_preregistration)
+
+    return child
+
+@router.put("/parent", response_model=schemas.Parent, status_code=200)
+def update_paren_informations(
+    obj_in: schemas.ParentUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.Parent = Depends(TokenRequired(roles =["owner"] ))
+):
+    """
+    Update parent informations
+    """
+    user = crud.parent.get_parent_guest_by_uuid(db, obj_in.uuid)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    if obj_in.avatar_uuid and obj_in.avatar_uuid != user.avatar_uuid:
+        if not crud.storage.get(db=db, uuid=obj_in.avatar_uuid):
+            raise HTTPException(status_code=404, detail=__("avatar-not-found"))
+    
+    # if obj_in.email and obj_in.email != user.email:
+    #     if crud.parent.get_by_email(db, obj_in.email):
+    #         raise HTTPException(status_code=409, detail=__("user-email-taken"))
+
+    return crud.parent.update_parent_guest(db ,obj_in)
 
 @router.post("/create", response_model=schemas.Owner, status_code=201)
 def create(

@@ -164,9 +164,10 @@ async def update_contract(
                 print("contract: ",contract)
                 if contract:
                     print("data.child_uuid: ",data.child_uuid)
-                    parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == data.child_uuid).first()
-                    if parent_child:
-                        parent = db.query(models.Parent).filter(models.Parent.uuid == parent_child.parent_uuid).first()
+                    print(data.child.parents)
+
+                    parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in data.child.parents])).all()
+                    for parent in parents:
                         parent.contracts.append(contract)
 
                     contract.nursery_uuid = data.nursery_uuid
@@ -182,6 +183,7 @@ async def update_contract(
         raise HTTPException(status_code=409, detail=__("conflict"))
     except Exception as e:
         logger.error(str(e))
+        print(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
     
 @router.post("/create-default-activity-categories",response_model=schemas.Msg,status_code=201)
@@ -263,7 +265,7 @@ async def create_user_groups(
         admin_key: schemas.AdminKey = Body(...)
 ) -> dict[str, str]:
     """
-    Create user roles.
+    Create user groups.
     """
     check_user_access_key(admin_key)
 
@@ -276,13 +278,15 @@ async def create_user_groups(
                 if user_group:
                     user_group.title_fr=data["title_fr"]
                     user_group.title_en=data["title_en"]
-                    user_group.description=data["description"]
+                    user_group.code = data["code"]
+                    user_group.description=data["description"] if data["description"] else None
 
                 else:
                     user_group = models.Group(
                         title_fr=data["title_fr"],
                         title_en=data["title_en"],
-                        description=data["description"],
+                        code = data["code"],
+                        description=data["description"] if data["description"] else None,
                         uuid=data["uuid"]
                     )
                     db.add(user_group)

@@ -147,9 +147,59 @@ class Group(Base):
 
     code: str = Column(String, nullable=False,unique=True)
     description: str = Column(String, nullable=True)
+    teams = relationship("GroupTeams", back_populates="group")
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
     def __repr__(self):
-        return '<Group: uuid: {} title_fr: {} title_en: {}>'.format(self.uuid, self.title_fr, self.title_en)
+        return '<Group: uuid: {} title_fr: {} title_en: {} code: {}>'.format(self.uuid, self.title_fr, self.title_en,self.code)
+
+@event.listens_for(Group, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(Group, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
+
+
+@dataclass
+class GroupTeams(Base):
+    """
+     database model for storing Membership and Nursery related details.
+    """    
+    __tablename__ ='group_teams'
+    uuid: str = Column(String, primary_key=True, unique=True,index = True)
+    team_uuid: str = Column(String, ForeignKey('teams.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
+    team = relationship("Team",foreign_keys=[team_uuid],uselist=False)
+
+    group_uuid: str = Column(String, ForeignKey('groups.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
+    group = relationship("Group",foreign_keys=[group_uuid],uselist=False)
+    
+    status:str = Column(types.Enum(TeamStatusEnum), index=True, nullable=False, default = TeamStatusEnum.ACTIVED)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    def __repr__(self):
+        return '<Team: uuid: {} team_uuid: {} group_uuid: {} status: {}>'.format(self.uuid, self.team_uuid, self.group_uuid,self.status)
+
+
+@event.listens_for(GroupTeams, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+@event.listens_for(GroupTeams, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
 
 
 @dataclass
