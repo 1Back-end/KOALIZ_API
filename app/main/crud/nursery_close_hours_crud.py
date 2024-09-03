@@ -12,6 +12,7 @@ from app.main import crud, schemas, models
 import uuid
 from app.main.core.security import get_password_hash, verify_password, generate_code, generate_slug
 
+
 class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryCloseHourCreate,schemas.NurseryCloseHourUpdate]):
 
     def get_nursery_close_by_uuid(self,*, db: Session, close_hour_uuid: str, owner_uuid: str):
@@ -74,7 +75,6 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
             current_page =page,
             data =record_query
         )
-
     def create_nursery_close_hour(self, db: Session,*,  close_hour: schemas.NurseryCloseHourCreate, owner_uuid: str):
         # Check if the nursery exists
         nursery_exists = db.query(models.Nursery).filter(models.Nursery.uuid == close_hour.nursery_uuid).first()
@@ -199,14 +199,15 @@ class NurseryCloseHourCRUD(CRUDBase[models.NurseryCloseHour,  schemas.NurseryClo
                 raise HTTPException(status_code=403, detail="You-are-not-authorized-to-delete-this-close-hour")
             record.is_deleted=True
         db.commit()
-        
-        
 
+
+
+
+
+        
+    
    
 
-
-
     
-
     
 nursery_close_hour = NurseryCloseHourCRUD(models.NurseryCloseHour)

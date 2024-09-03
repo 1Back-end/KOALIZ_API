@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import List, Optional
 
+from sqlalchemy import Enum
 
 class NurseryCloseHourBase(BaseModel):
     name_fr: str
@@ -54,5 +55,12 @@ class NurseryCloseHourDetails(BaseModel):
     start_month: int
     end_day: int
     end_month: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+class CopyParametersRequest(BaseModel):
+    source_nursery_uuid: str
+    target_nursery_uuid: str
+    elements_to_copy: List[str]
 
     model_config = ConfigDict(from_attributes=True)
