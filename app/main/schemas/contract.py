@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_val
 from app.main import models
 from app.main.core.i18n import __
 from app.main.models.db.session import SessionLocal
+from app.main.schemas.administrator import AdministratorSlim
 from app.main.schemas.invoice import InvoiceMiniDetails
 from app.main.schemas.parent import Avatar, ParentResponse
 from app.main.schemas.preregistration import ChildMini3, TimeSlotInputSchema
@@ -110,6 +111,9 @@ class ClientAccountContractSchema(BaseModel):
     rum: Optional[str] = None
     signed_date: Optional[datetime] = None
 
+    performed_by: Optional[AdministratorSlim] = None
+    performed_date: Optional[datetime] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -129,8 +133,8 @@ class Contract(BaseModel):
     client_account: Optional[ClientAccountContractSchema]=None
     invoices: list[InvoiceMiniDetails]=None
 
-    date_added: datetime
-    date_modified: datetime
+    # date_added: datetime
+    # date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

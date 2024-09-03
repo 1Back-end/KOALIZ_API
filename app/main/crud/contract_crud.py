@@ -127,7 +127,7 @@ class CRUDContract(CRUDBase[Contract, ContractCreate, ContractUpdate]):
             db=db,
             entity_type="ClientAccount",
             entity_id=client_account.uuid,
-            action="UPDATE",
+            action="UPDATED",
             before_changes=convert_dates_to_strings(before_changes),
             performed_by_uuid=performed_by_uuid,
             after_changes=convert_dates_to_strings(after_changes)
