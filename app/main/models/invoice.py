@@ -5,6 +5,8 @@ from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Str
     Float
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped
+
+from app.main.models.db.session import SessionLocal
 from .db.base_class import Base
 
 
@@ -220,6 +222,43 @@ class ClientAccount(Base):
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+    @hybrid_property
+    def performed_by(self):
+        db = SessionLocal()
+        from app.main.models import AuditLog  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            performed_by = db.query(AuditLog).\
+                    filter(AuditLog.entity_type == "ClientAccount",AuditLog.entity_id == self.uuid).\
+                    filter(AuditLog.action.in_(["UPDATE", "UPDATED"])).\
+                    order_by(AuditLog.date_added.desc()).first()
+            if performed_by:
+                return performed_by.performed_by
+            return None
+        except Exception as e:
+            print(f"Erreur lors de la récupération des tags : {e}")
+        finally:
+            db.close()
+    @hybrid_property
+    def performed_date(self):
+        db = SessionLocal()
+        from app.main.models import AuditLog  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            performed_date = db.query(AuditLog).\
+                    filter(AuditLog.entity_type == "ClientAccount",AuditLog.entity_id == self.uuid).\
+                    filter(AuditLog.action.in_(["UPDATE", "UPDATED"])).\
+                    order_by(AuditLog.date_added.desc()).first()
+            if performed_date:
+                return performed_date.date_added
+            return None
+        except Exception as e:
+            print(f"Erreur lors de la récupération des tags : {e}")
+        finally:
+            db.close()
+
 
 
 @event.listens_for(ClientAccount, 'before_insert')

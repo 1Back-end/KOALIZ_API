@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_val
 from app.main import models
 from app.main.core.i18n import __
 from app.main.models.db.session import SessionLocal
+from app.main.schemas.administrator import AdministratorSlim
+from app.main.schemas.invoice import InvoiceMiniDetails
 from app.main.schemas.parent import Avatar, ParentResponse
 from app.main.schemas.preregistration import ChildMini3, TimeSlotInputSchema
 from app.main.schemas.tag import Tag
@@ -46,8 +48,9 @@ class ContractCreate(ContractBase):
             raise ValueError("End date must be after to begin date.")
         return validated_self
 
-class ContractUpdate(ContractBase):
+class ContractUpdate(BaseModel):
     uuid: str
+
     status: Optional[str] = None
 
     typical_weeks: list[list[list[TimeSlotInputSchema]]]
@@ -59,12 +62,17 @@ class ContractUpdate(ContractBase):
                 raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
         return value
 
-    @field_validator("end_date")
-    def validate_end_date(cls, value, values):
-        begin_date = values.data.get('begin_date')
-        if value <= begin_date:
-            raise ValueError("End date must be after to begin date.")
-        return value
+    # @field_validator("end_date")
+    # def validate_end_date(cls, value, values):
+    #     begin_date = values.data.get('begin_date')
+    #     if value <= begin_date:
+    #         raise ValueError("End date must be after to begin date.")
+    #     return value
+class ProlongeContract(BaseModel):
+    uuid: str
+    child_uuid: str
+    end_date: datetime
+
 
 class ParentContractSchema(BaseModel):
     uuid:str
@@ -87,6 +95,13 @@ class ParentContractSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ClientAccountContractUpdate(BaseModel):
+    uuid: str
+    contract_uuid: str
+    name: Optional[str]
+    iban: Optional[str]
+    bic: Optional[str]
+    rum: Optional[str]
 
 class ClientAccountContractSchema(BaseModel):
     uuid: Optional[str] = None
@@ -95,6 +110,9 @@ class ClientAccountContractSchema(BaseModel):
     bic: Optional[str] = None
     rum: Optional[str] = None
     signed_date: Optional[datetime] = None
+
+    performed_by: Optional[AdministratorSlim] = None
+    performed_date: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -109,63 +127,16 @@ class Contract(BaseModel):
     has_company_contract: Optional[bool] = False
     status: Optional[str] = None
     hourly_volume: Optional[float] = 0
-    tags: Optional[list[Tag]] = []
+    tags: Optional[list[Tag]]=None
     typical_weeks: list[Any]
-    parents: list[ParentContractSchema]=[]
-    client_accounts: list[ClientAccountContractSchema]=[]
+    parents: list[ParentContractSchema]=None
+    client_account: Optional[ClientAccountContractSchema]=None
+    invoices: list[InvoiceMiniDetails]=None
 
-    date_added: datetime
-    date_modified: datetime
+    # date_added: datetime
+    # date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-
-    # @model_validator(mode='wrap')
-    # def validate_data(self, handler):
-    #     validated_self = handler(self)
-    #     session = SessionLocal()
-    #     print("validated_self",validated_self.nursery_uuid)
-    #     # try:
-    #     data = session.query(models.Contract).filter(models.Contract.nursery_uuid == validated_self.nursery_uuid).first()
-
-    #     print("data",data)
-    #     print("data_parents",data.parents)
-    #     print("contract_uuid",data.uuid)
-
-    #     for parent in data.parents:
-    #         exist_parent = session.query(models.ParentGuest).\
-    #             filter(models.ParentGuest.uuid == parent.uuid).\
-    #             filter(models.ParentGuest.status.not_in(["DELETED"])).\
-    #                 first()
-    #         if not exist_parent:
-    #             raise ValueError(__("parent-not-found"))
-            
-    #         print("parent_uuid",exist_parent.uuid)
-            
-    #         parent_child = session.query(models.ParentChild).\
-    #             filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
-    #                 first()
-    #         pickup_parent = session.query(models.PickUpParentChild).\
-    #             filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
-    #                 first()
-            
-    #         # Update the boolean flags based on the query results
-    #         has_pickup_child_authorization = bool(pickup_parent)
-    #         has_app_authorization = bool(parent_child)
-    #         print("has_pickup_child_authorization",has_pickup_child_authorization)
-    #         print("has_app_authorization",has_app_authorization)
-
-
-    #         # Update the parent object in the parents list
-    #         parent.has_pickup_child_authorization = has_pickup_child_authorization
-    #         parent.has_app_authorization = has_app_authorization
-
-    #     return validated_self
-
-        # except Exception as e:
-        #     print("Error getting data: " + str(e))
-        # finally:
-        #     session.close()
 
 
 class ContractMini(BaseModel):
@@ -177,7 +148,7 @@ class ContractMini(BaseModel):
     type: Optional[str] = None
     status: Optional[str] = None
     hourly_volume: Optional[float] = 0
-    tags:Optional[list[Tag]] = []
+    tags:Optional[list[Tag]] =None
 
     model_config = ConfigDict(from_attributes=True)
 

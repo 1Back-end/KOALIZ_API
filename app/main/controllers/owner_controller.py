@@ -82,6 +82,29 @@ def confirm_apps_authorization(
 
     return child
 
+@router.put("/parent", response_model=schemas.Parent, status_code=200)
+def update_paren_informations(
+    obj_in: schemas.ParentUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.Parent = Depends(TokenRequired(roles =["owner"] ))
+):
+    """
+    Update parent informations
+    """
+    user = crud.parent.get_parent_guest_by_uuid(db, obj_in.uuid)
+    if not user:
+        raise HTTPException(status_code=404, detail=__("user-not-found"))
+
+    if obj_in.avatar_uuid and obj_in.avatar_uuid != user.avatar_uuid:
+        if not crud.storage.get(db=db, uuid=obj_in.avatar_uuid):
+            raise HTTPException(status_code=404, detail=__("avatar-not-found"))
+    
+    # if obj_in.email and obj_in.email != user.email:
+    #     if crud.parent.get_by_email(db, obj_in.email):
+    #         raise HTTPException(status_code=409, detail=__("user-email-taken"))
+
+    return crud.parent.update_parent_guest(db ,obj_in)
+
 @router.post("/create", response_model=schemas.Owner, status_code=201)
 def create(
     *,

@@ -36,3 +36,4 @@ from .occasional_presence_crud import occasional_presence
 from .contract_crud import contract
 from .group_crud import group
 from .job_crud import job
+from .invoicing_settings_crud import invoicing_settings

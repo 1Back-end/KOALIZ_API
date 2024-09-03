@@ -1,4 +1,5 @@
 from enum import Enum
+import math
 
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table, event, types,Date,Float, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -335,9 +336,6 @@ class ParentGuest(Base):
 
     is_paying_parent: bool = Column(Boolean, default=False)
 
-    # contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
-    # contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
-
     role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=True )
     role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
 
@@ -514,9 +512,6 @@ class Contract(Base):
     date_of_acceptation: datetime = Column(DateTime, nullable=True) 
     date_of_rupture: datetime = Column(DateTime, nullable=True) 
 
-    # invoice_uuid: str = Column(String, ForeignKey('invoices.uuid'), nullable=True)
-    # invoice = relationship("Owner", foreign_keys=[invoice_uuid], uselist=False)
-
     owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
     owner = relationship("Owner", foreign_keys=owner_uuid, uselist=False)
 
@@ -539,6 +534,22 @@ class Contract(Base):
             print(f"Erreur lors de la récupération des tags : {e}")
         finally:
             db.close()
+    @hybrid_property
+    def client_account(self):
+        return self.client_accounts[0] if len(self.client_accounts) else None
+
+    @hybrid_property
+    def invoices(self):
+        db = SessionLocal()
+        from app.main.models import Invoice  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            record = db.query(Invoice).filter(Invoice.contract_uuid == self.uuid).filter(Invoice.status.in_(["PAID", "PENDING", "UNPAID"])).all()
+            return record
+        except Exception as e:
+            print(f"Erreur lors de la récupération des invoices : {e}")
+        finally:
+            db.close()
 
     @hybrid_property
     def hourly_volume(self):
@@ -555,7 +566,7 @@ class Contract(Base):
                     week_hours += hours
             total_hours += week_hours
         
-        return total_hours
+        return math.ceil(total_hours)
 
 
 @event.listens_for(Contract, 'before_insert')
