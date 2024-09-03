@@ -147,4 +147,6 @@ translation = {
     "hourly-rate-range-not-found": "Hourly rate range not found",
     "hourly-rate-range-deleted": "Hourly rate range deleted",
     "hourly-rate-range-exists": "Hourly rate range already exists",
+    'setting-not-exist': 'The configuration key does not exist',
+
 }
