@@ -300,6 +300,47 @@ async def create_user_groups(
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
 
+@router.post("/create-jobs", response_model=schemas.Msg, status_code=201)
+async def create_nursery_jobs(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create user groups.
+    """
+    check_user_access_key(admin_key)
+
+    try:
+        with open('{}/app/main/templates/default_data/job.json'.format(os.getcwd()), encoding='utf-8') as f:
+            datas = json.load(f)
+
+            for data in datas:
+                nursery_job:models.Job = db.query(models.Job).filter(models.Job.code == data["code"])
+                if nursery_job:
+                    nursery_job.title_fr=data["title_fr"]
+                    nursery_job.title_en=data["title_en"]
+                    nursery_job.code = data["code"]
+                    nursery_job.description=data["description"] if data["description"] else None
+
+                else:
+                    nursery_job = models.Job(
+                        title_fr=data["title_fr"],
+                        title_en=data["title_en"],
+                        code = data["code"],
+                        description=data["description"] if data["description"] else None,
+                        uuid=data["uuid"]
+                    )
+                    db.add(nursery_job)
+                    db.commit()
+        return {"message": "Les jobs ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("nursery-job-conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+
 
 @router.post("/create-admin-users", response_model=schemas.Msg, status_code=201)
 async def create_admin_users(

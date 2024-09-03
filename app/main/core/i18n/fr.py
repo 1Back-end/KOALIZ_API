@@ -147,4 +147,11 @@ translation = {
     "at-least-one-phone-number-required": "Au moins un numéro de téléphone est requis",
     "parent-status-not-allowed":"Le statut du parent n'est pas actif",
     "child-not-registered-in-nursery": "L'enfant n'est pas inscrit à la crèche ou alors son dossier d'inscription n'a pas encore été accepté",
+    "group-not-found": "groupe non trouvé",
+    "group-deleted": "groupe supprimé avec succès",
+    "job-deleted": "emploi supprimé",
+    "job-not-found":"emploi introuvable"
+
+    
+    
 }

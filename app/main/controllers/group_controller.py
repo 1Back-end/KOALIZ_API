@@ -11,7 +11,7 @@ from app.main.models.team import TeamStatusEnum
 router = APIRouter(prefix="/groups", tags=["groups"])
 
 
-@router.post("/create", response_model=schemas.Group, status_code=201)
+@router.post("/create", response_model=list[schemas.Group], status_code=201)
 def create(
     *,
     db: Session = Depends(get_db),
@@ -21,140 +21,43 @@ def create(
     """
     Create new Group
     """
-    employe_errors = []
-    group_errors =[]
-    nursery_owner_errors =[]
-    # team_name_errors = []
-    # team_name_entry_errors = []
-    # team_name_tab = []
-    for group in obj_in:
-        owner_uuid_tab =[]
-        team = crud.employe.get_by_uuid(db,team.leader_uuid)
-        print("leader: %s" % employe)
-        if  not employe:
-            employe_errors.append(team.leader_uuid)
-        else:
-            owner_uuid_tab.append(employe.nurseries[0].owner_uuid)
+    errors = []
 
-        # exist_team = crud.team.get_by_name(db,team.name)
-        # print("team: %s" % exist_team)
-        # if exist_team:
-        #     team_name_errors.append(team.name)
+    for obj in obj_in:
+        if obj.team_uuid_tab:
+            teams = crud.team.get_by_uuids(db,obj.team_uuid_tab)
 
-        # if team.name not in team_name_tab:
-        #     team_name_tab.append(team.name)
-        # else:
-        #     team_name_entry_errors.append(team.name)
-
-        for member_uuid in team.member_uuid_tab:
-            member = crud.employe.get_by_uuid(db,member_uuid)
-            print("member_uuid: %s" % member)
-            if not member:
-                member_errors.append(member_uuid)
-            else:
-                owner_uuid_tab +=[i.owner_uuid for i in member.nurseries]
-
-                for owner_uuid in owner_uuid_tab:      
-                    if owner_uuid!=current_user.uuid:
-                        nursery_owner_errors.append(f'owner:{owner_uuid}-member:{member_uuid}')
+            if not teams or len(teams)!= len(obj.team_uuid_tab):
+                errors.append(obj.team_uuid_tab)
         
-    status_code = 404 if employe_errors or  member_errors else 400 
-    key_errors = "member-not-found" if member_errors  \
-        else "leader-not-found" if employe_errors \
-            else "nursery-owner-not-authorized" 
-
-    errors = employe_errors if employe_errors \
-        else member_errors if member_errors \
-                else nursery_owner_errors
     if len(errors):
-        raise HTTPException(status_code=status_code, detail=f"{__(key_errors)}:" + ' '+'' .join(errors))    
+        raise HTTPException(status_code=404, detail=f"{__("team-not-found")}")    
     
-    # team_members = crud.employe.get_by_uuids(db,obj_in.member_uuid_tab)
+    return crud.group.create(db, obj_in,current_user)
 
-    # if not team_members or len(team_members)!= len(obj_in.member_uuid_tab):
-    #     raise HTTPException(status_code=404, detail=__("members-not-found"))
-    
-    return crud.team.create(db, obj_in,current_user.uuid)
-
-@router.post("/", response_model=schemas.TeamResponse, status_code=200)
+@router.put("/", response_model=schemas.Group, status_code=200)
 def update(
     *,
     db: Session = Depends(get_db),
-    obj_in:schemas.TeamUpdate,
+    obj_in:schemas.GroupUpdate,
     current_user:models.Owner = Depends(TokenRequired(roles =["owner"] ))
 ):
     """
-    Update a Team
+    Update a Group
     """
 
-    employe_errors = []
-    member_errors =[]
-    nursery_owner_errors =[]
-    # team_name_errors = []
-    # team_name_entry_errors = []
-    # team_name_tab = []
-
-    owner_uuid_tab =[]
-    employe = crud.employe.get_by_uuid(db,obj_in.leader_uuid)
-    print("leader: %s" % employe)
-    if  not employe:
-        employe_errors.append(obj_in.leader_uuid)
-    else:
-        owner_uuid_tab.append(employe.nurseries[0].owner_uuid)
-
-    team = crud.team.get_by_uuid(db,obj_in.uuid)
-    if not team:
-        raise HTTPException(status_code=404, detail=__("team-not-found"))
+    exist_group = crud.group.get_by_uuid(db,obj_in.uuid)
+    if not exist_group:
+        raise HTTPException(status_code=404, detail=__("group-not-found"))
     
-    # exist_team = crud.team.get_by_name(db,obj_in.name)
-    # print("team: %s" % exist_team)
-    # if exist_team:
-    #     team_name_errors.append(obj_in.name)
-
-    # if obj_in.name not in team_name_tab:
-    #     team_name_tab.append(obj_in.name)
-    # else:
-    #     team_name_entry_errors.append(obj_in.name)
-
-    for member_uuid in obj_in.member_uuid_tab:
-        member = crud.employe.get_by_uuid(db,member_uuid)
-        print("member_uuid: %s" % member)
-        if not member:
-            member_errors.append(member_uuid)
-        else:
-            owner_uuid_tab +=[i.owner_uuid for i in member.nurseries]
-
-            for owner_uuid in owner_uuid_tab:      
-                if owner_uuid!=current_user.uuid:
-                    nursery_owner_errors.append(f'owner:{owner_uuid}-member:{member_uuid}')
-    # employe = crud.employe.get_by_uuid(db,obj_in.leader_uuid)
-
-    # if  not employe:
-    #     raise HTTPException(status_code=404, detail=__("user-not-found"))
+    if obj_in.team_uuid_tab:
+        teams = crud.team.get_by_uuids(db,obj_in.team_uuid_tab)
+        if not teams or len(teams)!= len(obj_in.team_uuid_tab):
+            raise HTTPException(status_code=404, detail=__("team-not-found"))
     
-    # team = crud.team.get_by_uuid(db,obj_in.team_uuid)
-    # if not team:
-    #     raise HTTPException(status_code=404, detail=__("team-not-found"))
-    
-    # team_members = crud.employe.get_by_uuids(db,obj_in.member_uuid_tab)
+    return crud.group.update(db, obj_in)
 
-    # if not team_members or len(team_members)!= len(obj_in.member_uuid_tab):
-    #     raise HTTPException(status_code=404, detail=__("members-not-found"))
-
-    status_code = 404 if employe_errors or  member_errors else 400 
-    key_errors = "member-not-found" if member_errors  \
-        else "leader-not-found" if employe_errors \
-            else "nursery-owner-not-authorized" 
-
-    errors = employe_errors if employe_errors \
-        else member_errors if member_errors \
-                else nursery_owner_errors
-    if len(errors):
-        raise HTTPException(status_code=status_code, detail=f"{__(key_errors)}:" + ' '+'' .join(errors)) 
-    
-    return crud.team.update(db, obj_in)
-
-@router.delete("/{uuid}", response_model=schemas.Msg)
+@router.delete("", response_model=schemas.Msg)
 def delete(
     *,
     db: Session = Depends(get_db),
@@ -162,48 +65,60 @@ def delete(
     current_user: models.Owner = Depends(TokenRequired(roles =["owner"] ))
 ):
     """
-    Delete a Team
+    Delete a Group
     """
-    team_errors =[]
-    teams = crud.team.get_by_uuids(db, uuids)
-    if not teams or len(teams)!=len(uuids):
-        raise HTTPException(status_code=404, detail=__("user-not-found"))
+    groups = crud.group.get_by_uuids(db, uuids)
+    if not groups or len(groups)!=len(uuids):
+        raise HTTPException(status_code=404, detail=__("group-not-found"))
 
-    for team in teams:
-        if team.owner_uuid!= current_user.uuid:
-            team_errors.append(team.uuid)
+    crud.group.soft_delete(db, uuids)
+    return {"message": __("group-deleted")}
 
-    if team_errors:
-        raise HTTPException(status_code=400, detail=f"{__("team-owner-unauthorized")}:" + ' '+'' .join(team_errors))
+@router.delete("/team/delete", response_model=schemas.Msg)
+def delete_team_from_group(
+    *,
+    db: Session = Depends(get_db),
+    obj_in:schemas.DeleteTeamFromGroup,
+    current_user: models.Owner = Depends(TokenRequired(roles =["owner"] ))
+):
+    """
+    Delete a Group
+    """
+    group = crud.group.get_by_uuid(db, obj_in.group_uuid)
+    if not group:
+        raise HTTPException(status_code=404, detail=__("group-not-found"))
     
-    crud.team.soft_delete(db, uuids)
-    return {"message": __("team-deleted")}
+    teams = crud.team.get_by_uuids(db, obj_in.team_uuid_tab)
+    if not teams or len(teams)!= len(obj_in.team_uuid_tab):
+        raise HTTPException(status_code=404, detail=__("team-not-found"))
+    
+    crud.group.delete_team_from_group(db, obj_in)
+    return {"message": __("group-deleted")}
 
-@router.get("/", response_model=schemas.TeamResponseList)
+@router.get("/", response_model=schemas.GroupResponseList)
 def get(
     *,
     db: Session = Depends(get_db),
     page: int = 1,
     per_page: int = 30,
-    order:str = Query(None, enum =["ASC","DESC"]),
-    team_uuid:Optional[str] = None,
-    status: str = Query(..., enum=[st.value for st in TeamStatusEnum if st.value != TeamStatusEnum.DELETED]),
+    order:str = Query(None, enum =["asc","desc"]),
+    group_uuid:Optional[str] = None,
+    status: str = Query(None, enum =["CREATED","UNACTIVED","SUSPENDED"]),
     keyword:Optional[str] = None,
     # order_filed: Optional[str] = None
     current_user: models.Owner = Depends(TokenRequired(roles =["owner"] ))
 ):
     """
-    get team with all data by passing filters
+    get Group with all data by passing filters
     """
     
-    return crud.team.get_multi(
+    return crud.group.get_multi(
         db, 
         page, 
         per_page, 
         order,
         status,
-        team_uuid,
-        # order_filed
+        group_uuid,
         keyword
     )
     

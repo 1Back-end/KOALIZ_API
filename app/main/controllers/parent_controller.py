@@ -41,7 +41,6 @@ def get(
     page: int = 1,
     per_page: int = 30,
     filter_date:date = None,
-    contrat_uuid: Optional[str] = None,
     nursery_uuid:Optional[str] = None,
     child_uuid : Optional[str] = None,
     order: str = Query("desc", enum =["asc", "desc"]),
@@ -61,7 +60,6 @@ def get(
         keyword=keyword,
         nursery_uuid = nursery_uuid,
         child_uuid = child_uuid,
-        contrat_uuid = contrat_uuid,
         filter_date=filter_date,
         parent_uuid=current_user.uuid
     )

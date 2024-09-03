@@ -304,6 +304,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         per_page:int = 30,
         nursery_uuid:Optional[str] = None,
         child_uuid : Optional[str] = None,
+        filter_date:Optional[date] = None,
         order:Optional[str] = None,
         parent_uuid:Optional[str] = None,
         order_filed:Optional[str] = "date_added",

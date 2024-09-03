@@ -35,3 +35,4 @@ from .absence_crud import absence
 from .occasional_presence_crud import occasional_presence
 from .contract_crud import contract
 from .group_crud import group
+from .job_crud import job

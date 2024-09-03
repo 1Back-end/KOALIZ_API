@@ -12,16 +12,9 @@ import uuid as py_uuid
 
 class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate]):
     
-    # @classmethod
-    # def get_members(db,nursery_uuid):
-    #     return db.query(models.Employee).join(models.NurseryEmployees).\
-    #         filter(models.NurseryEmployees.nursery_uuid == nursery_uuid).\
-    #             filter(models.Employee.status!="DELETED").\
-    #                 all()
-    
     @classmethod
     def is_in_group_team(cls,db:Session,team_uuid:str,group_uuid:str):
-        return db.query(models.GroupTeams).join(models.GroupTeams).\
+        return db.query(models.GroupTeams).\
             filter(models.GroupTeams.team_uuid == team_uuid).\
                 filter(models.GroupTeams.group_uuid == group_uuid).\
                     first()
@@ -29,7 +22,6 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
     @classmethod
     def get_by_uuids(cls, db: Session, uuids: list[str]) -> Optional[list[models.Group]]:
         return db.query(models.Group).\
-            filter(models.Group.status!= "DELETED").\
                 filter(models.Group.uuid.in_(uuids)).\
                     all()
     
@@ -41,7 +33,6 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
     @classmethod
     def create(cls, db: Session, obj_in: list[schemas.GroupCreate],added_by:models.Owner) -> list[models.Group]:
                 
-        
         group_list = [] 
         for obj in obj_in: 
             db_obj = models.Group(
@@ -50,24 +41,23 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
                 title_en= obj.title_en,
                 code = obj.code,
                 description = obj.description,
-                added_by = added_by.uuid
+                added_by_uuid = added_by.uuid
             )
             db.add(db_obj)
-            db.flush()
-
+            db.commit()
             for team_uuid in obj.team_uuid_tab:
                 group_team = crud.group.is_in_group_team(db,team_uuid,db_obj.uuid)
+                print("group_team1234", group_team)
                 if not group_team:
                     group_team = models.GroupTeams(
                         uuid= str(py_uuid.uuid4()),
                         group_uuid = db_obj.uuid,
-                        team_uuid = db_obj.uuid,
+                        team_uuid = team_uuid,
                     )
                     db.add(group_team)
-                    db.flush()
+                    db.commit()
 
         group_list.append(db_obj)
-        db.commit()
         db.refresh(db_obj)
     
         return group_list
@@ -81,8 +71,7 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
         db_obj.code = obj_in.code if obj_in.code else db_obj.code 
         
         db_obj.description = obj_in.description if obj_in.description else db_obj.description
-
-        db.flush()
+        db.commit()
         for team_uuid in obj_in.team_uuid_tab:
             team_group = crud.group.is_in_group_team(db,team_uuid,db_obj.uuid)
 
@@ -93,11 +82,9 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
                 group_uuid = db_obj.uuid,
                 )
                 db.add(team_group)
-                db.flush()
+                db.commit()    
 
-        db.commit()    
         db.refresh(db_obj)
-        
         return db_obj
     
     @classmethod
@@ -106,9 +93,16 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
 
         for db_obj in db_objs:
             db_obj.status = models.EmployeStatusEnum.DELETED
-        db.commit()
-    
-    
+            db.commit()
+
+    @classmethod
+    def delete_team_from_group(cls,db:Session, obj_in:schemas.DeleteTeamFromGroup):
+        exist_team_group = cls.is_in_group_team(db, obj_in)
+
+        if exist_team_group and exist_team_group.status!= "DELETED":
+            exist_team_group.status ="DELETED"
+            db.commit()
+
     @classmethod
     def get_multi(
         cls,
@@ -121,15 +115,14 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
         keyword:Optional[str]= None,
         # order_filed:Optional[str] = None   
     ):
+
         record_query = db.query(models.Group).\
-            filter(models.Team.status !="DELETED").\
-                outerjoin(models.GroupTeams,models.Team.uuid == models.GroupTeams.team_uuid).\
-                outerjoin(models.Group, models.GroupTeams.group == models.Group.uuid).\
-                    filter(models.Group.status!="DELETED").\
+            filter(models.Group.status !="DELETED").\
+                outerjoin(models.GroupTeams,models.Group.uuid == models.GroupTeams.group_uuid).\
+                outerjoin(models.Team, models.GroupTeams.team_uuid == models.Team.uuid).\
+                    filter(models.Team.status!="DELETED").\
                         options(contains_eager(models.Group.teams))
-        
-        # if order_filed:
-        #     record_query = record_query.order_by(getattr(models.Team, order_filed))
+
         if keyword:
             record_query = record_query.filter(
                 or_(
@@ -143,10 +136,10 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
         if status:
             record_query = record_query.filter(models.Group.status == status)
         
-        if order and order.lower() == "asc":
+        if order and order== "asc":
             record_query = record_query.order_by(models.Group.date_added.asc())
         
-        elif order and order.lower() == "desc":
+        elif order and order== "desc":
             record_query = record_query.order_by(models.Group.date_added.desc())
 
         if group_uuid:
@@ -156,7 +149,7 @@ class CRUDGroup(CRUDBase[models.Group, schemas.GroupCreate,schemas.GroupUpdate])
 
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
-        return schemas.TeamResponseList(
+        return schemas.GroupResponseList(
             total = total,
             pages = math.ceil(total/per_page),
             per_page = per_page,

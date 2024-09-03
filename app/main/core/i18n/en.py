@@ -141,5 +141,13 @@ translation = {
     "at-least-one-phone-number-required": "At least one phone number is required",
     "parent-status-not-allowed":"Parent status not actived",
     "child-not-registered-in-nursery": "The child is not registered in the nursery or their registration file has not yet been accepted",
+    "group-not-found": "group not found",
+    "group-deleted": "group deleted successfully",
+    "group-not-empty": "This group is not empty",
+    "group-member-not-found": "group member not found",
+    "group-member-deleted": "group member deleted successfully",
+    "group-member-not-empty": "This group member is not empty",
+    "job-deleted": "job deleted successfully",
+    "job-not-found":"job not found"
 
 }
