@@ -339,6 +339,7 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         per_page:int = 30,
         nursery_uuid:Optional[str] = None,
         child_uuid : Optional[str] = None,
+        filter_date:Optional[date] = None,
         order:Optional[str] = None,
         parent_uuid:Optional[str] = None,
         order_filed:Optional[str] = "date_added",
@@ -409,7 +410,6 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         if child_uuid:
             parent_children = parent_children.filter(models.ParentChild.child_uuid == child_uuid)
 
-        parent_children  = parent_children.all()
 
         media = db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([parent_child.child_uuid for parent_child in parent_children])).all()
         

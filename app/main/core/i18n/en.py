@@ -146,5 +146,13 @@ translation = {
     "quote-setting-deleted": "Quote setting deleted",
     "hourly-rate-range-not-found": "Hourly rate range not found",
     "hourly-rate-range-deleted": "Hourly rate range deleted",
-    "hourly-rate-range-exists": "Hourly rate range already exists",
+    "hourly-rate-range-exists": "Hourly rate range already exists",    "group-not-found": "group not found",
+    "group-deleted": "group deleted successfully",
+    "group-not-empty": "This group is not empty",
+    "group-member-not-found": "group member not found",
+    "group-member-deleted": "group member deleted successfully",
+    "group-member-not-empty": "This group member is not empty",
+    "job-deleted": "job deleted successfully",
+    "job-not-found":"job not found"
+
 }

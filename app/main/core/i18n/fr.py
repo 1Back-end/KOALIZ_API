@@ -153,4 +153,11 @@ translation = {
     "hourly-rate-range-not-found": "Plage de tarifs horaires non trouvée",
     "hourly-rate-range-deleted": "Plage de tarifs horaires supprimée",
     "hourly-rate-range-exists": "La plage de tarifs horaires existe déjà",
+    "group-not-found": "groupe non trouvé",
+    "group-deleted": "groupe supprimé avec succès",
+    "job-deleted": "emploi supprimé",
+    "job-not-found":"emploi introuvable"
+
+    
+    
 }
