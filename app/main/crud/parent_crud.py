@@ -410,7 +410,6 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         if child_uuid:
             parent_children = parent_children.filter(models.ParentChild.child_uuid == child_uuid)
 
-        parent_children  = parent_children.all()
 
         media = db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([parent_child.child_uuid for parent_child in parent_children])).all()
         
