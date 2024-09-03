@@ -542,7 +542,7 @@ class Contract(Base):
         from app.main.models import Invoice  # Importation locale pour éviter l'importation circulaire
 
         try:
-            record = db.query(Invoice).filter(Invoice.contract_uuid == self.uuid).all()
+            record = db.query(Invoice).filter(Invoice.contract_uuid == self.uuid).filter(Invoice.status.in_(["PAID", "PENDING", "UNPAID"])).all()
             return record
         except Exception as e:
             print(f"Erreur lors de la récupération des invoices : {e}")

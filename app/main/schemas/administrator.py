@@ -92,6 +92,14 @@ class Administrator(BaseModel):
     date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
+class AdministratorSlim(BaseModel):
+    uuid: Optional[str] = None
+    email: EmailStr
+    firstname: str
+    lastname: str
+    avatar: Optional[File]
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdministratorAuthentication(UserAuthentication):
