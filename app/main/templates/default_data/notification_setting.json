@@ -1,51 +1,51 @@
 [
     {
-      "title_en": "Reset your password",
-      "title_fr": "Réinitialiser votre mot de passe",
-      "key": "RESET_PASSWORD",
-      "code": ""
+      "title_en": "Activity reminders",
+      "title_fr": "Rappels d'activité",
+      "key": "ACTIVITY_REMINDER",
+      "code": ["owners"]
     },
     {
       "title_en": "Opening your micro-nursery",
       "title_fr": "Ouverture de votre micro-crèche",
       "key": "OPENING_MICRO_NURSERY",
-      "code": ""
+      "code": ["owners"]
     },
     {
       "title_en": "Report an absence",
       "title_fr": "Signaler une absence",
       "key": "REPORT_ABSENCE",
-      "code": ""
+      "code": ["owners"]
     },
     {
       "title_en": "Vaccination reminder",
       "title_fr": "Rappel vaccination",
       "key": "VACCINATION_REMINDER",
-      "code": ""
+      "code": ["teams", "parents"]
     },
     {
       "title_en": "Report a delay",
       "title_fr": "Signaler un retard",
       "key": "REPORT_DELAY",
-      "code": ""
+      "code": ["teams", "parents"]
     },
     {
       "title_en": "Unpaid invoice reminder",
       "title_fr": "Rappel facture impayée",
       "key": "UNPAID_INVOICE_REMINDER",
-      "code": ""
+      "code": ["owners", "parents"]
     },
     {
       "title_en": "New message",
       "title_fr": "Nouveau message",
       "key": "NEW_MESSAGE",
-      "code": ""
+      "code": ["owners", "parents", "teams"]
     },
     {
       "title_en": "Pre-registration folder",
       "title_fr": "Dossier de pré-inscriptionn",
       "key": "PREREGISTRATION_FOLDER",
-      "code": ""
+      "code": ["owners"]
     }
 
   ]

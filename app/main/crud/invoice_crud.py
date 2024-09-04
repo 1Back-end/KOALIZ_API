@@ -46,6 +46,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
 
         if contract_uuid:
             record_query = record_query.filter(models.Invoice.contract_uuid==contract_uuid)
+            record_query = record_query.filter(models.Invoice.status.in_(["PAID", "PENDING", "UNPAID"]))
 
         if reference:
             record_query = record_query.filter(models.Invoice.reference == reference)
