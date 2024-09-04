@@ -204,7 +204,7 @@ def get_contracts(
 def get_contract_details(
     uuid: str,
     db: Session = Depends(get_db),
-    # current_user: models.Owner = Depends(TokenRequired(roles =["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles =["owner"]))
 ):
     """ Get contract details """
 
