@@ -158,9 +158,9 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         return nursery
 
     @classmethod
-    def delete(cls, db: Session, uuids: list[str]) -> None:
+    def delete(cls, db: Session, uuids: list[str], owner_uuid:str = None) -> None:
         uuids = set(uuids)
-        nurseries = cls.get_by_uuids(db, uuids)
+        nurseries = cls.get_by_uuids(db, uuids, owner_uuid)
         if len(uuids) != len(nurseries):
             raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
@@ -243,8 +243,8 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
     
     @classmethod
     def get_by_uuids(cls, db: Session, uuids: list[str], owner_uuid: str = None) -> list[Optional[models.Nursery]]:
-        res = (db.query(models.Nursery).filter(models.Nursery.uuid.in_(uuids))\
-            .filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED])))
+        res = db.query(models.Nursery).filter(models.Nursery.uuid.in_(uuids))\
+            .filter(models.Nursery.status.notin_([models.NurseryStatusType.DELETED]))
         if owner_uuid:
             res = res.filter(models.Nursery.owner_uuid==owner_uuid)
         return res.all()
