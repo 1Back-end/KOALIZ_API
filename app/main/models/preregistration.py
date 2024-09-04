@@ -204,23 +204,24 @@ class ParentChild(Base):
         db = SessionLocal()
         user = db.query(models.Administrator).\
             filter(models.Administrator.uuid==self.added_by_uuid,
-                   models.Administrator.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                   models.Administrator.status!="DELETED").\
                     first()
         if not user:
             user = db.query(models.Owner).\
                 filter(models.Owner.uuid==self.added_by_uuid,
-                     models.Owner.status.not_in([st.value for st in models.UserStatusType if  st.value == models.UserStatusType.ACTIVED])).\
+                     models.Owner.status!="DELETED").\
                         first()
         return user
+    
     @hybrid_property
     def parent(self):
         db = SessionLocal()
         user = db.query(models.ParentGuest).\
-            filter(models.ParentGuest.uuid==self.added_by_uuid).\
+            filter(models.ParentGuest.uuid==self.parent_uuid).\
                 first()
         if not user:
             user = db.query(models.Parent).\
-                filter(models.Parent.uuid==self.added_by_uuid,
+                filter(models.Parent.uuid==self.parent_uuid,
                      models.Parent.status!= "DELETED").\
                         first()
         return user
@@ -284,13 +285,13 @@ class PickUpParentChild(Base):
     def parent(self):
         db = SessionLocal()
         user = db.query(models.ParentGuest).\
-            filter(models.ParentGuest.uuid==self.added_by_uuid,
+            filter(models.ParentGuest.uuid==self.parent_uuid,
                    models.ParentGuest.status!="DELETED").\
                     first()
 
         if not user:
             user = db.query(models.Parent).\
-                filter(models.Parent.uuid==self.added_by_uuid,
+                filter(models.Parent.uuid==self.parent_uuid,
                      models.Parent.status!="DELETED").\
                         first()
 
