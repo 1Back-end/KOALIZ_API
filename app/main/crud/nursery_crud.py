@@ -158,7 +158,7 @@ class CRUDNursery(CRUDBase[models.Nursery, schemas.NurseryCreateSchema, schemas.
         return nursery
 
     @classmethod
-    def delete(cls, db: Session, uuids: list[str], owner_uuid:str = None) -> None:
+    def delete(cls, db: Session, uuids: list[str], owner_uuid: str = None) -> None:
         uuids = set(uuids)
         nurseries = cls.get_by_uuids(db, uuids, owner_uuid)
         if len(uuids) != len(nurseries):

@@ -75,7 +75,7 @@ def delete(
     """
     Delete many(or one)
     """
-    crud.nursery.delete(db, uuids, current_user.uuid)
+    crud.nursery.delete(db, uuids)
     return {"message": __("nursery-deleted")}
 
 

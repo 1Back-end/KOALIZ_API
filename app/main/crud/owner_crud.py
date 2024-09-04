@@ -118,7 +118,6 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
         role_code: str = None,
         owner_uuid: str = None
     ):
-        print(owner_uuid)
         record_query = db.query(models.Owner).filter(models.Owner.status != models.UserStatusType.DELETED)
 
         if role_code:
