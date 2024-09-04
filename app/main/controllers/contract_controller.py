@@ -174,29 +174,29 @@ def get_contracts(
         # owner_uuid=current_user.uuid
     )
 
-    for r in query.data:
-        for parent in r.parents:
-            exist_parent = db.query(models.ParentGuest).\
-                filter(models.ParentGuest.uuid == parent.uuid).\
-                filter(or_(models.ParentGuest.status != "DELETED", models.ParentGuest.status.is_(None))).\
-                first()
-            if not exist_parent:
-                raise HTTPException(status_code=404, detail=__("parent-not-found"))
+    # for r in query.data:
+    #     for parent in r.parents:
+    #         exist_parent = db.query(models.ParentGuest).\
+    #             filter(models.ParentGuest.uuid == parent.uuid).\
+    #             filter(or_(models.ParentGuest.status != "DELETED", models.ParentGuest.status.is_(None))).\
+    #             first()
+    #         if not exist_parent:
+    #             raise HTTPException(status_code=404, detail=__("parent-not-found"))
                         
-            parent_child = db.query(models.ParentChild).\
-                filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
-                    first()
-            pickup_parent = db.query(models.PickUpParentChild).\
-                filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
-                    first()
+    #         parent_child = db.query(models.ParentChild).\
+    #             filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
+    #                 first()
+    #         pickup_parent = db.query(models.PickUpParentChild).\
+    #             filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
+    #                 first()
             
-            # Update the boolean flags based on the query results
-            has_pickup_child_authorization = bool(pickup_parent)
-            has_app_authorization = bool(parent_child)
+    #         # Update the boolean flags based on the query results
+    #         has_pickup_child_authorization = bool(pickup_parent)
+    #         has_app_authorization = bool(parent_child)
 
-            # Update the parent object in the parents list
-            parent.has_pickup_child_authorization = has_pickup_child_authorization
-            parent.has_app_authorization = has_app_authorization
+    #         # Update the parent object in the parents list
+    #         parent.has_pickup_child_authorization = has_pickup_child_authorization
+    #         parent.has_app_authorization = has_app_authorization
 
     return query
 
@@ -204,12 +204,35 @@ def get_contracts(
 def get_contract_details(
     uuid: str,
     db: Session = Depends(get_db),
-    # current_user: models.Owner = Depends(TokenRequired(roles =["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles =["owner"]))
 ):
     """ Get contract details """
 
     contract = crud.contract.get_contract_by_uuid(db, uuid)
     if not contract:
         raise HTTPException(status_code=404, detail=__("contract-not-found"))
+    
+    for parent in contract.parents:
+        exist_parent = db.query(models.ParentGuest).\
+            filter(models.ParentGuest.uuid == parent.uuid).\
+            filter(or_(models.ParentGuest.status != "DELETED", models.ParentGuest.status.is_(None))).\
+            first()
+        if not exist_parent:
+            raise HTTPException(status_code=404, detail=__("parent-not-found"))
+                    
+        parent_child = db.query(models.ParentChild).\
+            filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
+                first()
+        pickup_parent = db.query(models.PickUpParentChild).\
+            filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
+                first()
+        
+        # Update the boolean flags based on the query results
+        has_pickup_child_authorization = bool(pickup_parent)
+        has_app_authorization = bool(parent_child)
+
+        # Update the parent object in the parents list
+        parent.has_pickup_child_authorization = has_pickup_child_authorization
+        parent.has_app_authorization = has_app_authorization
 
     return contract
