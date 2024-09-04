@@ -90,6 +90,18 @@ class PaymentSlim(BaseModel):
     amount: float
     date_added: datetime
 
+class InvoiceMiniDetails(BaseModel):
+    uuid: str
+    # date_to: date
+    amount: float = 0
+    status: str = None
+    reference: str
+    amount_paid: float = 0
+    amount_due: float = 0
+    date_added: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class InvoiceDetails(BaseModel):
     uuid: str

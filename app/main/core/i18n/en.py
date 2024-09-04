@@ -139,10 +139,23 @@ translation = {
     "not-authorized": "You are not authorized to perform this action",
     "parent-not-found": "Parent not found",
     "at-least-one-phone-number-required": "At least one phone number is required",
+    "parent-status-not-allowed":"Parent status not actived",
+    "child-not-registered-in-nursery": "The child is not registered in the nursery or their registration file has not yet been accepted",
     "quote-setting-not-found": "Quote setting not found",
     "default-quote-setting-not-deletable": "The default quote setting cannot be deleted",
     "quote-setting-deleted": "Quote setting deleted",
     "hourly-rate-range-not-found": "Hourly rate range not found",
     "hourly-rate-range-deleted": "Hourly rate range deleted",
     "hourly-rate-range-exists": "Hourly rate range already exists",
+    'setting-not-exist': 'The configuration key does not exist',
+    "hourly-rate-range-exists": "Hourly rate range already exists",    
+    "group-not-found": "group not found",
+    "group-deleted": "group deleted successfully",
+    "group-not-empty": "This group is not empty",
+    "group-member-not-found": "group member not found",
+    "group-member-deleted": "group member deleted successfully",
+    "group-member-not-empty": "This group member is not empty",
+    "job-deleted": "job deleted successfully",
+    "job-not-found":"job not found"
+
 }

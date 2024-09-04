@@ -41,7 +41,6 @@ def get(
     page: int = 1,
     per_page: int = 30,
     filter_date:date = None,
-    contrat_uuid: Optional[str] = None,
     nursery_uuid:Optional[str] = None,
     child_uuid : Optional[str] = None,
     order: str = Query("desc", enum =["asc", "desc"]),
@@ -61,7 +60,6 @@ def get(
         keyword=keyword,
         nursery_uuid = nursery_uuid,
         child_uuid = child_uuid,
-        contrat_uuid = contrat_uuid,
         filter_date=filter_date,
         parent_uuid=current_user.uuid
     )
@@ -251,7 +249,16 @@ def delete(
     """
     Delete many(or one)
     """
-    crud.parent.delete(db, uuids)
+    exist_parents = []
+    for uuid in uuids:
+        parent = crud.parent.get_by_uuid(db, uuid)
+        if parent:
+            exist_parents.append(parent)
+    
+    if not len(exist_parents) or len(exist_parents) != len(uuids):
+        raise HTTPException(status_code=404, detail=__("parent-not-found"))
+    
+    crud.parent.soft_delete(db, uuids)
     return {"message": __("user-deleted")}
 
 

@@ -106,3 +106,44 @@ class UserUpdate(BaseModel):
     phone_number: Optional[str] = None
     birthday: Optional[date] = None
     storage_uuid: str = None
+
+
+class InvoiceEmailRequest(BaseModel):
+    email_to: str
+    invoice_number: str
+    recipient_name: str
+    company_name: str
+    company_address: str
+    contact_phone: str
+    contact_email: str
+    # language: str = "fr"
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AbsenceReportRequest(BaseModel):
+    reporter_name: str
+    child_name: str
+    absence_start: datetime
+    absence_end: datetime
+    family_member_link: str
+    contact_name: str
+    contact_phone: str
+    contact_email: str
+    # language: str = "fr"
+    model_config = ConfigDict(from_attributes=True)
+
+class DelayNotificationRequest(BaseModel):
+    parent_email: EmailStr
+    child_name: str
+    delay_duration: str
+    parent_name: str
+    contact_email: EmailStr
+    contact_phone: str
+    family_member_link: str
+    company_name: str
+    company_address: str
+    language: str = "fr"  # Valeur par défaut "fr"
+    model_config = ConfigDict(from_attributes=True)
+
+
+

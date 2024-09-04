@@ -25,7 +25,6 @@ def create(
 )
 
 
-
 @router.get("", response_model=schemas.NurseryCloseHourResponsiveList)
 def get_all_nursery_close_hours(
     *,
@@ -112,3 +111,9 @@ def soft_delete_nursery_close_hours(
 ):
     crud.nursery_close_hour.soft_delete(db=db, uuids=uuids,owner_uuid=current_user.uuid)
     return {"message": __("Close-Hours-soft-deleted-successfully")}
+
+# Modèle de requête pour la duplication des heures d'ouverture
+
+
+
+

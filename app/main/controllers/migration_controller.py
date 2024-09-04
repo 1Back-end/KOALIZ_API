@@ -164,10 +164,12 @@ async def update_contract(
                 print("contract: ",contract)
                 if contract:
                     print("data.child_uuid: ",data.child_uuid)
-                    parent_child = db.query(models.ParentChild).filter(models.ParentChild.child_uuid == data.child_uuid).first()
-                    if parent_child:
-                        parent = db.query(models.Parent).filter(models.Parent.uuid == parent_child.parent_uuid).first()
-                        parent.contracts.append(contract)
+                    print(data.child.parents)
+
+                    parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in data.child.parents])).all()
+                    for parent in parents:
+                        if contract not in parent.contracts:
+                            parent.contracts.append(contract)
 
                     contract.nursery_uuid = data.nursery_uuid
                     contract.status = "ACCEPTED"
@@ -177,6 +179,48 @@ async def update_contract(
 
             db.commit()
         return {"message": "Les contracts ont été modifiés avec succès"}
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+    
+
+@router.post("/create-setting-notifications", response_model=schemas.Msg, status_code=201)
+async def create_product_setting_notifications(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+) -> Any:
+    """
+    Create default setting notifications
+    """
+    check_user_access_key(admin_key)
+    try:
+        with open('{}/app/main/templates/default_data/notification_setting.json'.format(os.getcwd(), encoding='utf-8'), encoding='utf-8') as f:
+            datas = json.load(f)
+            for data in datas:
+                item = db.query(models.NotificationSetting).filter(models.NotificationSetting.uuid==data['uuid']).first()
+                if item:
+                    item.title_en = data["title_en"]
+                    item.title_fr = data["title_fr"]
+                    item.key = data["key"]
+                    item.role_uuid = data["role_uuid"]
+                    
+                else:
+                    item = models.NotificationSetting(
+                        uuid = data["uuid"] if "uuid"in data else str(uuid.uuid4()),
+                        title_en = data["title_en"],
+                        title_fr = data["title_fr"],
+                        key = data["key"],
+                        role_uuid = data["role_uuid"]
+                    )
+                    db.add(item)
+
+                db.commit()
+
+        return {"message": "Notification par defaut crée avec succès"}
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("conflict"))
@@ -263,7 +307,7 @@ async def create_user_groups(
         admin_key: schemas.AdminKey = Body(...)
 ) -> dict[str, str]:
     """
-    Create user roles.
+    Create user groups.
     """
     check_user_access_key(admin_key)
 
@@ -276,13 +320,15 @@ async def create_user_groups(
                 if user_group:
                     user_group.title_fr=data["title_fr"]
                     user_group.title_en=data["title_en"]
-                    user_group.description=data["description"]
+                    user_group.code = data["code"]
+                    user_group.description=data["description"] if data["description"] else None
 
                 else:
                     user_group = models.Group(
                         title_fr=data["title_fr"],
                         title_en=data["title_en"],
-                        description=data["description"],
+                        code = data["code"],
+                        description=data["description"] if data["description"] else None,
                         uuid=data["uuid"]
                     )
                     db.add(user_group)
@@ -292,6 +338,47 @@ async def create_user_groups(
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("user-group-conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/create-jobs", response_model=schemas.Msg, status_code=201)
+async def create_nursery_jobs(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create user groups.
+    """
+    check_user_access_key(admin_key)
+
+    try:
+        with open('{}/app/main/templates/default_data/job.json'.format(os.getcwd()), encoding='utf-8') as f:
+            datas = json.load(f)
+
+            for data in datas:
+                nursery_job:models.Job = db.query(models.Job).filter(models.Job.code == data["code"])
+                if nursery_job:
+                    nursery_job.title_fr=data["title_fr"]
+                    nursery_job.title_en=data["title_en"]
+                    nursery_job.code = data["code"]
+                    nursery_job.description=data["description"] if data["description"] else None
+
+                else:
+                    nursery_job = models.Job(
+                        title_fr=data["title_fr"],
+                        title_en=data["title_en"],
+                        code = data["code"],
+                        description=data["description"] if data["description"] else None,
+                        uuid=data["uuid"]
+                    )
+                    db.add(nursery_job)
+                    db.commit()
+        return {"message": "Les jobs ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("nursery-job-conflict"))
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")

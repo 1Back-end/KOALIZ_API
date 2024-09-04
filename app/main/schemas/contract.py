@@ -1,10 +1,14 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Optional, List
 from fastapi import HTTPException
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
 
 from app.main import models
-from app.main.schemas.parent import ParentResponse
+from app.main.core.i18n import __
+from app.main.models.db.session import SessionLocal
+from app.main.schemas.administrator import AdministratorSlim
+from app.main.schemas.invoice import InvoiceMiniDetails
+from app.main.schemas.parent import Avatar, ParentResponse
 from app.main.schemas.preregistration import ChildMini3, TimeSlotInputSchema
 from app.main.schemas.tag import Tag
 
@@ -14,8 +18,8 @@ from .base import DataList
 
 class ContractBase(BaseModel):
     nursery_uuid: str 
-    begin_date: datetime
-    end_date: datetime
+    begin_date: date
+    end_date: date
     type: str
     annual_income: Optional[float] = 0
     caution: Optional[float] = 0
@@ -44,8 +48,9 @@ class ContractCreate(ContractBase):
             raise ValueError("End date must be after to begin date.")
         return validated_self
 
-class ContractUpdate(ContractBase):
+class ContractUpdate(BaseModel):
     uuid: str
+
     status: Optional[str] = None
 
     typical_weeks: list[list[list[TimeSlotInputSchema]]]
@@ -57,68 +62,93 @@ class ContractUpdate(ContractBase):
                 raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
         return value
 
-    @field_validator("end_date")
-    def validate_end_date(cls, value, values):
-        begin_date = values.data.get('begin_date')
-        if value <= begin_date:
-            raise ValueError("End date must be after to begin date.")
-        return value
+    # @field_validator("end_date")
+    # def validate_end_date(cls, value, values):
+    #     begin_date = values.data.get('begin_date')
+    #     if value <= begin_date:
+    #         raise ValueError("End date must be after to begin date.")
+    #     return value
+class ProlongeContract(BaseModel):
+    uuid: str
+    child_uuid: str
+    end_date: date
+
 
 class ParentContractSchema(BaseModel):
-    link: models.ParentRelationship = None
-    firstname: str = None
-    lastname: str = None
-    birthplace: str = None
-    fix_phone: str = None
-    phone: str = None
-    email: str = None
-    recipient_number: str = None
-    zip_code: str = None
-    city: str = None
-    country: str = None
-    profession: str = None
-    annual_income: float = 0
-    company_name: str = None
-    has_company_contract: bool = False
-    dependent_children: int = 0
-    disabled_children: int = 0
+    uuid:str
+    avatar : Optional[Avatar] = None
+    firstname: Optional[str]=None
+    lastname: Optional[str]=None
+    fix_phone:Optional[str] = None
+    phone:Optional[str] = None
+    link: Optional[models.ParentRelationship] = None
+    email: Optional[EmailStr]= None
+    profession: Optional[str]=None
+    annual_income: Optional[float] = None
+    company_name: Optional[str]= None
+    has_company_contract: Optional[bool] = None
+    dependent_children: Optional[int] = None
+    disabled_children: Optional[int] = None
+    has_pickup_child_authorization: bool= False
+    has_app_authorization: bool = False
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ClientAccountContractUpdate(BaseModel):
+    uuid: str
+    contract_uuid: str
+    name: Optional[str]
+    iban: Optional[str]
+    bic: Optional[str]
+    rum: Optional[str]
 
 class ClientAccountContractSchema(BaseModel):
-    uuid: str = None
-    name: str = None
-    iban: str = None
-    bic: str = None
-    rum: str = None
-    signed_date: datetime = None
+    uuid: Optional[str] = None
+    name: Optional[str] = None
+    iban: Optional[str] = None
+    bic: Optional[str] = None
+    rum: Optional[str] = None
+    signed_date: Optional[datetime] = None
+
+    performed_by: Optional[AdministratorSlim] = None
+    performed_date: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class Contract(BaseModel):
     uuid: Optional[str] = None
+    nursery_uuid: str 
     child: Optional[ChildMini3] = None
-    begin_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    begin_date: Optional[date] = None
+    end_date: Optional[date] = None
     type: Optional[str] = None
     has_company_contract: Optional[bool] = False
     status: Optional[str] = None
     hourly_volume: Optional[float] = 0
-    tags: Optional[list[Tag]] = []
+    tags: Optional[list[Tag]]=None
     typical_weeks: list[Any]
-    parents: list[ParentResponse]=[]
-    # client_accounts: list[ClientAccountContractSchema]=[]
+    parents: list[ParentContractSchema]=None
+    client_account: Optional[ClientAccountContractSchema]=None
+    # invoices: list[InvoiceMiniDetails]=None
 
-    date_added: datetime
-    date_modified: datetime
+    # date_added: datetime
+    # date_modified: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
 class ContractMini(BaseModel):
     uuid: str
     child: Optional[ChildMini3] = None
-    begin_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    begin_date: Optional[date] = None
+    end_date: Optional[date] = None
     has_company_contract: Optional[bool] = False
     type: Optional[str] = None
     status: Optional[str] = None
     hourly_volume: Optional[float] = 0
-    tags:Optional[list[Tag]] = []
+    tags:Optional[list[Tag]] =None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -11,7 +11,7 @@ from app.main.schemas import DataList, NurseryMini
 # from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
-from app.main.schemas.user import  Storage
+from app.main.schemas.user import  AddedBy, Storage
 from app.main.schemas.file import File
 from  app.main.schemas.parent import Parent
 
@@ -176,6 +176,22 @@ class ParentGuest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class ParentGuestNew(BaseModel):
+    link: models.ParentRelationship
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    fix_phone: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    zip_code: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    profession: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 class Tag(BaseModel):
     uuid: str
     title_fr: str
@@ -202,7 +218,7 @@ class ChildDetails(BaseModel):
     birthplace: str
     date_added: datetime
     date_modified: datetime
-    parents: list[ParentGuest]
+    parents: list[ParentGuestNew]
     pre_contract: PreContract
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
@@ -376,6 +392,17 @@ class ChildSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+# class ChildMiniDetails(ChildSlim):
+#     birthplace: str
+#     parents: list[ParentGuest]
+#     pre_contract: PreContract
+#     date_added: datetime
+#     date_modified: datetime
+#     preregistrations: list[PreregistrationMini]
+
+#     model_config = ConfigDict(from_attributes=True)
+
+
 
 class PreContractSlim(BaseModel):
     begin_date: date
@@ -507,6 +534,7 @@ class ChildrenConfirmation(BaseModel):
     parent_email: str
     nursery_uuid: str
     child_uuid: str
+    status: str = "AUTHORIZED" # REFUSED
 
 class MediaSlim(BaseModel):
     uuid: str
@@ -539,6 +567,14 @@ class ParentTransmissionsList(BaseModel):
     data: list[ParentTransmission] = []
     model_config = ConfigDict(from_attributes=True)
 
+class AppParent(BaseModel):
+    uuid: str 
+    parent_uuid :str
+    parent_email :EmailStr
+    parent:Optional[ParentGuestNew] = None
+    added_by:Optional[AddedBy] = None
+    model_config = ConfigDict(from_attributes=True)
+
 
 class Transmission(BaseModel):
     uuid: str
@@ -550,8 +586,10 @@ class Transmission(BaseModel):
     avatar:Optional[File] = None
     nb_parent: int
     parents:list[Parent]
+    app_parents:Optional[list[AppParent]]
+    pickup_parents: Optional[list[AppParent]]
     meals:Optional[list[MealSlim]] 
-    # activities:Optional[list[ActivitySlim]]
+    activities:Optional[list[ActivitySlim]]
     naps:Optional[list[NapSlim]]
     health_records:Optional[list[HealthRecordSlim]] 
     hygiene_changes:Optional[list[HygieneChangeSlim]]

@@ -39,6 +39,8 @@ class Nursery(Base):
     memberships = relationship("NurseryMemberships", back_populates="nursery")
     address_uuid: str = Column(String, ForeignKey('addresses.uuid'), nullable=False)
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
+    
+    jobs = relationship("NurseryJobs", back_populates="nursery")
 
     status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.UNACTIVED)
     slug: str = Column(String, index=True, default="", unique=True, nullable=False)

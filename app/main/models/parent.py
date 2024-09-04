@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+from app.main import models
+from app.main.models.preregistration import ParentRelationship
 from .user import UserStatusType
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, Table, Boolean,types,event
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, DateTime, Text, Table, Boolean,types,event
 from datetime import datetime, date
 from sqlalchemy.orm import relationship
 from .db.base_class import Base
-from .preregistration import parent_contract
 
 
 @dataclass
@@ -19,6 +20,23 @@ class Parent(Base):
     firstname: str = Column(String(100), nullable=False, default="")
     lastname: str = Column(String(100), nullable=False, default="")
     email: str = Column(String, nullable=False, default="", index=True)
+    link: str = Column(types.Enum(ParentRelationship), nullable=True)
+
+    fix_phone: str = Column(String, nullable=True)
+    phone: str = Column(String, nullable=True)
+
+    recipient_number: str = Column(String, nullable=True)
+    zip_code: str = Column(String, nullable=True)
+    city: str = Column(String, nullable=True)
+    country: str = Column(String, nullable=True)
+    profession: str = Column(String, nullable=True)
+    annual_income: float = Column(Float, default=0)
+    company_name: str = Column(String, nullable = True)
+    has_company_contract: bool = Column(Boolean, default=True)
+    dependent_children: int = Column(Integer, default=0)
+    disabled_children: int = Column(Integer, default=0)
+
+    is_paying_parent: bool = Column(Boolean, default=False)
 
     role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=False )
     role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
@@ -35,8 +53,6 @@ class Parent(Base):
     password_hash: str = Column(String(100), nullable=True, default="")
     status = Column(String, index=True, nullable=False)
     is_new_user: bool = Column(Boolean, nullable=True, default=False)
-
-    contracts = relationship("Contract", secondary=parent_contract, back_populates="parents")
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
@@ -63,7 +79,7 @@ class ParentActionValidation(Base):
 
     uuid: str = Column(String, primary_key=True)
 
-    user_uuid: str = Column(String, ForeignKey('parents.uuid'), nullable=True)
+    user_uuid: str = Column(String, nullable=True)
     code: str = Column(String, unique=False, nullable=True)
     expired_date: any = Column(DateTime, default=datetime.now())
     value: str = Column(String, default="", nullable=True)

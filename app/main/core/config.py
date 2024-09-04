@@ -27,7 +27,7 @@ class ConfigClass(BaseSettings):
     PREFERRED_LANGUAGE: str = get_secret("PREFERRED_LANGUAGE", 'fr')
     API_STR: str = get_secret("API_STR", "/api/v1")
 
-    # 60 minutes * 24 hours * 356 days = 365 days
+    # 60 minutes * 24 hours * 355 days = 365 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(get_secret("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 365))
 
    # Minio
@@ -41,8 +41,8 @@ class ConfigClass(BaseSettings):
     ONESIGNAL_APP_ID: str = get_secret("ONESIGNAL_APP_ID", "ONESIGNAL_APP_ID")
 
     # Sqlalchemy
-    # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev')
-    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://postgres:root@localhost:5432/bde_micro_creche_dev')
+    # SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL", 'postgresql://ToKNJX93NC:TCqLP37KHA@dbe.adsquid.fr:5432/bde_micro_creche_dev?client_encoding=utf8')
+    SQLALCHEMY_DATABASE_URL: str = get_secret("SQLALCHEMY_DATABASE_URL",'postgresql+psycopg2://postgres:postgres@localhost:5432/bde_micro_creche_dev?client_encoding=utf8')
     SQLALCHEMY_POOL_SIZE: int = 100
     SQLALCHEMY_MAX_OVERFLOW: int = 0
     SQLALCHEMY_POOL_TIMEOUT: int = 30
@@ -81,10 +81,7 @@ class ConfigClass(BaseSettings):
     CELERY_RESULT_BACKEND: str = get_secret("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
     RESET_PASSWORD_LINK: str = get_secret("RESET_PASSWORD_LINK", "https://app.development.koalizz.fr/{}/auth/reset-password")
-    ADMIN_RESET_PASSWORD_LINK: str = get_secret("ADMIN_RESET_PASSWORD_LINK", "https://dashboard.development.koalizz.fr/{}/new-password")
-    LOGIN_LINK: str = get_secret("LOGIN_LINK", "https://app.development.koalizz.fr/{}/auth/login")
-    ADMIN_LOGIN_LINK: str = get_secret("ADMIN_LOGIN_LINK", "https://dashboard.development.koalizz.fr/{}/login")
-
+    
     # Default image size
     IMAGE_MEDIUM_WIDTH: int = get_secret("IMAGE_MEDIUM_WIDTH", 600)
     IMAGE_THUMBNAIL_WIDTH: int = get_secret("IMAGE_THUMBNAIL_WIDTH", 300)
