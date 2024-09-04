@@ -176,6 +176,22 @@ class ParentGuest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class ParentGuestNew(BaseModel):
+    link: models.ParentRelationship
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    fix_phone: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    zip_code: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    profession: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 class Tag(BaseModel):
     uuid: str
     title_fr: str
@@ -202,7 +218,7 @@ class ChildDetails(BaseModel):
     birthplace: str
     date_added: datetime
     date_modified: datetime
-    parents: list[ParentGuest]
+    parents: list[ParentGuestNew]
     pre_contract: PreContract
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
@@ -555,7 +571,7 @@ class AppParent(BaseModel):
     uuid: str 
     parent_uuid :str
     parent_email :EmailStr
-    parent:Optional[Parent] = None
+    parent:Optional[ParentGuestNew] = None
     added_by:Optional[AddedBy] = None
     model_config = ConfigDict(from_attributes=True)
 

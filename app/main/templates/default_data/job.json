@@ -1,0 +1,37 @@
+[
+    {
+      "uuid": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+      "title_fr": "Développeur",
+      "title_en": "Developer",
+      "description": "",
+      "code": "developer"
+    },
+    {
+      "uuid": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+      "title_fr": "Analyste",
+      "title_en": "Analyst",
+      "description": "",
+      "code": "analyst"
+    },
+    {
+      "uuid": "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+      "title_fr": "Chef de projet",
+      "title_en": "Project Manager",
+      "description": "",
+      "code": "project_manager"
+    },
+    {
+      "uuid": "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+      "title_fr": "Designer",
+      "title_en": "Designer",
+      "description": "",
+      "code": "designer"
+    },
+    {
+      "uuid": "5e6f7g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t",
+      "title_fr": "Testeur",
+      "title_en": "Tester",
+      "description": "",
+      "code": "tester"
+    }
+]

@@ -37,6 +37,9 @@ from .contract_controller import router as contract
 from .invoicing_settings_controller import router as invoicing_settings
 from .copy_parameters_controller import router as copy_parameters_controller
 from .send_mail_controller import router as send_mail_controller
+from .job_controller import router as job
+from    .group_controller import router as group
+
 api_router = APIRouter()
 
 api_router.include_router(send_mail_controller)
@@ -76,3 +79,5 @@ api_router.include_router(team)
 api_router.include_router(activity_controller)
 api_router.include_router(activity_category)
 api_router.include_router(copy_parameters_controller)
+api_router.include_router(job)
+api_router.include_router(group)

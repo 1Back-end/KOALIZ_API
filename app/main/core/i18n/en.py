@@ -148,5 +148,14 @@ translation = {
     "hourly-rate-range-deleted": "Hourly rate range deleted",
     "hourly-rate-range-exists": "Hourly rate range already exists",
     'setting-not-exist': 'The configuration key does not exist',
+    "hourly-rate-range-exists": "Hourly rate range already exists",    
+    "group-not-found": "group not found",
+    "group-deleted": "group deleted successfully",
+    "group-not-empty": "This group is not empty",
+    "group-member-not-found": "group member not found",
+    "group-member-deleted": "group member deleted successfully",
+    "group-member-not-empty": "This group member is not empty",
+    "job-deleted": "job deleted successfully",
+    "job-not-found":"job not found"
 
 }
