@@ -198,31 +198,32 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
                 if contract:
                     parent = db.query(models.ParentGuest).filter(models.ParentGuest.uuid == parent_child.parent_uuid).first()
                     if parent:
-                        parent.contracts.append(contract)
+                        if contract not in parent.contracts:
+                            parent.contracts.append(contract)
 
                 # To check this TODO
-                code = generate_code(length=12)
-                code= str(code[0:6]) 
+                # code = generate_code(length=12)
+                # code= str(code[0:6]) 
                 
                 parent.is_new_user = True
                 
-                user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
-                models.ParentActionValidation.user_uuid == parent.uuid)
+                # user_code: models.ParentActionValidation = db.query(models.ParentActionValidation).filter(
+                # models.ParentActionValidation.user_uuid == parent.uuid)
 
-                if user_code.count() > 0:
-                    user_code.delete()
+                # if user_code.count() > 0:
+                #     user_code.delete()
 
-                # print("user_code1:")
-                db_code = models.ParentActionValidation(
-                    uuid=str(uuid.uuid4()),
-                    code=code,
-                    user_uuid=parent.uuid,
-                    value=code,
-                    expired_date=datetime.now() + timedelta(minutes=30)
-                )
+                # # print("user_code1:")
+                # db_code = models.ParentActionValidation(
+                #     uuid=str(uuid.uuid4()),
+                #     code=code,
+                #     user_uuid=parent.uuid,
+                #     value=code,
+                #     expired_date=datetime.now() + timedelta(minutes=30)
+                # )
 
-                db.add(db_code)
-                db.commit()
+                # db.add(db_code)
+                # db.commit()
 
                 role = crud.role.get_by_code(db=db, code="parent")
                 if not role:
@@ -234,11 +235,11 @@ class CRUDOwner(CRUDBase[models.Owner, schemas.AdministratorCreate, schemas.Admi
                 parent.password_hash = get_password_hash(password)
 
                 parent.role_uuid = role.uuid,
-                parent.status = models.UserStatusType.UNACTIVED
+                parent.status = models.UserStatusType.ACTIVED
                 db.commit()
                 db.refresh(parent)
 
-                send_account_confirmation_email(email_to=parent.email, name=(parent.firstname+parent.lastname), token=code, valid_minutes=30)
+                # send_account_confirmation_email(email_to=parent.email, name=(parent.firstname+parent.lastname), token=code, valid_minutes=30)
 
             db.commit()
             db.refresh(parent_child)

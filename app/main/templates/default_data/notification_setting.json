@@ -1,73 +1,51 @@
 [
     {
-      "id": 1,
-      "title_en": "New order",
-      "title_fr": "Nouvelle commande",
-      "key": "NEW_ORDER",
-      "role_id": 3
+      "title_en": "Reset your password",
+      "title_fr": "Réinitialiser votre mot de passe",
+      "key": "RESET_PASSWORD",
+      "code": ""
     },
     {
-      "id": 2,
-      "title_en": "New booking",
-      "title_fr": "Nouvelle réservation",
-      "key": "NEW_BOOKING",
-      "role_id": 3
+      "title_en": "Opening your micro-nursery",
+      "title_fr": "Ouverture de votre micro-crèche",
+      "key": "OPENING_MICRO_NURSERY",
+      "code": ""
     },
     {
-      "id": 3,
-      "title_en": "Order status change",
-      "title_fr": "Changement du statut d'une commande",
-      "key": "ORDER_STATUS_CHANGE",
-      "role_id": 2
+      "title_en": "Report an absence",
+      "title_fr": "Signaler une absence",
+      "key": "REPORT_ABSENCE",
+      "code": ""
     },
     {
-      "id": 4,
-      "title_en": "Change of booking status",
-      "title_fr": "Changement du statut d'une réservation",
-      "key": "CHANGE_BOOKING_STATUS",
-      "role_id": 2
+      "title_en": "Vaccination reminder",
+      "title_fr": "Rappel vaccination",
+      "key": "VACCINATION_REMINDER",
+      "code": ""
     },
     {
-      "id": 5,
-      "title_en": "Change of booking date",
-      "title_fr": "Changement de la date d'une réservation",
-      "key": "CHANGE_BOOKING_DATE",
-      "role_id": 3
+      "title_en": "Report a delay",
+      "title_fr": "Signaler un retard",
+      "key": "REPORT_DELAY",
+      "code": ""
     },
     {
-      "id": 6,
-      "title_en": "Unable to init payment",
-      "title_fr": "Impossible d'initier le paiement",
-      "key": "UNABLE_INIT_PAYMENT",
-      "role_id": 2
+      "title_en": "Unpaid invoice reminder",
+      "title_fr": "Rappel facture impayée",
+      "key": "UNPAID_INVOICE_REMINDER",
+      "code": ""
     },
     {
-      "id": 7,
-      "title_en": "Cancellation of a reservation",
-      "title_fr": "Annulation d'une réservation",
-      "key": "CANCEL_BOOKING",
-      "role_id": 3
+      "title_en": "New message",
+      "title_fr": "Nouveau message",
+      "key": "NEW_MESSAGE",
+      "code": ""
     },
     {
-      "id": 8,
-      "title_en": "Cancellation of a reservation",
-      "title_fr": "Annulation d'une réservation",
-      "key": "CANCEL_BOOKING",
-      "role_id": 2
-    },
-    {
-      "id": 9,
-      "title_en": "Effective pre-authorization",
-      "title_fr": "Pré-autorisation effective",
-      "key": "EFFECTIVE_PRE_AUTHORIZATION",
-      "role_id": 2
-    },
-    {
-      "id": 10,
-      "title_en": "Effective withdrawal",
-      "title_fr": "Prélèvement effectif",
-      "key": "EFFECTIVE_WITHDRAWAL",
-      "role_id": 2
+      "title_en": "Pre-registration folder",
+      "title_fr": "Dossier de pré-inscriptionn",
+      "key": "PREREGISTRATION_FOLDER",
+      "code": ""
     }
 
   ]
