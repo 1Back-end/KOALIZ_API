@@ -131,7 +131,7 @@ class Contract(BaseModel):
     typical_weeks: list[Any]
     parents: list[ParentContractSchema]=None
     client_account: Optional[ClientAccountContractSchema]=None
-    invoices: list[InvoiceMiniDetails]=None
+    # invoices: list[InvoiceMiniDetails]=None
 
     # date_added: datetime
     # date_modified: datetime

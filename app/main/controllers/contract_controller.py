@@ -129,6 +129,15 @@ def delete_contract(
 ):
     """ Delete many(or one) """
 
+    errors = []
+    for contract_uuid in uuids:
+        exist_contract = crud.contract.get_contract_by_uuid(db, contract_uuid)
+        if not exist_contract:
+            errors.append(contract_uuid)
+    
+    if len(errors):
+        raise HTTPException(status_code=404, detail=__("contract-not-found"))
+
     crud.contract.soft_delete(db=db, uuids=uuids, performed_by_uuid=current_user.uuid)
     return {"message": __("contract-deleted")}
 
