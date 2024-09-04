@@ -168,7 +168,8 @@ async def update_contract(
 
                     parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in data.child.parents])).all()
                     for parent in parents:
-                        parent.contracts.append(contract)
+                        if contract not in parent.contracts:
+                            parent.contracts.append(contract)
 
                     contract.nursery_uuid = data.nursery_uuid
                     contract.status = "ACCEPTED"
@@ -184,6 +185,47 @@ async def update_contract(
     except Exception as e:
         logger.error(str(e))
         print(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+    
+
+@router.post("/create-setting-notifications", response_model=schemas.Msg, status_code=201)
+async def create_product_setting_notifications(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+) -> Any:
+    """
+    Create default setting notifications
+    """
+    check_user_access_key(admin_key)
+    try:
+        with open('{}/app/main/templates/default_data/notification_setting.json'.format(os.getcwd(), encoding='utf-8'), encoding='utf-8') as f:
+            datas = json.load(f)
+            for data in datas:
+                item = db.query(models.NotificationSetting).filter(models.NotificationSetting.uuid==data['uuid']).first()
+                if item:
+                    item.title_en = data["title_en"]
+                    item.title_fr = data["title_fr"]
+                    item.key = data["key"]
+                    item.role_uuid = data["role_uuid"]
+                    
+                else:
+                    item = models.NotificationSetting(
+                        uuid = data["uuid"] if "uuid"in data else str(uuid.uuid4()),
+                        title_en = data["title_en"],
+                        title_fr = data["title_fr"],
+                        key = data["key"],
+                        role_uuid = data["role_uuid"]
+                    )
+                    db.add(item)
+
+                db.commit()
+
+        return {"message": "Notification par defaut crée avec succès"}
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
     
 @router.post("/create-default-activity-categories",response_model=schemas.Msg,status_code=201)

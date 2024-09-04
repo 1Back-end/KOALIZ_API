@@ -26,6 +26,7 @@ def get(
         year: Optional[int] = None,
         reference: Optional[str] = None,
         child_uuid: Optional[str] = None,
+        contract_uuid: Optional[str] = None,
         current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """
@@ -34,7 +35,7 @@ def get(
     return crud.invoice.get_many(
         db=db, nursery_uuid=nursery_uuid, owner_uuid=current_user.uuid, page=page, per_page=per_page, order=order,
         order_filed=order_filed, keyword=keyword, status=status, reference=reference, month=month, year=year,
-        child_uuid=child_uuid
+        child_uuid=child_uuid, contract_uuid=contract_uuid
     )
 
 
