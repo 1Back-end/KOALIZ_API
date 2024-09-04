@@ -115,7 +115,7 @@ def read_all_nursery_children(
     *,
     nursery_uuid: str,
     db: Session = Depends(get_db),
-    current_user: models.TeamDevice = Depends(TokenRequired(roles=["owner"]))
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     nursery = crud.nursery.get_by_uuid(db,nursery_uuid)
     if not nursery:
