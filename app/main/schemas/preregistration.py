@@ -530,6 +530,12 @@ class ObservationSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class ChildPickUp(BaseModel):
+    parent_guest_uuid: str
+    nursery_uuid: str
+
+
 class ChildrenConfirmation(BaseModel):
     parent_email: str
     nursery_uuid: str

@@ -156,6 +156,8 @@ translation = {
     "group-member-deleted": "group member deleted successfully",
     "group-member-not-empty": "This group member is not empty",
     "job-deleted": "job deleted successfully",
-    "job-not-found":"job not found"
+    "job-not-found":"job not found",
+    "parent-pickup-child-authorization-removed": "Parent pickup child authorization removed",
+    "parent-pickup-child-authorization-added": "Parent pickup child authorization added",
 
 }

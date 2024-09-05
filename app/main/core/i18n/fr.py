@@ -157,7 +157,9 @@ translation = {
     "group-not-found": "groupe non trouvé",
     "group-deleted": "groupe supprimé avec succès",
     "job-deleted": "emploi supprimé",
-    "job-not-found":"emploi introuvable"
+    "job-not-found":"emploi introuvable",
+    "parent-pickup-child-authorization-removed": "Autorisation parentale de récupération de l'enfant supprimée",
+    "parent-pickup-child-authorization-added": "Autorisation parentale de récupération de l'enfant ajoutée",
 
     
     

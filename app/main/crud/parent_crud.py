@@ -156,12 +156,15 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
             filter(models.Parent.uuid == uuid,
                    models.Parent.status.not_in([models.UserStatusType.DELETED,models.UserStatusType.BLOCKED])).\
                     first()
+
     @classmethod
-    def get_parent_guest_by_uuid(cls, db: Session, uuid: str) -> Union[models.Parent, None]:
-        return db.query(models.ParentGuest).\
-            filter(models.ParentGuest.uuid == uuid,
-                   models.ParentGuest.status.not_in([models.UserStatusType.DELETED,models.UserStatusType.BLOCKED])).\
-                    first()
+    def get_parent_guest_by_uuid(cls, db: Session, uuid: str) -> Union[models.ParentGuest, None]:
+        return db.query(models.ParentGuest).filter(models.ParentGuest.uuid == uuid).first()
+
+    @classmethod
+    def get_parent_guest_by_email(cls, db: Session, email: str) -> Union[models.ParentGuest, None]:
+        return db.query(models.ParentGuest).filter(models.ParentGuest.email == email).first()
+
 
     @classmethod
     def create(cls, db: Session, obj_in: schemas.ParentCreate, code:str=None) -> models.Parent:

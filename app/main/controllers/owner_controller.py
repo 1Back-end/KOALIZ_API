@@ -7,44 +7,47 @@ from typing import Optional
 router = APIRouter(prefix="/owners", tags=["owners"])
 
 
+def determine_parent_has_app_authorization(db: Session, parent: models.ParentGuest, nursery_uuid: str, child_uuid: str):
+    return bool(db.query(models.ParentChild).filter(
+        models.ParentChild.parent_email == parent.email,
+        models.ParentChild.child_uuid == child_uuid,
+        models.ParentChild.nursery_uuid == nursery_uuid,
+    ).first())
 
-@router.post("/parent-pickup-child-authorization-for-nursery", response_model=schemas.ChildMini, status_code=201)
+
+@router.post("/parent-pickup-child-authorization-for-nursery", response_model=schemas.ParentContractSchema, status_code=201)
 def give_parent_pickup_child_authorization_for_nursery(
     *,
     db: Session = Depends(get_db),
-    obj_in: schemas.ChildrenConfirmation = Body(...),
+    obj_in: schemas.ChildPickUp,
     current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
-    """ give parent permission to pickup child from nursery """
+    """ Toggle parent permission to pickup child from nursery """
 
-    parent = crud.parent.get_by_email(db, obj_in.parent_email)
-    if not parent:
+    parent_guest = crud.parent.get_parent_guest_by_uuid(db, obj_in.parent_guest_uuid)
+    if not parent_guest:
         raise HTTPException(status_code=404, detail=__("parent-not-found"))
 
-    if parent.status in [st.value for st in models.UserStatusType if st.value == models.UserStatusType.DELETED or st.value == models.UserStatusType.BLOCKED]:
-        raise HTTPException(status_code=403, detail=__("parent-status-not-allowed"))
-
-    if not obj_in.nursery_uuid  in [current_nursery.uuid for current_nursery in current_user.nurseries]:
-        raise HTTPException(status_code = 400,detail = __("nursery-owner-not-authorized"))
-    
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
-    child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
-    if not child:
-        raise HTTPException(status_code=404, detail=__("child-not-found"))
-    
-    accepted_preregistration = next((pr for pr in child.preregistrations if pr.nursery_uuid == obj_in.nursery_uuid and pr.status == models.PreRegistrationStatusType.ACCEPTED), None)
+    if obj_in.nursery_uuid not in [current_nursery.uuid for current_nursery in current_user.valid_nurseries]:
+        raise HTTPException(status_code=400, detail=__("nursery-owner-not-authorized"))
+
+    accepted_preregistration = next((pr for pr in parent_guest.child.preregistrations if pr.nursery_uuid == obj_in.nursery_uuid and pr.status  == models.PreRegistrationStatusType.ACCEPTED), None)
 
     if not accepted_preregistration:
         raise HTTPException(status_code=404, detail=__("child-not-registered-in-nursery"))
 
-    crud.owner.give_parent_pickup_child_authorization_for_nursery(db=db, obj_in=obj_in, added_by=current_user)
+    crud.owner.give_parent_pickup_child_authorization_for_nursery(db=db, parent_guest=parent_guest)
 
-    return child
+    db.refresh(parent_guest)
+    parent_guest.has_app_authorization = determine_parent_has_app_authorization(db, parent_guest, obj_in.nursery_uuid, parent_guest.child_uuid)
+    return parent_guest
 
-@router.post("/apps-authorization", response_model=schemas.ChildMini, status_code=201)
+
+@router.post("/apps-authorization", response_model=list[schemas.ParentContractSchema], status_code=201)
 def confirm_apps_authorization(
     *,
     db: Session = Depends(get_db),
@@ -53,21 +56,12 @@ def confirm_apps_authorization(
 ):
     """ Confirm apps authorization """
 
-    parent = crud.parent.get_by_email(db, obj_in.parent_email)
-    if not parent:
-        parent = db.query(models.ParentGuest).filter(models.ParentGuest.email == obj_in.parent_email).first()
-        if not parent:
-            raise HTTPException(status_code=404, detail=__("parent-not-found"))
-
-    if parent.status in ["DELETED", "BLOCKED"]:
-        raise HTTPException(status_code=403, detail=__("parent-status-not-allowed"))
-
-    # if not obj_in.nursery_uuid  in [current_nursery.uuid for current_nursery in current_user.nurseries]:
-    #     raise HTTPException(status_code = 400,detail = __("nursery-owner-not-authorized"))
-
     nursery = crud.nursery.get_by_uuid(db, obj_in.nursery_uuid)
     if not nursery:
         raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+
+    if obj_in.nursery_uuid not in [current_nursery.uuid for current_nursery in current_user.valid_nurseries]:
+        raise HTTPException(status_code=400,detail=__("nursery-owner-not-authorized"))
 
     child = crud.preregistration.get_child_by_uuid(db, obj_in.child_uuid)
     if not child:
@@ -78,9 +72,12 @@ def confirm_apps_authorization(
     if not accepted_preregistration:
         raise HTTPException(status_code=404, detail=__("child-not-registered-in-nursery"))
 
-    crud.owner.confirm_apps_authorization(db=db, obj_in=obj_in, added_by=current_user, preregistration = accepted_preregistration)
+    crud.owner.confirm_apps_authorization(db=db, obj_in=obj_in, added_by=current_user)
 
-    return child
+    for parent in child.parents:
+        parent.has_app_authorization = determine_parent_has_app_authorization(db, parent, obj_in.nursery_uuid, obj_in.child_uuid)
+
+    return child.parents
 
 
 @router.put("/parent", response_model=schemas.Parent, status_code=200)

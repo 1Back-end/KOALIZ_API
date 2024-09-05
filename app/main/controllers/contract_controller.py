@@ -200,6 +200,14 @@ def get_contracts(
 
     return query
 
+
+def determine_parent_has_app_authorization(db: Session, parent: models.ParentGuest, nursery_uuid: str, child_uuid: str):
+    return bool(db.query(models.ParentChild).filter(
+        models.ParentChild.parent_email == parent.email,
+        models.ParentChild.child_uuid == child_uuid,
+        models.ParentChild.nursery_uuid == nursery_uuid,
+    ).first())
+
 @router.get("/{uuid}", response_model=schemas.Contract, status_code=201)
 def get_contract_details(
     uuid: str,
@@ -215,24 +223,21 @@ def get_contract_details(
     for parent in contract.parents:
         exist_parent = db.query(models.ParentGuest).\
             filter(models.ParentGuest.uuid == parent.uuid).\
-            filter(or_(models.ParentGuest.status != "DELETED", models.ParentGuest.status.is_(None))).\
             first()
         if not exist_parent:
             raise HTTPException(status_code=404, detail=__("parent-not-found"))
                     
         parent_child = db.query(models.ParentChild).\
-            filter(models.ParentChild.parent_uuid == exist_parent.uuid).\
+            filter(models.ParentChild.parent_email == exist_parent.email).\
+            filter(models.ParentChild.child_uuid == contract.child.uuid).\
+            filter(models.ParentChild.nursery_uuid == contract.nursery_uuid).\
                 first()
-        pickup_parent = db.query(models.PickUpParentChild).\
-            filter(models.PickUpParentChild.parent_uuid == exist_parent.uuid).\
-                first()
-        
+        print(f"Exist parent uuid: {exist_parent.uuid}")
+
         # Update the boolean flags based on the query results
-        has_pickup_child_authorization = bool(pickup_parent)
         has_app_authorization = bool(parent_child)
 
         # Update the parent object in the parents list
-        parent.has_pickup_child_authorization = has_pickup_child_authorization
         parent.has_app_authorization = has_app_authorization
 
     return contract
