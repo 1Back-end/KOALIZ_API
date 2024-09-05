@@ -53,14 +53,14 @@ class ContractUpdate(BaseModel):
 
     status: Optional[str] = None
 
-    typical_weeks: list[list[list[TimeSlotInputSchema]]]
+    typical_weeks: Optional[list[list[list[TimeSlotInputSchema]]]] = None
 
-    @field_validator('typical_weeks')
-    def validate_week_length(cls, value):
-        for week in value:
-            if len(week) > 5:
-                raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
-        return value
+    # @field_validator('typical_weeks')
+    # def validate_week_length(cls, value):
+    #     for week in value:
+    #         if len(week) > 5:
+    #             raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
+    #     return value
 
     # @field_validator("end_date")
     # def validate_end_date(cls, value, values):

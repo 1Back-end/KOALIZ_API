@@ -232,7 +232,6 @@ def get_contract_details(
             filter(models.ParentChild.child_uuid == contract.child.uuid).\
             filter(models.ParentChild.nursery_uuid == contract.nursery_uuid).\
                 first()
-        print(f"Exist parent uuid: {exist_parent.uuid}")
 
         # Update the boolean flags based on the query results
         has_app_authorization = bool(parent_child)

@@ -158,8 +158,10 @@ translation = {
     "group-deleted": "groupe supprimé avec succès",
     "job-deleted": "emploi supprimé",
     "job-not-found":"emploi introuvable",
-    "parent-pickup-child-authorization-removed": "Autorisation parentale de récupération de l'enfant supprimée",
-    "parent-pickup-child-authorization-added": "Autorisation parentale de récupération de l'enfant ajoutée",
+    "planning-not-found": "planning non trouvé",
+    "employee-not-found": "employé non trouvé",
+    "planning-created": "planning crée avec succès",
+    "planning-deleted":"Planning supprimé avec succès"
 
     
     

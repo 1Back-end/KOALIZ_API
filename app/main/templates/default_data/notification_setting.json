@@ -27,7 +27,7 @@
       "title_en": "Report a delay",
       "title_fr": "Signaler un retard",
       "key": "REPORT_DELAY",
-      "code": ["teams", "parents"]
+      "code": ["teams", "parents", "owners"]
     },
     {
       "title_en": "Unpaid invoice reminder",
