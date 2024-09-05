@@ -154,7 +154,7 @@ def get_contracts(
     nursery_uuid: str,
     child_uuid: Optional[str] = None,
     keyword: Optional[str] = None,
-    status: str = Query(None, enum=["ACCEPTED", "TERMINATED", "RUPTURED"]),
+    status: str = Query(None, enum=["ACCEPTED", "TERMINATED", "RUPTURED", "ARCHIVED"]),
     current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
 ):
     """
