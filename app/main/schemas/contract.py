@@ -89,8 +89,8 @@ class ParentContractSchema(BaseModel):
     has_company_contract: Optional[bool] = None
     dependent_children: Optional[int] = None
     disabled_children: Optional[int] = None
-    has_pickup_child_authorization: bool= False
-    has_app_authorization: bool = False
+    has_pickup_child_authorization: Optional[bool]= None
+    has_app_authorization: Optional[bool] = None
     
     model_config = ConfigDict(from_attributes=True)
 
