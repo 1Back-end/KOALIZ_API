@@ -123,7 +123,7 @@ def send_message(
         )
     else:
         exist_conversation.last_message = content
-        exist_conversation.last_sender_id = current_user.uuid
+        exist_conversation.last_sender_uuid = current_user.uuid
 
 
         new_message = models.Message(

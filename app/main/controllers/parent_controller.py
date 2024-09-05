@@ -175,6 +175,8 @@ def create(
         db.add(db_code)
         db.commit()
         send_account_confirmation_email(email_to=obj_in.email, name=(obj_in.firstname+obj_in.lastname),token=code,valid_minutes=30)
+    else:
+        crud.parent.create(db=db, obj_in=obj_in,code=code)
 
     return parent
 

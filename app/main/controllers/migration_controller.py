@@ -71,20 +71,14 @@ async def create_database_tables(
         logger.info("Successfully created the directory %s " % migrations_folder)
 
     try:
-        # Get the environment system
+        
+        # # Get the environment system
         if platform.system() == 'Windows':
-
             os.system('set PYTHONPATH=. && .\\venv\\Scripts\\python.exe -m alembic revision --autogenerate')
             os.system('set PYTHONPATH=. && .\\venv\\Scripts\\python.exe -m alembic upgrade head')
 
         else:
             os.system('PYTHONPATH=. alembic revision --autogenerate')
-        # Get the environment system
-        if platform.system() == 'Windows':
-
-            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic upgrade head')
-
-        else:
             os.system('PYTHONPATH=. alembic upgrade head')
 
         """ Try to remove previous alembic versions folder """
@@ -201,20 +195,20 @@ async def create_product_setting_notifications(
         with open('{}/app/main/templates/default_data/notification_setting.json'.format(os.getcwd(), encoding='utf-8'), encoding='utf-8') as f:
             datas = json.load(f)
             for data in datas:
-                item = db.query(models.NotificationSetting).filter(models.NotificationSetting.uuid==data['uuid']).first()
+                item = db.query(models.NotificationSetting).filter(models.NotificationSetting.key==data["key"]).first()
                 if item:
                     item.title_en = data["title_en"]
                     item.title_fr = data["title_fr"]
                     item.key = data["key"]
-                    item.role_uuid = data["role_uuid"]
+                    item.codes = data["codes"]
                     
                 else:
                     item = models.NotificationSetting(
-                        uuid = data["uuid"] if "uuid" in data else str(uuid.uuid4()),
+                        uuid = str(uuid.uuid4()),
                         title_en = data["title_en"],
                         title_fr = data["title_fr"],
                         key = data["key"],
-                        role_uuid = data["role_uuid"]
+                        codes = data["codes"]
                     )
                     db.add(item)
 
@@ -227,6 +221,70 @@ async def create_product_setting_notifications(
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/notifications/settings", response_model=schemas.Msg, status_code=201)
+async def notification_setting(
+    admin_key: schemas.AdminKey = Body(...),
+    db: Session = Depends(dependencies.get_db),
+) -> Any:
+    """
+        Notification settings
+    """
+
+    # check_user_access_key(admin_key)
+
+    # Add notifications for this employees
+    for user in db.query(models.Employee).filter(models.Employee.status == models.UserStatusType.ACTIVED).all():
+        # Filter NotificationSettings where 'employees' is in the array 'codes'
+        for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['employees'])).all():
+            user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=user.uuid, notification_setting_uuid=item.uuid).first()
+            if not user_notif:
+                user_notif = models.NotificationSettingUser(
+                    uuid=str(uuid.uuid4()),
+                    user_uuid=user.uuid,
+                    notification_setting_uuid=item.uuid,
+                    mail_actived=True,
+                    push_actived=False,
+                    in_app_actived=False
+                )
+                db.add(user_notif)
+                db.commit()
+
+    # Add notifications for this parents
+    for user in db.query(models.Parent).filter(models.Parent.status == models.UserStatusType.ACTIVED).all():
+        # Filter NotificationSettings where 'parents' is in the array 'codes'
+        for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['parents'])).all():
+            user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=user.uuid, notification_setting_uuid=item.uuid).first()
+            if not user_notif:
+                user_notif = models.NotificationSettingUser(
+                    uuid=str(uuid.uuid4()),
+                    user_uuid=user.uuid,
+                    notification_setting_uuid=item.uuid,
+                    mail_actived=True,
+                    push_actived=False,
+                    in_app_actived=False
+                )
+                db.add(user_notif)
+                db.commit()
+
+    # Add notifications for this owwers
+    for user in db.query(models.Owner).filter(models.Owner.status == models.UserStatusType.ACTIVED).all():
+        # Filter NotificationSettings where 'owwers' is in the array 'codes'
+        for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['owwers'])).all():
+            user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=user.uuid, notification_setting_uuid=item.uuid).first()
+            if not user_notif:
+                user_notif = models.NotificationSettingUser(
+                    uuid=str(uuid.uuid4()),
+                    user_uuid=user.uuid,
+                    notification_setting_uuid=item.uuid,
+                    mail_actived=True,
+                    push_actived=False,
+                    in_app_actived=False
+                )
+                db.add(user_notif)
+                db.commit()
+
+    return {"message": "Notifications ajoutées aux utilisateurs avec succès"}
     
 @router.post("/create-default-activity-categories",response_model=schemas.Msg,status_code=201)
 async def create_default_activity_categories(

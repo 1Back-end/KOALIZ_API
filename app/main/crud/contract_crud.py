@@ -93,6 +93,9 @@ class CRUDContract(CRUDBase[Contract, ContractCreate, ContractUpdate]):
             contract.date_of_acceptation = datetime.now()
             contract.status = obj_in.status if obj_in.status else contract.status
 
+        if obj_in.status in ['ARCHIVED']:
+            contract.status = obj_in.status if obj_in.status else contract.status
+
         db.commit()
         db.refresh(contract)
 
