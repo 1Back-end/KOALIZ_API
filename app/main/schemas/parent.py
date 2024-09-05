@@ -114,6 +114,7 @@ class Parent(BaseModel):
 
     is_paying_parent: Optional[bool] = None
     is_new_user: Optional[bool] = False
+    has_pickup_child_authorization: Optional[bool] = False
     avatar: Optional[File]= None
     date_added: datetime
     date_modified: datetime
