@@ -1,3 +1,4 @@
+import uuid
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
@@ -124,7 +125,25 @@ def create(
         if not avatar:
             raise HTTPException(status_code=404, detail=__("avatar-not-found"))
 
-    return crud.owner.create(db, obj_in, current_user.uuid)
+    owner = crud.owner.create(db, obj_in, current_user.uuid)
+
+    # Add notifications for this owwers
+    # Filter NotificationSettings where 'owwers' is in the array 'codes'
+    for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['owwers'])).all():
+        user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=owner.uuid, notification_setting_uuid=item.uuid).first()
+        if not user_notif:
+            user_notif = models.NotificationSettingUser(
+                uuid=str(uuid.uuid4()),
+                user_uuid=user.uuid,
+                notification_setting_uuid=item.uuid,
+                mail_actived=True,
+                push_actived=False,
+                in_app_actived=False
+            )
+            db.add(user_notif)
+            db.commit()
+
+    return owner
 
 @router.put("/{uuid}", response_model=schemas.Owner, status_code=201)
 def update(

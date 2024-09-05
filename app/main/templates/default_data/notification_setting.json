@@ -3,49 +3,67 @@
       "title_en": "Activity reminders",
       "title_fr": "Rappels d'activité",
       "key": "ACTIVITY_REMINDER",
-      "code": ["owners"]
+      "codes": ["owners"]
     },
     {
       "title_en": "Opening your micro-nursery",
       "title_fr": "Ouverture de votre micro-crèche",
       "key": "OPENING_MICRO_NURSERY",
-      "code": ["owners"]
+      "codes": ["owners"]
     },
     {
       "title_en": "Report an absence",
       "title_fr": "Signaler une absence",
       "key": "REPORT_ABSENCE",
-      "code": ["owners"]
+      "codes": ["owners"]
     },
     {
       "title_en": "Vaccination reminder",
       "title_fr": "Rappel vaccination",
       "key": "VACCINATION_REMINDER",
-      "code": ["teams", "parents"]
+      "codes": ["employees", "parents"]
     },
     {
       "title_en": "Report a delay",
       "title_fr": "Signaler un retard",
       "key": "REPORT_DELAY",
-      "code": ["teams", "parents", "owners"]
+      "codes": ["employees", "owners"]
     },
     {
       "title_en": "Unpaid invoice reminder",
       "title_fr": "Rappel facture impayée",
       "key": "UNPAID_INVOICE_REMINDER",
-      "code": ["owners", "parents"]
+      "codes": ["owners", "parents"]
     },
     {
       "title_en": "New message",
       "title_fr": "Nouveau message",
       "key": "NEW_MESSAGE",
-      "code": ["owners", "parents", "teams"]
+      "codes": ["owners", "parents", "employees"]
     },
     {
       "title_en": "Pre-registration folder",
       "title_fr": "Dossier de pré-inscriptionn",
       "key": "PREREGISTRATION_FOLDER",
-      "code": ["owners"]
+      "codes": ["owners"]
+    },
+    {
+      "title_en": "Contract termination",
+      "title_fr": "Rupture de contract",
+      "key": "CONTRACT_TERMINATION",
+      "codes": ["parents"]
+    },
+    {
+      "title_en": "Contract deletion",
+      "title_fr": "Suppression de contract",
+      "key": "CONTRACT_DELETION",
+      "codes": ["parents"]
+    },
+    {
+      "title_en": "Contract prolongation",
+      "title_fr": "Prolongement de contract",
+      "key": "CONTRACT_PROLONGATION",
+      "codes": ["parents"]
     }
 
   ]

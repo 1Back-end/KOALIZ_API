@@ -23,6 +23,7 @@ class NotificationType(str, Enum):
     UNPAID_INVOICE_REMINDER = "UNPAID_INVOICE_REMINDER"
     NEW_MESSAGE = "NEW_MESSAGE"
     PREREGISTRATION_FOLDER = "PREREGISTRATION_FOLDER"
+    CONTRACT_TERMINATION = "CONTRACT_TERMINATION"
 
 
 @dataclass
@@ -79,8 +80,7 @@ class NotificationSetting(Base):
     title_en = Column(String, nullable=False, default="")
     title_fr = Column(String, nullable=False, default="")
 
-    role_uuid: str = Column(String, ForeignKey('roles.uuid'), nullable=False)
-    role = relationship("Role", foreign_keys=[role_uuid], uselist = False)
+    codes: dict = Column(JSONB, nullable=False)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())

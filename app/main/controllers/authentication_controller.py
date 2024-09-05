@@ -443,6 +443,22 @@ def validate_account(
     db.commit()
     db.refresh(user)
 
+    # Add notifications for this parents
+    # Filter NotificationSettings where 'parents' is in the array 'codes'
+    for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['parents'])).all():
+        user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=user.uuid, notification_setting_uuid=item.uuid).first()
+        if not user_notif:
+            user_notif = models.NotificationSettingUser(
+                uuid=str(uuid.uuid4()),
+                user_uuid=user.uuid,
+                notification_setting_uuid=item.uuid,
+                mail_actived=True,
+                push_actived=False,
+                in_app_actived=False
+            )
+            db.add(user_notif)
+            db.commit()
+
     # access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     return {
