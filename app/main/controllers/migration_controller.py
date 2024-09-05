@@ -210,7 +210,7 @@ async def create_product_setting_notifications(
                     
                 else:
                     item = models.NotificationSetting(
-                        uuid = data["uuid"] if "uuid"in data else str(uuid.uuid4()),
+                        uuid = data["uuid"] if "uuid" in data else str(uuid.uuid4()),
                         title_en = data["title_en"],
                         title_fr = data["title_fr"],
                         key = data["key"],
