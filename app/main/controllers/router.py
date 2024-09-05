@@ -36,7 +36,8 @@ from .activity_controller import router as activity_controller
 from .contract_controller import router as contract
 from .invoicing_settings_controller import router as invoicing_settings
 from .job_controller import router as job
-from    .group_controller import router as group
+from .group_controller import router as group
+from .employee_planning_controller import router as employee_planning
 
 api_router = APIRouter()
 
@@ -77,3 +78,4 @@ api_router.include_router(activity_controller)
 api_router.include_router(activity_category)
 api_router.include_router(job)
 api_router.include_router(group)
+api_router.include_router(employee_planning)

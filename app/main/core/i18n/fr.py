@@ -156,8 +156,10 @@ translation = {
     "group-not-found": "groupe non trouvé",
     "group-deleted": "groupe supprimé avec succès",
     "job-deleted": "emploi supprimé",
-    "job-not-found":"emploi introuvable"
+    "job-not-found":"emploi introuvable",
+    "planning-not-found": "planning non trouvé",
+    "employee-not-found": "employé non trouvé",
+    "planning-created": "planning crée avec succès",
+    "planning-deleted":"Planning supprimé avec succès"
 
-    
-    
 }

@@ -1,10 +1,14 @@
-from datetime import datetime
-from typing import Optional
-from fastapi import Query
-from pydantic import BaseModel, EmailStr,ConfigDict
+from datetime import datetime,date
+from typing import Any, List, Optional
+from fastapi import HTTPException, Query
+from pydantic import BaseModel, EmailStr,ConfigDict,field_validator, model_validator
+
+from app.main.schemas.base import DataList
+from app.main.schemas.preregistration import TimeSlotInputSchema
 from .file import File
 from app.main.models.team import TeamStatusEnum
 from app.main.schemas.nursery import NurseryMini
+from app.main.schemas.employee import EmployeSlim
 
 
 class TeamBase(BaseModel):
@@ -145,6 +149,96 @@ class JobResponseList(BaseModel):
     data:list[Job] =[]
 
     model_config = ConfigDict(from_attributes=True)
+
+class Year(BaseModel):
+    uuid: str
+    year: int
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class Month(BaseModel):
+    uuid: str
+    start_date: date
+    end_date: date
+    year:Year
+    date_added: datetime
+    date_modified: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class Week(BaseModel):
+    uuid: str
+    start_date: date
+    end_date: date
+    week_index:int
+    month:Month
+
+    model_config = ConfigDict(from_attributes=True)
+
+class Day(BaseModel):
+    uuid:str
+    day:date
+    day_of_week:str
+    month:Month
+    year:Year
+    week:Week
+
+class EmployeePlanningBase(BaseModel):
+    nursery_uuid: str
+    employee_uuid: str
+    begin_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EmployeePlanningCreate(EmployeePlanningBase):
+    begin_date: date
+    end_date: date
+    typical_weeks: list[list[list[TimeSlotInputSchema]]]
+
+    @model_validator(mode='wrap')
+    def validate_end_date(self, handler):
+        validated_self = handler(self)
+        for week in validated_self.typical_weeks:
+            for day in week:
+                if len(day) > 5:
+                    raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
+
+        begin_date = validated_self.begin_date
+        if validated_self.end_date <= begin_date:
+            raise ValueError("End date must be after to begin date.")
+        return validated_self
+    pass
+
+
+class EmployeePlanningUpdate(EmployeePlanningBase):
+    uuid: Optional[str] = None
+
+class EmployeePlanning(BaseModel):
+    uuid: Optional[str] = None
+    employee: Optional[EmployeSlim] = None
+    nursery: Optional[NurseryMini] = None
+    day: Any
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class EmployeePlanningMini(BaseModel):
+    
+    uuid: Optional[str] = None
+    day:Day
+    date_added: datetime
+    date_modified: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EmployeePlanningList(DataList):
+
+    data: list[EmployeePlanning] = []
 
 
    
