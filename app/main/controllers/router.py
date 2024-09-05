@@ -38,7 +38,8 @@ from .invoicing_settings_controller import router as invoicing_settings
 from .copy_parameters_controller import router as copy_parameters_controller
 from .send_mail_controller import router as send_mail_controller
 from .job_controller import router as job
-from    .group_controller import router as group
+from .group_controller import router as group
+from .employee_planning_controller import router as employee_planning
 
 api_router = APIRouter()
 
@@ -81,3 +82,4 @@ api_router.include_router(activity_category)
 api_router.include_router(copy_parameters_controller)
 api_router.include_router(job)
 api_router.include_router(group)
+api_router.include_router(employee_planning)

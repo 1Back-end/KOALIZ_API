@@ -1,9 +1,12 @@
 from dataclasses import dataclass
-from .user import UserStatusType
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, Table, Boolean,types,event
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text,types,event,Date
 from sqlalchemy.ext.hybrid import hybrid_property
-from datetime import datetime, date
-from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSONB
+
+from datetime import date, datetime
+from sqlalchemy.orm import relationship,Mapped
+from sqlalchemy.sql import func
+
 from .db.base_class import Base
 from enum import Enum
 
@@ -20,6 +23,39 @@ class TeamStatusEnum(str,Enum):
     UNACTIVED = "UNACTIVED" # L'employé est inactif, peut-être en congé ou en pause.
     DELETED = "DELETED" # L'employé a quitté l'entreprise de manière permanente.
 
+@dataclass
+class EmployeePlanning(Base):
+
+    """ Planning Model for storing employee plannings related details in a nursery """
+
+    __tablename__ = "employee_plannings"
+
+    uuid = Column(String, primary_key=True, unique=True)
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    employee_uuid: str = Column(String, ForeignKey('employees.uuid'), nullable=False)
+    employee: Mapped[any] = relationship("Employee", foreign_keys=employee_uuid, uselist=False)
+
+    day_uuid: str = Column(String, ForeignKey('days.uuid'), nullable=False)
+    day: Mapped[any] = relationship("Day", foreign_keys=day_uuid, uselist=False)
+
+    current_date: any = Column(Date, nullable=True)
+    date_added: any = Column(DateTime, server_default=func.now())
+    date_modified: any = Column(DateTime, server_default=func.now())
+
+@event.listens_for(EmployeePlanning, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(EmployeePlanning, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
 
 @dataclass
 class Team(Base):
@@ -62,9 +98,13 @@ def update_modified_on_update_listener(mapper, connection, target):
 class Employee(Base):
     """ Database class for storing employee information"""
     __tablename__ = 'employees'
+    
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
     email: str = Column(String, nullable=False, default="", index=True)
     firstname: str = Column(String(100), nullable=False, default="")
+
+    begin_date: date = Column(Date, nullable=True) # begin_date for employee planning creation
+    end_date: date = Column(Date, nullable=True) # end_date for employee planning creation
 
     lastname: str = Column(String(100), nullable=False, default="")    
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
@@ -73,6 +113,9 @@ class Employee(Base):
     teams = relationship("Team",secondary="team_employees", back_populates="employees",overlaps="team,employee")
     jobs = relationship("JobEmployees", back_populates="employee")
 
+    typical_weeks: list[any] = Column(JSONB, nullable=True)
+
+    employee = relationship("EmployeePlanning", back_populates="employee")
     nurseries = relationship("Nursery", secondary="nursery_employees", back_populates="employees",overlaps="employee,nursery")
     # nurseries = relationship("Nursery", secondary="nursery_memberships", back_populates="memberships",overlaps="memberships, nursery")
 

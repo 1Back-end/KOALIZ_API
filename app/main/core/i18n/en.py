@@ -156,6 +156,12 @@ translation = {
     "group-member-deleted": "group member deleted successfully",
     "group-member-not-empty": "This group member is not empty",
     "job-deleted": "job deleted successfully",
-    "job-not-found":"job not found"
+    "job-not-found":"job not found",
+    "planning-not-found": "planning not found",
+    "employee-not-found": "employee not found",
+    "planning-created": "planning created successfully",
+    "planning-deleted":"Planning deleted successfully"
+
+
 
 }
