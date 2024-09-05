@@ -83,12 +83,15 @@ class CRUDContract(CRUDBase[Contract, ContractCreate, ContractUpdate]):
 
         if obj_in.status in ['RUPTURED']:
             contract.date_of_rupture = datetime.now()
+            contract.status = obj_in.status if obj_in.status else contract.status
 
         if obj_in.status in ['TERMINATED']:
             contract.date_of_termination = datetime.now()
+            contract.status = obj_in.status if obj_in.status else contract.status
 
         if obj_in.status in ['ACCEPTED']:
             contract.date_of_acceptation = datetime.now()
+            contract.status = obj_in.status if obj_in.status else contract.status
 
         db.commit()
         db.refresh(contract)
