@@ -178,7 +178,7 @@ class ParentGuest(BaseModel):
 
 
 class ParentGuestNew(BaseModel):
-    link: models.ParentRelationship
+    link: Optional[models.ParentRelationship] = None
     firstname: Optional[str] = None
     lastname: Optional[str] = None
     fix_phone: Optional[str] = None

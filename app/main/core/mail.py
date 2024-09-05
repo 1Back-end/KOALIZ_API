@@ -316,3 +316,173 @@ def send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> N
     )
     print("=====================End New Nursery Mail===========================")
 
+
+
+def admin_send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> None:
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("new-nursery", language)}'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "admin_new_nursery.html") as f:
+        template_str = f.read()
+
+    print("==================Start New Nursery Mail(Admin)===================")
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "user_name": data["user_name"],
+            "email": email_to,
+            "nursery_name": data["nursery_name"],
+            "owner_name": data["creator_name"],
+            "login_link": Config.ADMIN_LOGIN_LINK.format(language)
+        }
+    )
+    print("=====================End New Nursery Mail(Admin)===========================")
+
+
+
+def send_new_nursery_email(email_to: str, data: dict, language: str = "fr") -> None:
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("new-nursery", language)}'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "new_nursery.html") as f:
+        template_str = f.read()
+
+    print("==================Start New Nursery Mail===================")
+    send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "user_name": data["user_name"],
+            "email": email_to,
+            "nursery_name": data["nursery_name"],
+            "admin_name": data["creator_name"],
+            "login_link": Config.LOGIN_LINK.format(language)
+        }
+    )
+    print("=====================End New Nursery Mail===========================")
+
+
+def send_unpaid_invoice_email(email_to: str, invoice_number: str,
+                              recipient_name: str, company_name: str, company_address: str,
+                              contact_phone: str, contact_email: str, language: str = "fr"):
+    
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("invoice-unpaid-subject", language)}'
+
+    # Récupérer le chemin du template en fonction de la langue
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "invoice_unpaid2.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+
+    # Envoyer l'email
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "invoice_number": invoice_number,
+            "recipient_name": recipient_name,
+            "company_name": company_name,
+            "company_address": company_address,
+            "contact_phone": contact_phone,
+            "contact_email": contact_email
+        }
+    )
+    
+    logging.info(f"New email task created with ID {task}")
+
+
+
+def send_absence_report_email(email_to: str, reporter_name: str, child_name: str,
+                              absence_start: datetime, absence_end: datetime,
+                              family_member_link: str, contact_name: str, contact_phone: str,language: str = "fr"):
+    
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("absence_report", language)}'
+
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "absence_report.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "reporter_name": reporter_name,
+            "child_name": child_name,
+            "absence_start": absence_start.strftime("%d/%m/%Y %H:%M"),
+            "absence_end": absence_end.strftime("%d/%m/%Y %H:%M"),
+            "family_member_link": family_member_link,
+            "contact_name": contact_name,
+            "contact_phone": contact_phone
+            # Add any other variables you need in the email template
+            }
+    )
+    
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+def send_absence_notification(parent_email: str,child_name: str, start_time: str, end_time: str,parent_name: str, contact_email: str, contact_phone: str,language: str = "fr"):
+
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - {__("absence-notification", language)}'
+
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "absence_notification.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+
+    task = send_email(
+        email_to=parent_email,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "child_name": child_name,
+            "start_time": start_time,
+            "end_time": end_time,
+            "parent_name": parent_name,
+            "contact_email": contact_email,
+            "contact_phone": contact_phone
+            # Add any other variables you need in the email template
+            }
+    )
+    
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+def send_delay_notification(parent_email: str, child_name: str, delay_duration: str,
+                            parent_name: str, contact_email: str, contact_phone: str,
+                            family_member_link: str, company_name: str, company_address: str, language: str = "fr"):
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - Notification de Retard'
+
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "delay_notification.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+
+    task = send_email(
+        email_to=parent_email,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "child_name": child_name,
+            "delay_duration": delay_duration,
+            "parent_name": parent_name,
+            "contact_email": contact_email,
+            "contact_phone": contact_phone,
+            "family_member_link": family_member_link,
+            "company_name": company_name,
+            "company_address": company_address
+        }
+    )
+
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")

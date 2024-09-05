@@ -38,11 +38,15 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
     def get_many(
             self, db: Session, nursery_uuid: str, owner_uuid: str, page: int = 1, per_page: int = 30,
             order: Optional[str] = None, order_filed: Optional[str] = None, keyword: Optional[str] = None,
-            status: Optional[str] = None, reference: str = None, month: int = None, year: int = None, child_uuid: str = None
+            status: Optional[str] = None, reference: str = None, month: int = None, year: int = None, child_uuid: str = None, contract_uuid: str = None
     ):
         record_query = db.query(models.Invoice).filter(models.Invoice.nursery_uuid==nursery_uuid).filter(models.Invoice.nursery.has(models.Nursery.owner_uuid==owner_uuid))
         if status:
             record_query = record_query.filter(models.Invoice.status == status)
+
+        if contract_uuid:
+            record_query = record_query.filter(models.Invoice.contract_uuid==contract_uuid)
+            record_query = record_query.filter(models.Invoice.status.in_(["PAID", "PENDING", "UNPAID"]))
 
         if reference:
             record_query = record_query.filter(models.Invoice.reference == reference)

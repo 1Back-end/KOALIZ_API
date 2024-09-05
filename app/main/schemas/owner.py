@@ -1,16 +1,18 @@
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
 
 from app.main.schemas import UserAuthentication, File, DataList
 from app.main.schemas.user import AddedBy
 from app .main.schemas.nursery import Nursery, NurserySlim1
 
+
 class NurseryMiniSlim(BaseModel):
     uuid: str
     name: str
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class Owner(BaseModel):
     uuid: Optional[str] = None
@@ -78,5 +80,33 @@ class OwnerList(DataList):
 
 class OwnerAuthentication(UserAuthentication):
     user: OwnerWithNursery
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssistantCreate(OwnerCreate):
+    nursery_uuids: list[str]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssistantUpdate(OwnerUpdateBase):
+    nursery_uuids: list[str]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssistantDelete(OwnerDelete):
+    pass
+
+
+class Assistant(Owner):
+    structures: list[NurserySlim1] = Field([], serialization_alias="nurseries")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssistantList(DataList):
+    data: list[Owner]
 
     model_config = ConfigDict(from_attributes=True)

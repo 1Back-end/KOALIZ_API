@@ -34,6 +34,36 @@ class Notification(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SettingConfig(BaseModel):
+    key: str
+    mail_actived: bool = False
+    push_actived: bool = False
+    in_app_actived: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class NotificationSettingSchema(BaseModel):
+    uuid: str
+    key: str
+    title_fr: str
+    title_en: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class NotificationSettingUpdate(BaseModel):
+    pass
+
+
+class NotificationSettingUserSchema(BaseModel):
+    uuid: str
+    mail_actived: bool
+    push_actived: bool
+    in_app_actived: bool
+    notification_setting: NotificationSettingSchema
+
+    model_config = ConfigDict(from_attributes=True)
+
 class NotificationList(DataList):
 
     data: List[Notification] = []

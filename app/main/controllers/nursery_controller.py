@@ -110,6 +110,31 @@ def get(
     )
 
 
+@router.get("/all-children", response_model=list[schemas.ChildMini3])
+def read_all_nursery_children(
+    *,
+    nursery_uuid: str,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    nursery = crud.nursery.get_by_uuid(db,nursery_uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    
+    # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
+    accepted_preregistrations = db.query(models.PreRegistration).filter(
+        models.PreRegistration.nursery_uuid == nursery_uuid,
+        models.PreRegistration.status == models.PreRegistrationStatusType.ACCEPTED
+    ).all()
+
+    # Récupérer les UUIDs des enfants acceptés
+    child_uuids = [preregistration.child_uuid for preregistration in accepted_preregistrations if preregistration.child_uuid]
+
+    # Filtrer les enfants par UUID et is_accepted
+    children = db.query(models.Child).filter(models.Child.uuid.in_(child_uuids), models.Child.is_accepted == True).all()
+
+    return children
+
 @router.get("/children", response_model=list[schemas.Transmission])
 def read_children_by_nursery(
     *,

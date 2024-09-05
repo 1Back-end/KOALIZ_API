@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Optional, List
 from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, model_validator
@@ -18,8 +18,8 @@ from .base import DataList
 
 class ContractBase(BaseModel):
     nursery_uuid: str 
-    begin_date: datetime
-    end_date: datetime
+    begin_date: date
+    end_date: date
     type: str
     annual_income: Optional[float] = 0
     caution: Optional[float] = 0
@@ -53,14 +53,14 @@ class ContractUpdate(BaseModel):
 
     status: Optional[str] = None
 
-    typical_weeks: list[list[list[TimeSlotInputSchema]]]
+    typical_weeks: Optional[list[list[list[TimeSlotInputSchema]]]] = None
 
-    @field_validator('typical_weeks')
-    def validate_week_length(cls, value):
-        for week in value:
-            if len(week) > 5:
-                raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
-        return value
+    # @field_validator('typical_weeks')
+    # def validate_week_length(cls, value):
+    #     for week in value:
+    #         if len(week) > 5:
+    #             raise HTTPException(status_code=422, detail=("Each week's data list cannot exceed 5 items"))
+    #     return value
 
     # @field_validator("end_date")
     # def validate_end_date(cls, value, values):
@@ -71,7 +71,7 @@ class ContractUpdate(BaseModel):
 class ProlongeContract(BaseModel):
     uuid: str
     child_uuid: str
-    end_date: datetime
+    end_date: date
 
 
 class ParentContractSchema(BaseModel):
@@ -121,8 +121,8 @@ class Contract(BaseModel):
     uuid: Optional[str] = None
     nursery_uuid: str 
     child: Optional[ChildMini3] = None
-    begin_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    begin_date: Optional[date] = None
+    end_date: Optional[date] = None
     type: Optional[str] = None
     has_company_contract: Optional[bool] = False
     status: Optional[str] = None
@@ -131,7 +131,7 @@ class Contract(BaseModel):
     typical_weeks: list[Any]
     parents: list[ParentContractSchema]=None
     client_account: Optional[ClientAccountContractSchema]=None
-    invoices: list[InvoiceMiniDetails]=None
+    # invoices: list[InvoiceMiniDetails]=None
 
     # date_added: datetime
     # date_modified: datetime
@@ -142,8 +142,8 @@ class Contract(BaseModel):
 class ContractMini(BaseModel):
     uuid: str
     child: Optional[ChildMini3] = None
-    begin_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    begin_date: Optional[date] = None
+    end_date: Optional[date] = None
     has_company_contract: Optional[bool] = False
     type: Optional[str] = None
     status: Optional[str] = None

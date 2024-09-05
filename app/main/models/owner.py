@@ -3,7 +3,7 @@ from .user import UserStatusType
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, Table, Boolean,types,event, Enum
 from datetime import datetime, date
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped
 from .db.base_class import Base
 from sqlalchemy.dialects.postgresql import ENUM
 
@@ -27,6 +27,7 @@ class Owner(Base):
     added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
 
     nurseries = relationship("Nursery",back_populates="owner")
+    structures: Mapped[list[any]] = relationship("Nursery", secondary="nursery_users", back_populates="assistants", overlaps="nursery, user", uselist=True)
 
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid], uselist=False)
