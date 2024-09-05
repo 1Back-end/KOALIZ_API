@@ -184,8 +184,6 @@ class ParentChild(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    parent_uuid = Column(String, nullable=True)
-
     parent_email = Column(String, nullable=False)
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
@@ -210,19 +208,6 @@ class ParentChild(Base):
             user = db.query(models.Owner).\
                 filter(models.Owner.uuid==self.added_by_uuid,
                      models.Owner.status!="DELETED").\
-                        first()
-        return user
-    
-    @hybrid_property
-    def parent(self):
-        db = SessionLocal()
-        user = db.query(models.ParentGuest).\
-            filter(models.ParentGuest.uuid==self.parent_uuid).\
-                first()
-        if not user:
-            user = db.query(models.Parent).\
-                filter(models.Parent.uuid==self.parent_uuid,
-                     models.Parent.status!= "DELETED").\
                         first()
         return user
 
@@ -285,9 +270,7 @@ class PickUpParentChild(Base):
     def parent(self):
         db = SessionLocal()
         user = db.query(models.ParentGuest).\
-            filter(models.ParentGuest.uuid==self.parent_uuid,
-                   models.ParentGuest.status!="DELETED").\
-                    first()
+            filter(models.ParentGuest.uuid==self.parent_uuid).first()
 
         if not user:
             user = db.query(models.Parent).\
@@ -336,21 +319,11 @@ class ParentGuest(Base):
     disabled_children: int = Column(Integer, default=0)
 
     is_paying_parent: bool = Column(Boolean, default=False)
-
-    role_uuid: str = Column(String, ForeignKey('roles.uuid',ondelete = "CASCADE",onupdate= "CASCADE"), nullable=True )
-    role = relationship("Role", foreign_keys=[role_uuid],uselist = False)
+    has_pickup_child_authorization: bool = Column(Boolean, default=False)
 
     avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
     avatar = relationship("Storage", foreign_keys=[avatar_uuid])
 
-    otp: str = Column(String(5), nullable=True, default="")
-    otp_expired_at: datetime = Column(DateTime, nullable=True, default=None)
-
-    otp_password: str = Column(String(5), nullable=True, default="")
-    otp_password_expired_at: datetime = Column(DateTime, nullable=True, default=None)
-
-    password_hash: str = Column(String(100), nullable=True, default="")
-    status = Column(String, index=True, nullable=True)
     is_new_user: bool = Column(Boolean, nullable=True, default=False)
 
     contracts = relationship("Contract", secondary=parent_contract, back_populates="parents")
