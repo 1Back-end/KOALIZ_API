@@ -30,10 +30,11 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
             exist_child_media = db.query(children_media).\
                 filter(children_media.c.child_uuid == child.uuid,
                        children_media.c.media_uuid == db_obj.uuid).\
-                        all()
+                        first()
             
             if not exist_child_media:
                 db_obj.children.append(child)
+                db.flush()
 
         db.commit()
         db.refresh(db_obj)
@@ -55,10 +56,11 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
             exist_child_media = db.query(children_media).\
                 filter(children_media.c.child_uuid == child.uuid,
                        children_media.c.media_uuid == media.uuid).\
-                        all()
+                        first()
             
             if not exist_child_media:
                 media.children.append(child)
+                db.flush()
 
         db.commit()
         db.refresh(media)
