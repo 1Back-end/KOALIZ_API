@@ -486,3 +486,213 @@ def send_delay_notification(parent_email: str, child_name: str, delay_duration: 
     )
 
     logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+
+def send_vaccination_reminder(parent_name: str,parent_email: str,child_name: str,
+                              vaccine_name: str,due_date: str,child_profile_link: str,
+                              language: str = "fr"):
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - Rappel de Vaccination'
+    
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "vaccination_reminder.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+    task = send_email(
+        email_to=parent_email,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "parent_name": parent_name,
+            "parent_email": parent_email,
+            "child_name": child_name,
+            "vaccine_name": vaccine_name,
+            "due_date": due_date,
+            "child_profile_link": child_profile_link
+        }
+    )
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+
+def send_occasional_care_notification(
+    parent_name: str,
+    parent_email: str,
+    child_name: str,
+    care_date: str,
+    start_time: str,
+    end_time: str,
+    parent_profile_link: str,
+    company_name: str,
+    company_address: str,
+    contact_phone: str,
+    contact_email: str,
+    language: str = "fr"
+):
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - Notification de soins occasionnels'
+    
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "occasional_care_notification.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+    task = send_email(
+        email_to=parent_email,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "parent_name": parent_name,
+            "parent_email": parent_email,
+            "child_name": child_name,
+            "care_date": care_date,
+            "start_time": start_time,
+            "end_time": end_time,
+            "parent_profile_link": parent_profile_link,
+            "company_name": company_name,
+            "company_address": company_address,
+            "contact_phone": contact_phone,
+            "contact_email": contact_email
+        }
+    )
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+
+def send_opening_notification(
+    recipient_name: str,
+    recipient_email: str,
+    micro_creche_name: str,
+    location: str,
+    address: str,
+    contact_phone: str,
+    contact_email: str,
+    language: str = "fr"
+):
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - Notification d\'Ouverture'
+    
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "opening_notification.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+    task = send_email(
+        email_to=recipient_email,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "recipient_name": recipient_name,
+            "micro_creche_name": micro_creche_name,
+            "location": location,
+            "address": address,
+            "contact_phone": contact_phone,
+            "contact_email": contact_email
+        }
+    )
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+
+def send_pre_enrollment_notification(
+    first_parent_name: str,
+    first_parent_email: str,
+    second_parent_name: str,
+    second_parent_email: str,
+    child_age_at_entry: str,
+    contract_start_date: str,
+    dossier_link: str,
+    contact_name: str,
+    contact_address: str,
+    contact_phone: str,
+    contact_email: str,
+    language: str = "fr"
+):
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - Notification d\'inscription préliminaire'
+    
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "pre_enrollment_notification.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+    
+    task = send_email(
+        email_to=[first_parent_email, second_parent_email],
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "first_parent_name": first_parent_name,
+            "first_parent_email": first_parent_email,
+            "second_parent_name": second_parent_name,
+            "second_parent_email": second_parent_email,
+            "child_age_at_entry": child_age_at_entry,
+            "contract_start_date": contract_start_date,
+            "dossier_link": dossier_link,
+            "contact_name": contact_name,
+            "contact_address": contact_address,
+            "contact_phone": contact_phone,
+            "contact_email": contact_email
+        }
+    )
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+
+def send_parent_message_email(email_to: str, parent_name: str, child_name: str, message_content: str, timestamp: str, language: str = "fr"):
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - Message de parent'
+    
+    template_path = get_template_path_based_on_lang(language)
+    with open(Path(template_path) / "parent_message_email.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+    
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "parent_name": parent_name,
+            "child_name": child_name,
+            "message_content": message_content,
+            "timestamp": timestamp
+        }
+    )
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+def send_delay_notification_email(email_to: str, parent_name: str, child_name: str, delay_minutes: int):
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - Notification de retard'
+    
+    template_path = get_template_path_based_on_lang("fr")
+    with open(Path(template_path) / "delay_notification_email.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+    
+    task = send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "parent_name": parent_name,
+            "child_name": child_name,
+            "delay_minutes": delay_minutes
+        }
+    )
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")
+
+def send_absence_notification_email(parent_name: str, child_name: str, absence_start: str, absence_end: str, recipient_email: str):
+    project_name = Config.EMAIL_PROJECT_NAME
+    subject = f'{project_name} - Notification d\'absence'
+    
+    template_path = get_template_path_based_on_lang("fr")
+    with open(Path(template_path) / "absence_notification_email.html", "r", encoding="utf-8") as f:
+        template_str = f.read()
+    
+    task = send_email(
+        email_to=recipient_email,
+        subject_template=subject,
+        html_template=template_str,
+        environment={
+            "project_name": project_name,
+            "parent_name": parent_name,
+            "child_name": child_name,
+            "absence_start": absence_start,
+            "absence_end": absence_end
+        }
+    )
+    logging.info(f"Nouvelle tâche d'email créée avec l'ID {task}")

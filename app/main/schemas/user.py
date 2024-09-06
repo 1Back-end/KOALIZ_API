@@ -142,8 +142,73 @@ class DelayNotificationRequest(BaseModel):
     family_member_link: str
     company_name: str
     company_address: str
-    language: str = "fr"  # Valeur par défaut "fr"
+    # language: str = "fr"  # Valeur par défaut "fr"
     model_config = ConfigDict(from_attributes=True)
 
+class VaccinationReminderRequest(BaseModel):
+    parent_name: str
+    parent_email: EmailStr
+    child_name: str
+    vaccine_name: str
+    due_date: str  # Vous pouvez aussi utiliser `datetime.date` pour une meilleure gestion des dates
+    child_profile_link: str
+    # language: str = "fr"  # Valeur par défaut
 
 
+class OccasionalCareRequest(BaseModel):
+    parent_name: str
+    parent_email: EmailStr
+    child_name: str
+    care_date: str  # Utilisez `datetime.date` si vous gérez les dates en format ISO
+    start_time: str  # Vous pouvez utiliser `datetime.time` pour les heures
+    end_time: str  # Idem ici pour les heures
+    parent_profile_link: str
+    company_name: str 
+    company_address: str 
+    contact_phone: str 
+    contact_email: str 
+    # language: str = "fr"  # Valeur par défaut
+
+class OpeningNotificationRequest(BaseModel):
+    recipient_name: str  # Le nom du destinataire de l'email
+    recipient_email: EmailStr  # Email du destinataire
+    micro_creche_name: str 
+    location: str 
+    address: str 
+    contact_phone: str
+    contact_email: EmailStr
+    # language: str = "fr"  # Langue par défaut
+
+class PreEnrollmentRequest(BaseModel):
+    first_parent_name: str
+    first_parent_email: EmailStr
+    second_parent_name: str
+    second_parent_email: EmailStr
+    child_age_at_entry: str
+    contract_start_date: str
+    dossier_link: str
+    contact_name: str 
+    contact_address: str
+    contact_phone: str
+    contact_email: EmailStr 
+    # language: str = "fr"  # Langue par défaut
+
+class ParentMessageRequest(BaseModel):
+    parent_name: str
+    child_name: str
+    message_content: str
+    timestamp: str
+    recipient_email: str
+
+class DelayNotificationRequestEmail(BaseModel):
+    parent_name: str
+    child_name: str
+    delay_minutes: int
+    recipient_email: str
+
+class AbsenceNotification(BaseModel):
+    parent_name: str
+    child_name: str
+    absence_start: str  # Format: YYYY-MM-DDTHH:MM:SS
+    absence_end: str    # Format: YYYY-MM-DDTHH:MM:SS
+    recipient_email: str
