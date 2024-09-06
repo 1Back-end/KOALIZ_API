@@ -11,10 +11,9 @@ from app.main.schemas import DataList, NurseryMini
 # from app.main.schemas.activity import ActivityResponse
 from app.main.schemas.attendance import AttendanceMini
 from app.main.schemas.base import Items
-from app.main.schemas.user import  Storage
+from app.main.schemas.user import  AddedBy, Storage
 from app.main.schemas.file import File
-from app.main.schemas import AddressSLim
-
+from  app.main.schemas.parent import Parent
 
 @field_validator("birthdate")
 class ChildSchema(BaseModel):
@@ -110,22 +109,23 @@ class PreContractUpdateSchema(BaseModel):
 
 class ParentGuestSchema(BaseModel):
     link: models.ParentRelationship
-    firstname: str
-    lastname: str
-    birthplace: str
-    fix_phone: str = None
-    phone: str
-    email: EmailStr
-    recipient_number: str
-    zip_code: str
-    city: str
-    country: str
-    profession: str
-    annual_income: float
-    company_name: str
-    has_company_contract: bool
-    dependent_children: int
-    disabled_children: int
+    firstname: Optional[str] = ""
+    lastname: Optional[str] = ""
+    birthplace: Optional[str] = ""
+    fix_phone: Optional[str] = ""
+    phone: Optional[str] = ""
+    email: Optional[EmailStr] = ""
+    recipient_number: Optional[str] = ""
+    zip_code: Optional[str] = ""
+    city: Optional[str] = ""
+    country: Optional[str] = ""
+    address: Optional[str] = ""
+    profession: Optional[str] = ""
+    annual_income: Optional[float] = 0
+    company_name: Optional[str] = ""
+    has_company_contract: Optional[bool] = False
+    dependent_children: Optional[int] = 0
+    disabled_children: Optional[int] = 0
 
 
 class PreregistrationCreate(BaseModel):
@@ -134,6 +134,21 @@ class PreregistrationCreate(BaseModel):
     pre_contract: PreContractSchema
     parents: list[ParentGuestSchema]
     note: str = None
+
+    model_validator(mode='wrap')
+
+    @model_validator(mode='wrap')
+    def validate_parents_contacts(self, handler):
+        validated_self = handler(self)
+        one_phonenumber: bool = False
+        for parent in validated_self.parents:
+            if (parent.phone and parent.phone.strip()) or (parent.fix_phone and parent.fix_phone.strip()):
+                one_phonenumber = True
+                break
+
+        if not one_phonenumber:
+            raise HTTPException(status_code=422, detail=__("at-least-one-phone-number-required"))
+        return validated_self
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -148,15 +163,32 @@ class PreContract(BaseModel):
 
 class ParentGuest(BaseModel):
     link: models.ParentRelationship
-    firstname: str
-    lastname: str
+    firstname: str = None
+    lastname: str = None
     fix_phone: str = None
-    phone: str
-    email: EmailStr
-    zip_code: str
-    city: str
-    country: str
-    profession: str
+    phone: str = None
+    email: str = None
+    zip_code: str = None
+    address: Optional[str] = None
+    city: str = None
+    country: str = None
+    profession: str = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ParentGuestNew(BaseModel):
+    link: Optional[models.ParentRelationship] = None
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    fix_phone: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    zip_code: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    profession: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -186,30 +218,32 @@ class ChildDetails(BaseModel):
     birthplace: str
     date_added: datetime
     date_modified: datetime
-    parents: list[ParentGuest]
+    parents: list[ParentGuestNew]
     pre_contract: PreContract
     preregistrations: list[PreregistrationMini]
     model_config = ConfigDict(from_attributes=True)
 
+
 class ParentDisplay(BaseModel):
-    uuid: str= None
-    link: models.ParentRelationship= None
-    firstname: str= None
-    lastname: str= None
-    birthplace: str= None
+    uuid: str = None
+    link: models.ParentRelationship = None
+    firstname: str = None
+    lastname: str = None
+    birthplace: str = None
     fix_phone: str = None
-    phone: str= None
-    email: EmailStr= None
-    recipient_number: str= None
-    zip_code: str= None
-    city: str= None
-    country: str= None
-    profession: str= None
-    annual_income: float= None
-    company_name: str= None
-    has_company_contract: bool= None
-    dependent_children: int= None
-    disabled_children: int= None
+    phone: str = None
+    email: EmailStr = None
+    recipient_number: str = None
+    zip_code: str = None
+    address: Optional[str] = None
+    city: str = None
+    country: str = None
+    profession: str = None
+    annual_income: float = None
+    company_name: str = None
+    has_company_contract: bool = None
+    dependent_children: int = None
+    disabled_children: int = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -252,11 +286,23 @@ class ChildMini2(BaseModel):
     firstname: str
     lastname: str
     gender: models.Gender
+    age : int
     birthdate: date
     birthplace: str
     date_added: datetime
     date_modified: datetime
     paying_parent: Optional[PayingParentGuest] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+class ChildMini3(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: models.Gender
+    age : int
+    birthdate: date
+    birthplace: str
+    
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -296,6 +342,7 @@ class PreregistrationUpdate(BaseModel):
     note: str = None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class TrackingCase(BaseModel):
     preregistration_uuid: str
@@ -344,6 +391,17 @@ class ChildSlim(BaseModel):
     birthdate: date
 
     model_config = ConfigDict(from_attributes=True)
+
+# class ChildMiniDetails(ChildSlim):
+#     birthplace: str
+#     parents: list[ParentGuest]
+#     pre_contract: PreContract
+#     date_added: datetime
+#     date_modified: datetime
+#     preregistrations: list[PreregistrationMini]
+
+#     model_config = ConfigDict(from_attributes=True)
+
 
 
 class PreContractSlim(BaseModel):
@@ -402,7 +460,7 @@ class NapSlim(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class MealSlim(BaseModel):
-    uuid: Optional[str] = None
+    uuid: str
     # child: Optional[ChildMini2] = None
     meal_time: Optional[datetime] = None
     bottle_milk_ml: Optional[int] = None
@@ -472,10 +530,17 @@ class ObservationSlim(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class ChildPickUp(BaseModel):
+    parent_guest_uuid: str
+    nursery_uuid: str
+
+
 class ChildrenConfirmation(BaseModel):
     parent_email: str
     nursery_uuid: str
     child_uuid: str
+    status: str = "AUTHORIZED" # REFUSED
 
 class MediaSlim(BaseModel):
     uuid: str
@@ -487,7 +552,14 @@ class MediaSlim(BaseModel):
     date_modified: datetime
     model_config = ConfigDict(from_attributes=True)
 
-class ParentTransmissionsList(BaseModel):
+class ParentTransmission(BaseModel):
+    uuid: str
+    firstname: str
+    lastname: str
+    gender: str
+    age:int = 0
+    accepted_date:Optional[date]
+    avatar:Optional[File] = None
     meals:Optional[list[MealSlim]] 
     activities:Optional[list[ActivitySlim]]
     naps:Optional[list[NapSlim]]
@@ -495,6 +567,16 @@ class ParentTransmissionsList(BaseModel):
     hygiene_changes:Optional[list[HygieneChangeSlim]]
     media:Optional[list[MediaSlim]]
     observations:Optional[list[ObservationSlim]]
+    model_config = ConfigDict(from_attributes=True)
+
+class ParentTransmissionsList(BaseModel):
+    data: list[ParentTransmission] = []
+    model_config = ConfigDict(from_attributes=True)
+
+class AppParent(BaseModel):
+    uuid: str 
+    parent_email :EmailStr
+    added_by:Optional[AddedBy] = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -507,8 +589,11 @@ class Transmission(BaseModel):
     accepted_date:Optional[date]
     avatar:Optional[File] = None
     nb_parent: int
+    parents:list[Parent]
+    app_parents:Optional[list[AppParent]]
+    pickup_parents: Optional[list[AppParent]]
     meals:Optional[list[MealSlim]] 
-    # activities:Optional[list[ActivitySlim]]
+    activities:Optional[list[ActivitySlim]]
     naps:Optional[list[NapSlim]]
     health_records:Optional[list[HealthRecordSlim]] 
     hygiene_changes:Optional[list[HygieneChangeSlim]]
@@ -522,6 +607,7 @@ class Transmission(BaseModel):
 class ChildTransmissionList(DataList):
     data: list[Transmission] = []
     model_config = ConfigDict(from_attributes=True)
+
 class ChildDetailsList(DataList):
     data: list[ChildDetails] = []
 

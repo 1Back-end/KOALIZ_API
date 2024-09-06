@@ -1,4 +1,5 @@
 import math
+from calendar import monthrange
 from datetime import datetime, timedelta, date
 from operator import and_
 from uuid import uuid4
@@ -37,11 +38,15 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
     def get_many(
             self, db: Session, nursery_uuid: str, owner_uuid: str, page: int = 1, per_page: int = 30,
             order: Optional[str] = None, order_filed: Optional[str] = None, keyword: Optional[str] = None,
-            status: Optional[str] = None, reference: str = None, month: int = None, year: int = None, child_uuid: str = None
+            status: Optional[str] = None, reference: str = None, month: int = None, year: int = None, child_uuid: str = None, contract_uuid: str = None
     ):
         record_query = db.query(models.Invoice).filter(models.Invoice.nursery_uuid==nursery_uuid).filter(models.Invoice.nursery.has(models.Nursery.owner_uuid==owner_uuid))
         if status:
             record_query = record_query.filter(models.Invoice.status == status)
+
+        if contract_uuid:
+            record_query = record_query.filter(models.Invoice.contract_uuid==contract_uuid)
+            record_query = record_query.filter(models.Invoice.status.in_(["PAID", "PENDING", "UNPAID"]))
 
         if reference:
             record_query = record_query.filter(models.Invoice.reference == reference)
@@ -54,8 +59,11 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 ))
             )
         if year and month:
-            record_query = record_query.filter(models.Invoice.date_to >= f"{year}-{month}-01").filter(
-                models.Invoice.date_to <= f"{year}-{month}-31")
+            current_date_start = date(year, month, 1)
+            current_date_end = current_date_start.replace(
+                day=monthrange(current_date_start.year, current_date_start.month)[1])
+            record_query = record_query.filter(models.Invoice.date_to >= current_date_start).filter(
+                models.Invoice.date_to <= current_date_end)
 
         if child_uuid:
             record_query = record_query.filter(models.Invoice.child_uuid == child_uuid)
@@ -68,7 +76,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
 
-        return schemas.InvoiceList(
+        return schemas.DataList(
             total=total,
             pages=math.ceil(total / per_page),
             per_page=per_page,
@@ -138,7 +146,8 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                     title_en=quote_item.title_en,
                     amount=quote_item.amount,
                     total_hours=quote_item.total_hours,
-                    unit_price=quote_item.unit_price
+                    unit_price=quote_item.unit_price,
+                    type=quote_item.type if quote_item.type in [_type.value for _type in models.InvoiceItemType] else None
                 )
                 db.add(timetable_item)
         db.commit()
@@ -163,6 +172,31 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
             ).scalar() or 0,
             "UPCOMING": db.query(func.sum(models.Invoice.amount)).filter(
                 models.Invoice.child_uuid == child_uuid,
+                or_(
+                    and_(
+                        models.Invoice.status == models.InvoiceStatusType.PENDING,
+                        models.Invoice.date_to >= current_date
+                    ),
+                    models.Invoice.status == models.InvoiceStatusType.PROFORMA
+                )
+            ).scalar() or 0
+        }
+
+    def get_nursery_statistic(self, db: Session, nursery_uuid: str):
+        current_date: date = date.today()
+        return {
+            "PAID": db.query(func.sum(models.Invoice.amount_paid)).filter(
+                models.Invoice.nursery_uuid == nursery_uuid,
+                models.Invoice.status != models.InvoiceStatusType.PROFORMA,
+                # models.Invoice.date_to < current_date
+            ).scalar() or 0,
+            "PENDING": db.query(func.sum(models.Invoice.amount_due)).filter(
+                models.Invoice.nursery_uuid == nursery_uuid,
+                models.Invoice.status.notin_([models.InvoiceStatusType.PAID, models.InvoiceStatusType.PROFORMA]),
+                models.Invoice.date_to < current_date
+            ).scalar() or 0,
+            "UPCOMING": db.query(func.sum(models.Invoice.amount)).filter(
+                models.Invoice.nursery_uuid == nursery_uuid,
                 or_(
                     and_(
                         models.Invoice.status == models.InvoiceStatusType.PENDING,
@@ -218,6 +252,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                         "title_en": item.title_en,
                         "total_hours": item.total_hours,
                         "unit_price": item.unit_price,
+                        "type": item.type,
                         "amount": amount
                     })
                 else:
@@ -228,7 +263,8 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                         "title_fr": item.title_fr,
                         "title_en": item.title_en,
                         "total_hours": item.total_hours,
-                        "unit_price": item.unit_price
+                        "unit_price": item.unit_price,
+                        "type": item.type
                     })
             else:
                 if item.total_hours and item.unit_price:
@@ -243,6 +279,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                     title_en=item.title_en,
                     total_hours=item.total_hours,
                     unit_price=item.unit_price,
+                    type=item.type,
                     amount=amount
                 )
                 db.add(new_item)
@@ -269,6 +306,7 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
                 title_en=item.title_en,
                 total_hours=item.total_hours,
                 unit_price=item.unit_price,
+                type=item.type,
                 amount=amount
             )
             db.add(new_item)
@@ -292,6 +330,68 @@ class CRUDInvoice(CRUDBase[models.Invoice, None, None]):
         db.add(new_invoice)
         db.commit()
         return new_invoice
+
+    def get_sales_by_nurseries_for_given_month_and_previous(self, db: Session, owner_uuid: str, month: int, year: int):
+
+        curent_date_start = date(year, month, 1)
+        curent_date_end = curent_date_start.replace(day=monthrange(curent_date_start.year, curent_date_start.month)[1])
+
+        previous_month_end = curent_date_start - timedelta(days=1)
+        previous_month_start = previous_month_end.replace(day=1)
+
+        res_current = db.query(
+                models.Nursery.uuid,
+                func.coalesce(func.sum(models.Invoice.amount_paid).label("current_month"), 0)
+        ).join(
+            models.Invoice, models.Invoice.nursery_uuid == models.Nursery.uuid
+        ).filter(
+            models.Invoice.status != models.InvoiceStatusType.PROFORMA,
+            models.Nursery.owner_uuid == owner_uuid,
+            models.Invoice.date_to >= curent_date_start,
+            models.Invoice.date_to <= curent_date_end
+        ).group_by(models.Nursery.uuid).all()
+
+        res_previous = db.query(
+                models.Nursery.uuid,
+                func.coalesce(func.sum(models.Invoice.amount_paid).label("previous_month"), 0)
+        ).join(
+            models.Invoice, models.Invoice.nursery_uuid == models.Nursery.uuid
+        ).filter(
+            models.Invoice.status != models.InvoiceStatusType.PROFORMA,
+            models.Nursery.owner_uuid == owner_uuid,
+            models.Invoice.date_to >= previous_month_start,
+            models.Invoice.date_to <= previous_month_end
+        ).group_by(models.Nursery.uuid).all()
+
+        # Get all the nurseries
+        nurseries = db.query(models.Nursery.uuid, models.Nursery.name).filter(
+            models.Nursery.owner_uuid == owner_uuid,
+            models.Nursery.status == models.NurseryStatusType.ACTIVED
+        ).all()
+
+        result = []
+        for nursery in nurseries:
+            current_month = 0
+            previous_month = 0
+
+            for res_item in res_current:
+                if res_item[0] == nursery.uuid:
+                    current_month = res_item[1]
+                    break
+
+            for res_item in res_previous:
+                if res_item[0] == nursery.uuid:
+                    previous_month = res_item[1]
+                    break
+
+            result.append({
+                "uuid": nursery.uuid,
+                "name": nursery.name,
+                "current_month": current_month,
+                "previous_month": previous_month
+            })
+
+        return result
 
 
 invoice = CRUDInvoice(models.Invoice)

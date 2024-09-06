@@ -1,0 +1,68 @@
+[
+    {
+        "uuid": "e1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+        "name_fr": "Atelier cuisine",
+        "name_en": "Cooking Workshop",
+        "is_default": true
+    },
+    {
+        "uuid": "p7q8r9s0-t1u2-v3w4-x5y6-z7a8b9c0d1e2",
+        "name_fr": "Balade",
+        "name_en": "Walk",
+        "is_default": true
+    },
+    {
+        "uuid": "f3g4h5i6-j7k8-l9m0-n1o2-p3q4r5s6t7u8",
+        "name_fr": "Balancelle",
+        "name_en": "Swing",
+        "is_default": true
+    },
+    {
+        "uuid": "v9w0x1y2-z3a4-b5c6-d7e8-f9g0h1i2j3k4",
+        "name_fr": "Boîte d’encastrement",
+        "name_en": "Fitting Box",
+        "is_default": true
+    },
+    {
+        "uuid": "l5m6n7o8-p9q0-r1s2-t3u4-v5w6x7y8z9a0",
+        "name_fr": "Bibliothèque",
+        "name_en": "Library",
+        "is_default": true
+    },
+    {
+        "uuid": "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+        "name_fr": "Bouteilles colorées",
+        "name_en": "Colored Bottles",
+        "is_default": true
+    },
+    {
+        "uuid": "r7s8t9u0-v1w2-x3y4-z5a6-b7c8d9e0f1g2",
+        "name_fr": "Bouteilles à sons",
+        "name_en": "Sound Bottles",
+        "is_default": true
+    },
+    {
+        "uuid": "h3i4j5k6-l7m8-n9o0-p1q2-r3s4t5u6v7w8",
+        "name_fr": "Boîte à tissus",
+        "name_en": "Fabric Box",
+        "is_default": true
+    },
+    {
+        "uuid": "x9y0z1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+        "name_fr": "Bricolage",
+        "name_en": "Crafts",
+        "is_default": true
+    },
+    {
+        "uuid": "n5o6p7q8-r9s0-t1u2-v3w4-x5y6z7a8b9c0",
+        "name_fr": "Chants & Comptines",
+        "name_en": "Songs & Rhymes",
+        "is_default": true
+    },
+    {
+        "uuid": "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6",
+        "name_fr": "Collage",
+        "name_en": "Collage",
+        "is_default": true
+    }
+]

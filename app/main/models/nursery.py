@@ -39,6 +39,8 @@ class Nursery(Base):
     memberships = relationship("NurseryMemberships", back_populates="nursery")
     address_uuid: str = Column(String, ForeignKey('addresses.uuid'), nullable=False)
     address = relationship("Address", foreign_keys=[address_uuid], uselist=False)
+    
+    jobs = relationship("NurseryJobs", back_populates="nursery")
 
     status = Column(types.Enum(NurseryStatusType), index=True, nullable=False, default=NurseryStatusType.UNACTIVED)
     slug: str = Column(String, index=True, default="", unique=True, nullable=False)
@@ -48,7 +50,9 @@ class Nursery(Base):
     owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=False)
     owner = relationship("Owner", foreign_keys=[owner_uuid], uselist=False,back_populates="nurseries")
 
-    employees = relationship("Employee",secondary="nursery_employees", back_populates="nurseries", overlaps="nursery,employee")
+    assistants = relationship("Owner", secondary="nursery_users", back_populates="structures", overlaps="nursery")
+
+    employees = relationship("Employee", secondary="nursery_employees", back_populates="nurseries", overlaps="nursery,employee")
 
     added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
     added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
@@ -86,6 +90,37 @@ class Nursery(Base):
             
     def __repr__(self):
         return '<Nursery: uuid: {} email: {}>'.format(self.uuid, self.email)
+
+
+class NurseryUser(Base):
+    """
+     database model for storing Nursery related details
+    """
+    __tablename__ = 'nursery_users'
+
+    uuid: str = Column(String, primary_key=True, unique=True, index=True)
+
+    user_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=False)
+    user = relationship("Owner", foreign_keys=user_uuid, uselist=False, overlaps="assistants")
+
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)
+    nursery = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
+
+    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+@event.listens_for(NurseryUser, 'before_insert')
+def update_created_modified_on_create_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
+    target.date_added = datetime.now()
+    target.date_modified = datetime.now()
+
+
+@event.listens_for(NurseryUser, 'before_update')
+def update_modified_on_update_listener(mapper, connection, target):
+    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
+    target.date_modified = datetime.now()
 
 
 @event.listens_for(Nursery, 'before_insert')
@@ -159,17 +194,11 @@ class NuseryHoliday(Base):
     is_active: bool = Column(Boolean, default=False, nullable=False)  # Ajout de la colonne is_active
     is_deleted: bool = Column(Boolean, default=False)
 
-
-
-
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=False)
     nursery = relationship("Nursery", foreign_keys=[nursery_uuid], uselist=False)
 
-
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now)
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
-
-
 
 
 @event.listens_for(NurseryCloseHour, 'before_insert')
@@ -183,6 +212,7 @@ def update_created_modified_on_create_listener(mapper, connection, target):
 def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
+
 
 @event.listens_for(NuseryHoliday, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):

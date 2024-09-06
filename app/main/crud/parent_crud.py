@@ -1,4 +1,5 @@
 import math
+from calendar import monthrange
 from datetime import date, datetime, timedelta
 from typing import Union, Optional
 from fastapi import HTTPException
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Session,joinedload
 from app.main import schemas, models, crud
 import uuid
 from app.main.core.security import  get_password_hash, verify_password
+from app.main.models.preregistration import Child
 
 
 class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpdate]):
@@ -19,94 +21,150 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
     def get_children_transmissions(
         self,
         *,
+        nursery_uuid : str,
         db : Session,
-        date : date = None,
+        child_uuid: Optional[str] = None,
+        filter_date : date = None,
         current_parent : models.Parent = None
-    ):
+    )-> list[Child]:
         # Get parent children
         parent_children: models.ParentChild = db.query(models.ParentChild).\
-            filter(models.ParentChild.parent_uuid==current_parent.uuid).\
-            all()
+            filter(models.ParentChild.parent_uuid==current_parent.uuid)
+        
+        if nursery_uuid:
+            parent_children = parent_children.filter(models.ParentChild.nursery_uuid==nursery_uuid)
+        
+        parent_children = parent_children.all()
 
         children = db.query(models.Child).\
-            filter(models.Child.uuid.in_([parent_child.child_uuid for parent_child in parent_children])).\
-            all()
-
-        if date:
-            meals = db.query(models.Meal).\
-                filter(models.Meal.child_uuid.in_([child.uuid for child in children]), models.Meal.date_added == date).\
-                order_by(models.Meal.date_added.desc()).\
-                all()
-            activities = db.query(models.ChildActivity).\
-                filter(models.ChildActivity.child_uuid.in_([child.uuid for child in children]), models.ChildActivity.date_added == date).\
-                order_by(models.ChildActivity.date_added.desc()).\
-                all()
-            naps = db.query(models.Nap).\
-                filter(models.Nap.child_uuid.in_([child.uuid for child in children]), models.Nap.date_added == date).\
-                order_by(models.Nap.date_added.desc()).\
-                all()
-            health_records = db.query(models.HealthRecord).\
-                filter(models.HealthRecord.child_uuid.in_([child.uuid for child in children]), models.HealthRecord.date_added == date).\
-                order_by(models.HealthRecord.date_added.desc()).\
-                all()
-            hygiene_changes = db.query(models.HygieneChange).\
-                filter(models.HygieneChange.child_uuid.in_([child.uuid for child in children]), models.HygieneChange.date_added == date).\
-                order_by(models.HygieneChange.date_added.desc()).\
-                all()
-            observations = db.query(models.Observation).\
-                filter(models.Observation.child_uuid.in_([child.uuid for child in children]), models.Observation.date_added == date).\
-                order_by(models.Observation.date_added.desc()).\
-                all()
-            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([child.uuid for child in children])).all()]
-            media = db.query(models.Media).\
-                filter(models.Media.uuid.in_(media_uuids), models.Media.date_added == date).\
-                order_by(models.Media.date_added.desc()).\
-                all()
-        else:
-            meals = db.query(models.Meal).\
-                filter(models.Meal.child_uuid.in_([child.uuid for child in children])).\
-                order_by(models.Meal.date_added.desc()).\
-                all()
-            activities = db.query(models.ChildActivity).\
-                filter(models.ChildActivity.child_uuid.in_([child.uuid for child in children])).\
-                order_by(models.ChildActivity.date_added.desc()).\
-                all()
-            naps = db.query(models.Nap).\
-                filter(models.Nap.child_uuid.in_([child.uuid for child in children])).\
-                order_by(models.Nap.date_added.desc()).\
-                all()
-            health_records = db.query(models.HealthRecord).\
-                filter(models.HealthRecord.child_uuid.in_([child.uuid for child in children])).\
-                order_by(models.HealthRecord.date_added.desc()).\
-                all()
-            hygiene_changes = db.query(models.HygieneChange).\
-                filter(models.HygieneChange.child_uuid.in_([child.uuid for child in children])).\
-                order_by(models.HygieneChange.date_added.desc()).\
-                all()
-            observations = db.query(models.Observation).\
-                filter(models.Observation.child_uuid.in_([child.uuid for child in children])).\
-                order_by(models.Observation.date_added.desc()).\
-                all()
-            media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([child.uuid for child in children])).all()]
-            media = db.query(models.Media).\
-                filter(models.Media.uuid.in_(media_uuids)).\
-                order_by(models.Media.date_added.desc()).\
-                all()
+            filter(models.Child.uuid.in_([parent_child.child_uuid for parent_child in parent_children]))
         
+        if child_uuid:
+            children = children.filter(models.Child.uuid==child_uuid)
 
-        return schemas.ParentTransmissionsList(
-            meals=meals,
-            activities=activities,
-            naps=naps,
-            health_records=health_records,
-            hygiene_changes=hygiene_changes,
-            observations=observations,
-            media=media
-        )
+        media_uuids = [i.media_uuid for i in db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([child.uuid for child in children])).all()]
+
+        for child in children:
+
+            child.naps = db.query(models.Nap).\
+                filter(models.Nap.child_uuid == child.uuid,
+                    models.Nap.status !=models.AbsenceStatusEnum.DELETED,
+                    models.Nap.nursery_uuid == nursery_uuid,
+                ).\
+                    order_by(models.Nap.date_added.desc()).\
+                        all()
+            
+            child.health_records = db.query(models.HealthRecord).\
+                filter(models.HealthRecord.child_uuid == child.uuid,
+                    models.HealthRecord.status !=models.AbsenceStatusEnum.DELETED,
+                    models.HealthRecord.nursery_uuid == nursery_uuid
+                ).\
+                order_by(models.HealthRecord.date_added.desc()).\
+                    all()
+            
+            child.hygiene_changes = db.query(models.HygieneChange).\
+                filter(models.HygieneChange.child_uuid == child.uuid,
+                        models.HygieneChange.status!= models.AbsenceStatusEnum.DELETED,
+                        models.HygieneChange.nursery_uuid == nursery_uuid,
+                ).\
+                    order_by(models.HygieneChange.date_added.desc()).\
+                    all()
+            
+            child.observations = db.query(models.Observation).\
+                filter(models.Observation.child_uuid == child.uuid,
+                    models.Observation.status !=models.AbsenceStatusEnum.DELETED,
+                    models.Observation.nursery_uuid == nursery_uuid,
+                ).\
+                    order_by(models.Observation.date_added.desc()).\
+                        all()
+            
+            child.media = db.query(models.Media).\
+                filter(models.Media.uuid.in_(media_uuids),
+                    models.Media.status!=models.AbsenceStatusEnum.DELETED,
+                    models.Media.nursery_uuid == nursery_uuid, 
+                ).\
+                    order_by(models.Media.date_added.desc()).\
+                        all()
+            if filter_date:
+                end_date = datetime.combine(filter_date, datetime.max.time())
+                start_date = datetime.combine(filter_date, datetime.min.time())
+                print(start_date)  # Affiche la date avec l'heure 00:00:00
+                print(end_date)    # Affiche la date avec l'heure 23:59:59.999999
+
+                # Step 2: Load filtered relations and assign to the child object
+                child.meals = db.query(models.Meal).\
+                    filter(models.Meal.child_uuid == child.uuid, 
+                        models.Meal.date_added.between(start_date,end_date), # Ajout du filtre conditionnel
+                        models.Meal.is_deleted !=True,
+                        models.Meal.nursery_uuid == nursery_uuid).\
+                        order_by(models.Meal.date_added.desc()).\
+                            all()
+                
+                print("exist-meal",child.meals)
+                child.activities = db.query(models.ChildActivity).\
+                    filter(models.ChildActivity.child_uuid == child.uuid,models.ChildActivity.status != models.AbsenceStatusEnum.DELETED,
+                        models.ChildActivity.nursery_uuid == nursery_uuid,
+                        models.ChildActivity.date_added.between(start_date,end_date)
+                    ).\
+                        order_by(models.ChildActivity.date_added.desc()).\
+                            all()
+                
+                child.naps = db.query(models.Nap).\
+                    filter(models.Nap.child_uuid == child.uuid,
+                        models.Nap.status !=models.AbsenceStatusEnum.DELETED,
+                        models.Nap.nursery_uuid == nursery_uuid,
+                        models.Nap.date_added.between(start_date,end_date)).\
+                        order_by(models.Nap.date_added.desc()).\
+                            all()
+                
+                child.health_records = db.query(models.HealthRecord).\
+                    filter(models.HealthRecord.child_uuid == child.uuid,
+                        models.HealthRecord.status !=models.AbsenceStatusEnum.DELETED,
+                        models.HealthRecord.nursery_uuid == nursery_uuid,
+                        models.HealthRecord.date_added.between(start_date,end_date)).\
+                            order_by(models.HealthRecord.date_added.desc()).\
+                            all()
+                
+                child.hygiene_changes = db.query(models.HygieneChange).\
+                    filter(models.HygieneChange.child_uuid == child.uuid,
+                        models.HygieneChange.status!= models.AbsenceStatusEnum.DELETED,
+                        models.HygieneChange.nursery_uuid == nursery_uuid,
+                        models.HygieneChange.date_added.between(start_date,end_date)).\
+                        order_by(models.HygieneChange.date_added.desc()).\
+                            all()
+                
+                child.observations = db.query(models.Observation).\
+                    filter(models.Observation.child_uuid == child.uuid,
+                        models.Observation.status !=models.AbsenceStatusEnum.DELETED,
+                        models.Observation.nursery_uuid == nursery_uuid,
+                        models.Observation.date_added.between(start_date,end_date)).\
+                        order_by(models.Observation.date_added.desc()).\
+                            all()
+                
+                child.media = db.query(models.Media).\
+                    filter(models.Media.uuid.in_(media_uuids),
+                        models.Media.status!=models.AbsenceStatusEnum.DELETED, 
+                        models.Media.date_added.between(start_date,end_date)).\
+                        order_by(models.Media.date_added.desc()).\
+                    all()
+        
+        return children
 
     @classmethod
     def get_by_uuid(cls, db: Session, uuid: str) -> Union[models.Parent, None]:
-        return db.query(models.Parent).filter(models.Parent.uuid == uuid).first()
+        return db.query(models.Parent).\
+            filter(models.Parent.uuid == uuid,
+                   models.Parent.status.not_in([models.UserStatusType.DELETED,models.UserStatusType.BLOCKED])).\
+                    first()
+
+    @classmethod
+    def get_parent_guest_by_uuid(cls, db: Session, uuid: str) -> Union[models.ParentGuest, None]:
+        return db.query(models.ParentGuest).filter(models.ParentGuest.uuid == uuid).first()
+
+    @classmethod
+    def get_parent_guest_by_email(cls, db: Session, email: str) -> Union[models.ParentGuest, None]:
+        return db.query(models.ParentGuest).filter(models.ParentGuest.email == email).first()
+
 
     @classmethod
     def create(cls, db: Session, obj_in: schemas.ParentCreate, code:str=None) -> models.Parent:
@@ -151,7 +209,55 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         parent.firstname = obj_in.firstname if obj_in.firstname else parent.firstname
         parent.lastname = obj_in.lastname if obj_in.lastname else parent.lastname
         parent.avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else parent.avatar_uuid
+
         parent.email = obj_in.email if obj_in.email else parent.email
+        parent.fix_phone = obj_in.fix_phone if obj_in.fix_phone else parent.fix_phone
+        parent.phone = obj_in.phone if obj_in.phone else parent.phone
+
+        parent.zip_code = obj_in.zip_code if obj_in.zip_code else parent.zip_code
+        parent.recipient_number = obj_in.recipient_number if obj_in.recipient_number else parent.recipient_number
+        parent.city = obj_in.city if obj_in.city else parent.city
+
+        parent.country = obj_in.country if obj_in.country else parent.country
+        parent.profession = obj_in.profession if obj_in.profession else parent.profession
+        parent.annual_income = obj_in.annual_income if obj_in.annual_income else parent.annual_income
+
+        parent.company_name = obj_in.company_name if obj_in.company_name else parent.company_name
+        parent.has_company_contract = obj_in.has_company_contract if obj_in.has_company_contract else parent.has_company_contract
+        parent.dependent_children = obj_in.dependent_children if obj_in.dependent_children else parent.dependent_children
+        
+        parent.disabled_children = obj_in.disabled_children if obj_in.disabled_children else parent.disabled_children
+        parent.is_paying_parent = obj_in.is_paying_parent if obj_in.is_paying_parent else parent.is_paying_parent
+        parent.link = obj_in.link if obj_in.link else parent.link
+        db.commit()
+        db.refresh(parent)
+        return parent
+    @classmethod
+    def update_parent_guest(cls, db: Session,obj_in: schemas.ParentUpdate) -> models.Parent:
+        parent = cls.get_parent_guest_by_uuid(db, obj_in.uuid)
+        parent.firstname = obj_in.firstname if obj_in.firstname else parent.firstname
+        parent.lastname = obj_in.lastname if obj_in.lastname else parent.lastname
+        parent.avatar_uuid = obj_in.avatar_uuid if obj_in.avatar_uuid else parent.avatar_uuid
+
+        parent.email = obj_in.email if obj_in.email else parent.email
+        parent.fix_phone = obj_in.fix_phone if obj_in.fix_phone else parent.fix_phone
+        parent.phone = obj_in.phone if obj_in.phone else parent.phone
+
+        parent.zip_code = obj_in.zip_code if obj_in.zip_code else parent.zip_code
+        parent.recipient_number = obj_in.recipient_number if obj_in.recipient_number else parent.recipient_number
+        parent.city = obj_in.city if obj_in.city else parent.city
+
+        parent.country = obj_in.country if obj_in.country else parent.country
+        parent.profession = obj_in.profession if obj_in.profession else parent.profession
+        parent.annual_income = obj_in.annual_income if obj_in.annual_income else parent.annual_income
+
+        parent.company_name = obj_in.company_name if obj_in.company_name else parent.company_name
+        parent.has_company_contract = obj_in.has_company_contract if obj_in.has_company_contract else parent.has_company_contract
+        parent.dependent_children = obj_in.dependent_children if obj_in.dependent_children else parent.dependent_children
+        
+        parent.disabled_children = obj_in.disabled_children if obj_in.disabled_children else parent.disabled_children
+        parent.is_paying_parent = obj_in.is_paying_parent if obj_in.is_paying_parent else parent.is_paying_parent
+        parent.link = obj_in.link if obj_in.link else parent.link
         db.commit()
         db.refresh(parent)
         return parent
@@ -163,13 +269,14 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         db.commit()
 
     @classmethod
-    def soft_delete(cls,db:Session, uuid) -> models.Parent:
-        parent = cls.get_by_uuid(db, uuid)
-        parent.status = models.UserStatusType.DELETED
-        db.commit()
+    def soft_delete(cls,db:Session, uuids):
+        for uuid in uuids:
+            parent = cls.get_by_uuid(db, uuid)
+            parent.status = models.UserStatusType.DELETED
+            db.commit()
 
     @classmethod
-    def get_by_email(cls,db:Session,email:EmailStr) -> models.Parent:
+    def get_by_email(cls, db:Session, email:EmailStr) -> models.Parent:
         return db.query(models.Parent).filter(models.Parent.email == email).first()
 
     @classmethod
@@ -233,6 +340,9 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         db:Session,
         page:int = 1,
         per_page:int = 30,
+        nursery_uuid:Optional[str] = None,
+        child_uuid : Optional[str] = None,
+        filter_date:Optional[date] = None,
         order:Optional[str] = None,
         parent_uuid:Optional[str] = None,
         order_filed:Optional[str] = "date_added",
@@ -240,12 +350,19 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
     ):
         # Get parent children
         parent_children: models.ParentChild = db.query(models.ParentChild).\
-            filter(models.ParentChild.parent_uuid==parent_uuid).\
-            all()
+            filter(models.ParentChild.parent_uuid==parent_uuid)
+        
+        if nursery_uuid:
+            parent_children = parent_children.filter(models.ParentChild.nursery_uuid==nursery_uuid)
+
+        parent_children = parent_children.all()
 
         record_query = db.query(models.Child).\
             filter(models.Child.uuid.in_([parent_child.child_uuid for parent_child in parent_children]))
         
+        if child_uuid:
+            record_query = record_query.filter(models.Child.uuid == child_uuid)
+
         if keyword:
             record_query = record_query.filter(
                 or_(
@@ -255,11 +372,10 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
                 )
             )
 
-        # print("1len(record-query)",len(record_query))
         if order and order.lower() == "asc":
-            record_query = record_query.order_by(models.Child.date_added, order_filed.asc())
+            record_query = record_query.order_by(getattr(models.Child, order_filed).asc())
         else:
-            record_query = record_query.order_by(models.Child.date_added, order_filed.desc())
+            record_query = record_query.order_by(getattr(models.Child, order_filed).desc())
 
         total = record_query.count()
         record_query = record_query.offset((page - 1) * per_page).limit(per_page)
@@ -282,17 +398,34 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
         parent_uuid:Optional[str] = None,
         order_filed:Optional[str] = "date_added",
         keyword:Optional[str]= None,
-        media_type:Optional[str]= None
+        filter_date : date = None,
+        media_type:Optional[str]= None,
+        child_uuid:Optional[str]= None,
+        nursery_uuid : Optional[str] = None
     ):
         # Get parent children
         parent_children: models.ParentChild = db.query(models.ParentChild).\
             filter(models.ParentChild.parent_uuid==parent_uuid).\
             all()
+        if nursery_uuid:
+            parent_children = parent_children.filter(models.ParentChild.nursery_uuid==nursery_uuid)
         
+        if child_uuid:
+            parent_children = parent_children.filter(models.ParentChild.child_uuid == child_uuid)
+
+
         media = db.query(models.children_media).filter(models.children_media.c.child_uuid.in_([parent_child.child_uuid for parent_child in parent_children])).all()
         
         record_query = db.query(models.Media).\
-            filter(models.Media.uuid.in_([md.media_uuid for md in media]))
+            filter(
+                models.Media.uuid.in_([md.media_uuid for md in media]),
+                models.Media.status!= models.AbsenceStatusEnum.DELETED
+            )
+    
+        if filter_date:
+            end_date = datetime.combine(filter_date, datetime.max.time())
+            start_date = datetime.combine(filter_date, datetime.min.time())
+            record_query = record_query.filter(models.Media.date_added.between(start_date, end_date))
         
         if keyword:
             record_query = record_query.filter(
@@ -322,16 +455,32 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
 
     @classmethod
     def get_invoices(
-        cls, db: Session, page: int = 1, per_page: int = 30,
-        order: Optional[str] = None, order_filed: Optional[str] = None,
-        keyword: Optional[str] = None, status: Optional[str] = None,
-        reference: str = None, month: int = None, year: int = None,
-        child_uuid: str = None, parent_uuid: str =None
+        cls, 
+        db: Session, 
+        page: int = 1, 
+        per_page: int = 30,
+        order: Optional[str] = None, 
+        order_filed: Optional[str] = None,
+        keyword: Optional[str] = None, 
+        status: Optional[str] = None,
+        reference: str = None, 
+        month: int = None, 
+        year: int = None,
+        contract_uuid:Optional[str] = None,
+        nursery_uuid: Optional[str] = None,
+        child_uuid: str = None, 
+        parent_uuid: str = None
     ):
         # Get parent children
         parent_children: models.ParentChild = db.query(models.ParentChild).\
             filter(models.ParentChild.parent_uuid==parent_uuid).\
             all()
+        
+        if nursery_uuid:
+            parent_children = parent_children.filter(models.ParentChild.nursery_uuid==nursery_uuid)
+        
+        if child_uuid:
+            parent_children = parent_children.filter(models.ParentChild.child_uuid == child_uuid)
         
         record_query = db.query(models.Invoice).filter(models.Invoice.child_uuid.in_([parent_child.child_uuid for parent_child in parent_children]))
 
@@ -349,8 +498,11 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
                 ))
             )
         if year and month:
-            record_query = record_query.filter(models.Invoice.date_to >= f"{year}-{month}-01").filter(
-                models.Invoice.date_to <= f"{year}-{month}-31")
+            current_date_start = date(year, month, 1)
+            current_date_end = current_date_start.replace(
+                day=monthrange(current_date_start.year, current_date_start.month)[1])
+            record_query = record_query.filter(models.Invoice.date_to >= current_date_start).filter(
+                models.Invoice.date_to <= current_date_end)
 
         if child_uuid:
             record_query = record_query.filter(models.Invoice.child_uuid == child_uuid)
@@ -382,7 +534,12 @@ class CRUDParent(CRUDBase[models.Parent, schemas.ParentCreate,schemas.ParentUpda
             models.Parent.role.has(models.Role.group == role_group)
         ).first()
         if not db_obj:
-            return None
+            db_obj: models.ParentGuest = db.query(models.ParentGuest).filter(
+                models.ParentGuest.email == email,
+                models.ParentGuest.role.has(models.Role.group == role_group)
+            ).first()
+            if not db_obj:
+                return None
         if not verify_password(password, db_obj.password_hash):
             return None
         return db_obj

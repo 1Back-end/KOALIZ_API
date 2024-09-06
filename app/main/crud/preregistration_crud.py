@@ -75,11 +75,20 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                     begin_date=exist_folder.pre_contract.begin_date,
                     end_date=exist_folder.pre_contract.end_date,
                     typical_weeks=exist_folder.pre_contract.typical_weeks,
-                    type=models.ContractType.REGULAR
+                    type=models.ContractType.REGULAR,
+                    nursery_uuid=exist_folder.nursery.uuid,
+                    status="ACCEPTED",
+                    owner_uuid=exist_folder.nursery.owner_uuid
                 )
                 db.add(contract)
                 exist_folder.contract_uuid = contract.uuid
                 exist_folder.child.contract_uuid = contract.uuid
+
+                # Add contract to parents
+                parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in exist_folder.child.parents])).all()
+                for parent in parents:
+                    parent.contracts.append(contract)
+
                 client_account = models.ClientAccount(
                     uuid=str(uuid.uuid4()),
                     name=f"{exist_folder.child.paying_parent.firstname} {exist_folder.child.paying_parent.lastname}" if not exist_folder.child.paying_parent.has_company_contract else exist_folder.child.paying_parent.company_name,
@@ -111,7 +120,11 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 exist_folder.contract.end_date = exist_folder.pre_contract.end_date
                 exist_folder.contract.typical_weeks = exist_folder.pre_contract.typical_weeks
                 exist_folder.contract.type = models.ContractType.REGULAR
-
+                exist_folder.contract.nursery_uuid = exist_folder.nursery.uuid
+                exist_folder.contract.owner_uuid = exist_folder.nursery.owner_uuid
+                exist_folder.contract.status = "ACCEPTED"
+                exist_folder.contract.date_of_acceptation = datetime.now()
+   
             if exist_folder.quote and exist_folder.quote.status != models.QuoteStatusType.ACCEPTED:
                 exist_folder.quote.status = models.QuoteStatusType.ACCEPTED
                 crud.quote.update_status(db, exist_folder.quote, models.QuoteStatusType.ACCEPTED)
@@ -239,6 +252,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 recipient_number=pg.recipient_number,
                 zip_code=pg.zip_code,
                 city=pg.city,
+                address=pg.address,
                 country=pg.country,
                 profession=pg.profession,
                 annual_income=pg.annual_income,
@@ -376,7 +390,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
         return child
 
     @classmethod
-    def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[schemas.ChildDetails]:
+    def get_child_by_uuid(cls, db: Session, uuid: str) -> Optional[models.Child]:
         return db.query(models.Child).filter(models.Child.uuid == uuid).first()
 
     @classmethod
@@ -671,6 +685,7 @@ class CRUDPreRegistration(CRUDBase[schemas.PreregistrationDetails, schemas.Prere
                 zip_code=pg.zip_code,
                 city=pg.city,
                 country=pg.country,
+                address=pg.address,
                 profession=pg.profession,
                 annual_income=pg.annual_income,
                 company_name=pg.company_name,

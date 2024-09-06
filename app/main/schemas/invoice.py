@@ -1,14 +1,12 @@
-from typing import Optional, Any
+from typing import Optional
 
-from fastapi import Body, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator, AliasPath
-from datetime import datetime, time, date
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator, computed_field
+from datetime import datetime, date
 
 from app.main import models
 from app.main.core.i18n import __
 from app.main.schemas import AddressBase
-from app.main.schemas.base import Items, DataList
-from app.main.schemas.file import File
+from app.main.schemas.base import DataList
 
 
 class InvoiceChildMini(BaseModel):
@@ -27,6 +25,15 @@ class InvoiceTimeTableItem(BaseModel):
     amount: float = 0
     total_hours: Optional[float] = None
     unit_price: Optional[float] = None
+    type: Optional[models.InvoiceItemType] = None
+
+    @model_validator(mode='wrap')
+    def round_hours(self, handler):
+        validated_self = handler(self)
+        if validated_self.total_hours:
+            validated_self.total_hours = round(validated_self.total_hours, 2)
+
+        return validated_self
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -83,11 +90,25 @@ class PaymentSlim(BaseModel):
     amount: float
     date_added: datetime
 
+class InvoiceMiniDetails(BaseModel):
+    uuid: str
+    # date_to: date
+    amount: float = 0
+    status: str = None
+    reference: str
+    amount_paid: float = 0
+    amount_due: float = 0
+    date_added: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class InvoiceDetails(BaseModel):
     uuid: str
     date_to: date
     amount: float = 0
+    amount_paid: float = 0
+    amount_due: float = 0
     status: str = None
     reference: str
     invoicing_period_start: Optional[date]
@@ -136,6 +157,39 @@ class InvoiceList(DataList):
     model_config = ConfigDict(from_attributes=True)
 
 
+class DashboardInvoiceTimetableSlim(BaseModel):
+    uuid: str
+    reference: str
+    amount: float = 0
+    status: str
+    total_hours: float = 0
+    total_overtime_hours: float = 0
+    child: InvoiceChildSlim
+
+    @computed_field(return_type=float)
+    @property
+    def sum_hours(self):
+        return self.total_hours + self.total_overtime_hours
+
+    @model_validator(mode='wrap')
+    def round_hours(self, handler):
+        validated_self = handler(self)
+        if validated_self.total_hours:
+            validated_self.total_hours = round(validated_self.total_hours, 2)
+        if validated_self.total_overtime_hours:
+            validated_self.total_overtime_hours = round(validated_self.total_overtime_hours, 2)
+
+        return validated_self
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DashboardInvoiceList(DataList):
+    data: list[DashboardInvoiceTimetableSlim] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PaymentBase(BaseModel):
     type: models.PaymentType
     method: models.PaymentMethod
@@ -166,6 +220,7 @@ class ItemsCreateUpdate(BaseModel):
     # amount: float
     total_hours: Optional[float] = None
     unit_price: float
+    type: Optional[models.InvoiceItemType] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -181,3 +236,12 @@ class InvoiceCreate(BaseModel):
     invoicing_period_start: Optional[date] = None
     invoicing_period_end: Optional[date] = None
     items: list[ItemsCreateUpdate] = []
+
+
+class NurserySale(BaseModel):
+    uuid: str
+    name: str
+    current_month: float
+    previous_month: float
+
+    model_config = ConfigDict(from_attributes=True)

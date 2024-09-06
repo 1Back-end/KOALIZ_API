@@ -15,7 +15,9 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
 
     @classmethod
     def get_activity_type_by_uuid(cls, db: Session, uuid: str) -> Optional[Activity]:
-        return db.query(Activity).filter(Activity.uuid == uuid).first()
+        return db.query(Activity).\
+            filter(Activity.uuid == uuid,Activity.is_deleted == False).\
+                first()
     
     @classmethod
     def create(cls, db: Session, obj_in: ActivityCategoryCreate) -> ActivityCategory:
@@ -23,6 +25,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
             uuid=str(uuid.uuid4()),
             name_fr=obj_in.name_fr,
             name_en=obj_in.name_en,
+            is_default= False
         )
         db.add(db_obj)
 
@@ -36,7 +39,9 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
                 
                 if not exist_category_activity:
                     activity_type = cls.get_activity_type_by_uuid(db, activity_uuid)
-                    db_obj.activities.append(activity_type)
+                    if activity_type:
+                        db_obj.activities.append(activity_type)
+
         db.commit()
         db.refresh(db_obj)
         return db_obj
@@ -44,9 +49,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
     @classmethod
     def get_activity_category_by_uuid(cls, db: Session, uuid: str) -> Optional[ActivityCategory]:
         return db.query(ActivityCategory).\
-            filter(
-                ActivityCategory.uuid == uuid,
-                ActivityCategory.status!=AbsenceStatusEnum.DELETED).\
+            filter(ActivityCategory.uuid == uuid,ActivityCategory.status!=AbsenceStatusEnum.DELETED).\
                 first()
     
     @classmethod
@@ -65,7 +68,8 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
                 
                 if not exist_category_activity:
                     activity_type = cls.get_activity_type_by_uuid(db, activity_uuid)
-                    db_obj.activities.append(activity_type)
+                    if activity_type:
+                        db_obj.activities.append(activity_type)
 
         db.commit()
         db.refresh(db_obj)
@@ -91,7 +95,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
         db:Session,
         page:int = 1,
         per_page:int = 30,
-        order:Optional[str] = None,
+        order:Optional[str] = "desc",
         # employee_uuid:Optional[str] = None,
         # nursery_uuid:Optional[str] = None,
         # child_uuid:Optional[str] = None,
@@ -112,7 +116,7 @@ class CRUDActivitCategory(CRUDBase[ActivityCategory, ActivityCategoryCreate, Act
 
         if order == "asc":
             record_query = record_query.order_by(getattr(ActivityCategory, order_field).asc())
-        else:
+        if order == "desc":
             record_query = record_query.order_by(getattr(ActivityCategory, order_field).desc())
 
 

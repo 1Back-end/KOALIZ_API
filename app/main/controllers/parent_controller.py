@@ -14,15 +14,24 @@ from app.main.core.security import generate_code
 router = APIRouter(prefix="/parents", tags=["parents"])
 
 
-@router.get("/children-transmissions", response_model=schemas.ParentTransmissionsList, status_code=200)
+@router.get("/children-transmissions", response_model=list[schemas.ParentTransmission], status_code=200)
 def get_children_transmissions(
+    nursery_uuid: Optional[str] = None,
+    child_uuid: Optional[str] = None,
     date: date = None,
     db: Session = Depends(get_db),
     current_parent: models.Parent = Depends(TokenRequired(roles=["parent"]))
 ):
     """ Get children transmissions """
 
-    return crud.parent.get_children_transmissions(db=db, current_parent=current_parent, date=date)
+
+    return crud.parent.get_children_transmissions(
+        db=db, 
+        current_parent=current_parent, 
+        filter_date=date,
+        nursery_uuid=nursery_uuid,
+        child_uuid= child_uuid
+    )
 
 
 @router.get("/children", response_model=schemas.ChildDetailsList)
@@ -31,6 +40,9 @@ def get(
     db: Session = Depends(get_db),
     page: int = 1,
     per_page: int = 30,
+    filter_date:date = None,
+    nursery_uuid:Optional[str] = None,
+    child_uuid : Optional[str] = None,
     order: str = Query("desc", enum =["asc", "desc"]),
     order_filed: str = "date_added",
     keyword: Optional[str] = None,
@@ -46,16 +58,21 @@ def get(
         order=order,
         order_filed=order_filed,
         keyword=keyword,
+        nursery_uuid = nursery_uuid,
+        child_uuid = child_uuid,
+        filter_date=filter_date,
         parent_uuid=current_user.uuid
     )
 
 @router.get("/media", response_model=schemas.MediaList)
 def get(
     *,
+    nursery_uuid:Optional[str] = None,
     db: Session = Depends(get_db),
     page: int = 1,
     per_page: int = 30,
     order: str = Query("desc", enum =["asc", "desc"]),
+    filter_date:date = None,
     order_filed: str = "date_added",
     media_type: str = Query(None, enum=[st.value for st in models.MediaType]),
     keyword: Optional[str] = None,
@@ -72,7 +89,9 @@ def get(
         order_filed=order_filed,
         keyword=keyword,
         parent_uuid=current_user.uuid,
-        media_type=media_type
+        media_type=media_type,
+        filter_date=filter_date,
+        nursery_uuid = nursery_uuid
     )
 
 @router.get("/invoices", response_model=schemas.InvoiceList)
@@ -87,16 +106,28 @@ def get(*,
         month: Optional[int] = None,
         year: Optional[int] = None,
         reference: Optional[str] = None,
+        contract_uuid: Optional[str] = None,
+        nursery_uuid :Optional[str] = None,
         child_uuid: Optional[str] = None,
-        current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+        current_user: models.Parent = Depends(TokenRequired(roles=["parent"]))
 ):
     """
     get invoices with filters
     """
     return crud.parent.get_invoices(
-        db=db, page=page, per_page=per_page, order=order,
-        order_filed=order_filed, keyword=keyword, status=status, reference=reference, month=month, year=year,
+        db=db, 
+        page=page, 
+        per_page=per_page, 
+        order=order,
+        order_filed=order_filed, 
+        keyword=keyword, 
+        status=status, 
+        reference=reference, 
+        month=month, 
+        year=year,
+        contract_uuid = contract_uuid,
         child_uuid=child_uuid,
+        nursery_uuid=nursery_uuid,
         parent_uuid=current_user.uuid
     )
 
@@ -144,6 +175,8 @@ def create(
         db.add(db_code)
         db.commit()
         send_account_confirmation_email(email_to=obj_in.email, name=(obj_in.firstname+obj_in.lastname),token=code,valid_minutes=30)
+    else:
+        crud.parent.create(db=db, obj_in=obj_in,code=code)
 
     return parent
 
@@ -218,7 +251,16 @@ def delete(
     """
     Delete many(or one)
     """
-    crud.parent.delete(db, uuids)
+    exist_parents = []
+    for uuid in uuids:
+        parent = crud.parent.get_by_uuid(db, uuid)
+        if parent:
+            exist_parents.append(parent)
+    
+    if not len(exist_parents) or len(exist_parents) != len(uuids):
+        raise HTTPException(status_code=404, detail=__("parent-not-found"))
+    
+    crud.parent.soft_delete(db, uuids)
     return {"message": __("user-deleted")}
 
 

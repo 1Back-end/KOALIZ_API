@@ -71,20 +71,14 @@ async def create_database_tables(
         logger.info("Successfully created the directory %s " % migrations_folder)
 
     try:
-        # Get the environment system
+        
+        # # Get the environment system
         if platform.system() == 'Windows':
-
             os.system('set PYTHONPATH=. && .\\venv\\Scripts\\python.exe -m alembic revision --autogenerate')
             os.system('set PYTHONPATH=. && .\\venv\\Scripts\\python.exe -m alembic upgrade head')
 
         else:
             os.system('PYTHONPATH=. alembic revision --autogenerate')
-        # Get the environment system
-        if platform.system() == 'Windows':
-
-            os.system('set PYTHONPATH=. && .\\.venv\Scripts\python.exe -m alembic upgrade head')
-
-        else:
             os.system('PYTHONPATH=. alembic upgrade head')
 
         """ Try to remove previous alembic versions folder """
@@ -100,14 +94,13 @@ async def create_database_tables(
         raise ProgrammingError(status_code=512, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
-@router.post("/create-activity",response_model=schemas.Msg,status_code=201)
-async def create_activity(
+@router.post("/create-activity-type",response_model=schemas.Msg,status_code=201)
+async def create_activity_type(
     db: Session = Depends(dependencies.get_db),
     admin_key: schemas.AdminKey = Body(...)
 )-> dict[str, str]:
-    """ Create a new activity """
+    """ Create a new activity type """
     check_user_access_key(admin_key)
     try:
         with open('{}/app/main/templates/default_data/activity.json'.format(os.getcwd()), encoding='utf-8') as f:
@@ -124,9 +117,201 @@ async def create_activity(
                         uuid=data["uuid"]
                     )
                     db.add(activity)
+                    db.flush()
+                    if data["activity_category_uuid_tab"]:
+
+                        for category_uuid in data["activity_category_uuid_tab"]:
+                            activity_category = crud.activity_category.get_activity_category_by_uuid(db, category_uuid)
+                            if activity_category:
+                                exist_activity_category = db.query(models.activity_category_table)\
+                                    .filter(models.activity_category_table.c.activity_uuid == activity.uuid)\
+                                    .filter(models.activity_category_table.c.category_uuid == activity_category.uuid).first()
+
+                                if not exist_activity_category:
+                                    activity.activity_categories.append(activity_category)
+                                    db.flush()
+            db.commit()
+        return {"message": "Les activitées ont été créés avec succès"}
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+    
+@router.put("/update-contract",response_model=schemas.Msg,status_code=201)
+async def update_contract(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+)-> dict[str, str]:
+    
+    """ Update contract """
+
+    check_user_access_key(admin_key)
+
+    try:
+        
+        for data in db.query(models.PreRegistration).filter(models.PreRegistration.status==models.PreRegistrationStatusType.ACCEPTED).all():
+            print("data.contract_uuid: ",data.contract_uuid)
+            if data.contract_uuid:
+                contract = crud.contract.get_contract_by_uuid(db=db, uuid=data.contract_uuid)
+                print("contract: ",contract)
+                if contract:
+                    print("data.child_uuid: ",data.child_uuid)
+                    print(data.child.parents)
+
+                    parents = db.query(models.ParentGuest).filter(models.ParentGuest.uuid.in_([p.uuid for p in data.child.parents])).all()
+                    for parent in parents:
+                        if contract not in parent.contracts:
+                            parent.contracts.append(contract)
+
+                    contract.nursery_uuid = data.nursery_uuid
+                    contract.status = "ACCEPTED"
+                    contract.date_of_acceptation = datetime.now()
+                    contract.owner_uuid = data.nursery.owner_uuid
+                    contract.has_company_contract = False
+
+            db.commit()
+        return {"message": "Les contracts ont été modifiés avec succès"}
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+    
+
+@router.post("/create-setting-notifications", response_model=schemas.Msg, status_code=201)
+async def create_product_setting_notifications(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+) -> Any:
+    """
+    Create default setting notifications
+    """
+    check_user_access_key(admin_key)
+    try:
+        with open('{}/app/main/templates/default_data/notification_setting.json'.format(os.getcwd(), encoding='utf-8'), encoding='utf-8') as f:
+            datas = json.load(f)
+            for data in datas:
+                item = db.query(models.NotificationSetting).filter(models.NotificationSetting.key==data["key"]).first()
+                if item:
+                    item.title_en = data["title_en"]
+                    item.title_fr = data["title_fr"]
+                    item.key = data["key"]
+                    item.codes = data["codes"]
+                    
+                else:
+                    item = models.NotificationSetting(
+                        uuid = str(uuid.uuid4()),
+                        title_en = data["title_en"],
+                        title_fr = data["title_fr"],
+                        key = data["key"],
+                        codes = data["codes"]
+                    )
+                    db.add(item)
+
+                db.commit()
+
+        return {"message": "Notification par defaut crée avec succès"}
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/notifications/settings", response_model=schemas.Msg, status_code=201)
+async def notification_setting(
+    admin_key: schemas.AdminKey = Body(...),
+    db: Session = Depends(dependencies.get_db),
+) -> Any:
+    """
+        Notification settings
+    """
+
+    # check_user_access_key(admin_key)
+
+    # Add notifications for this employees
+    for user in db.query(models.Employee).filter(models.Employee.status == models.UserStatusType.ACTIVED).all():
+        # Filter NotificationSettings where 'employees' is in the array 'codes'
+        for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['employees'])).all():
+            user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=user.uuid, notification_setting_uuid=item.uuid).first()
+            if not user_notif:
+                user_notif = models.NotificationSettingUser(
+                    uuid=str(uuid.uuid4()),
+                    user_uuid=user.uuid,
+                    notification_setting_uuid=item.uuid,
+                    mail_actived=True,
+                    push_actived=False,
+                    in_app_actived=False
+                )
+                db.add(user_notif)
+                db.commit()
+
+    # Add notifications for this parents
+    for user in db.query(models.Parent).filter(models.Parent.status == models.UserStatusType.ACTIVED).all():
+        # Filter NotificationSettings where 'parents' is in the array 'codes'
+        for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['parents'])).all():
+            user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=user.uuid, notification_setting_uuid=item.uuid).first()
+            if not user_notif:
+                user_notif = models.NotificationSettingUser(
+                    uuid=str(uuid.uuid4()),
+                    user_uuid=user.uuid,
+                    notification_setting_uuid=item.uuid,
+                    mail_actived=True,
+                    push_actived=False,
+                    in_app_actived=False
+                )
+                db.add(user_notif)
+                db.commit()
+
+    # Add notifications for this owwers
+    for user in db.query(models.Owner).filter(models.Owner.status == models.UserStatusType.ACTIVED).all():
+        # Filter NotificationSettings where 'owwers' is in the array 'codes'
+        for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['owwers'])).all():
+            user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=user.uuid, notification_setting_uuid=item.uuid).first()
+            if not user_notif:
+                user_notif = models.NotificationSettingUser(
+                    uuid=str(uuid.uuid4()),
+                    user_uuid=user.uuid,
+                    notification_setting_uuid=item.uuid,
+                    mail_actived=True,
+                    push_actived=False,
+                    in_app_actived=False
+                )
+                db.add(user_notif)
+                db.commit()
+
+    return {"message": "Notifications ajoutées aux utilisateurs avec succès"}
+    
+@router.post("/create-default-activity-categories",response_model=schemas.Msg,status_code=201)
+async def create_default_activity_categories(
+    db: Session = Depends(dependencies.get_db),
+    admin_key: schemas.AdminKey = Body(...)
+)-> dict[str, str]:
+    """ Create default activity categories """
+    check_user_access_key(admin_key)
+    try:
+        with open('{}/app/main/templates/default_data/activity_category.json'.format(os.getcwd()), encoding='utf-8') as f:
+            datas = json.load(f)
+            
+            for data in datas:
+                activity = crud.activity_category.get_activity_category_by_uuid(db=db, uuid=data["uuid"])
+                if activity:
+                    crud.activity_category.update(db, schemas.ActivityCategoryUpdate(**data))
+                else:
+                    activity = models.ActivityCategory(
+                        name_fr=data["name_fr"],
+                        name_en=data["name_en"],
+                        uuid=data["uuid"]
+                    )
+                    db.add(activity)
                     db.commit()
                     db.refresh(activity)
-        return {"message": "Les activitées ont été créés avec succès"}
+                    
+        return {"message": "Les categories d'activités ont été créées avec succès"}
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("conflict"))
@@ -170,6 +355,88 @@ async def create_user_roles(
     except IntegrityError as e:
         logger.error(str(e))
         raise HTTPException(status_code=409, detail=__("user-role-conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/create-groups", response_model=schemas.Msg, status_code=201)
+async def create_user_groups(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create user groups.
+    """
+    check_user_access_key(admin_key)
+
+    try:
+        with open('{}/app/main/templates/default_data/group.json'.format(os.getcwd()), encoding='utf-8') as f:
+            datas = json.load(f)
+
+            for data in datas:
+                user_group:models.Group = db.query(models.Group).filter(models.Group.code == data["code"])
+                if user_group:
+                    user_group.title_fr=data["title_fr"]
+                    user_group.title_en=data["title_en"]
+                    user_group.code = data["code"]
+                    user_group.description=data["description"] if data["description"] else None
+
+                else:
+                    user_group = models.Group(
+                        title_fr=data["title_fr"],
+                        title_en=data["title_en"],
+                        code = data["code"],
+                        description=data["description"] if data["description"] else None,
+                        uuid=data["uuid"]
+                    )
+                    db.add(user_group)
+                    db.commit()
+        return {"message": "Les groupes ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("user-group-conflict"))
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=500, detail="Erreur du serveur")
+
+@router.post("/create-jobs", response_model=schemas.Msg, status_code=201)
+async def create_nursery_jobs(
+        db: Session = Depends(dependencies.get_db),
+        admin_key: schemas.AdminKey = Body(...)
+) -> dict[str, str]:
+    """
+    Create user groups.
+    """
+    check_user_access_key(admin_key)
+
+    try:
+        with open('{}/app/main/templates/default_data/job.json'.format(os.getcwd()), encoding='utf-8') as f:
+            datas = json.load(f)
+
+            for data in datas:
+                nursery_job:models.Job = db.query(models.Job).filter(models.Job.code == data["code"])
+                if nursery_job:
+                    nursery_job.title_fr=data["title_fr"]
+                    nursery_job.title_en=data["title_en"]
+                    nursery_job.code = data["code"]
+                    nursery_job.description=data["description"] if data["description"] else None
+
+                else:
+                    nursery_job = models.Job(
+                        title_fr=data["title_fr"],
+                        title_en=data["title_en"],
+                        code = data["code"],
+                        description=data["description"] if data["description"] else None,
+                        uuid=data["uuid"]
+                    )
+                    db.add(nursery_job)
+                    db.commit()
+        return {"message": "Les jobs ont été créés avec succès"}
+        
+    except IntegrityError as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=409, detail=__("nursery-job-conflict"))
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(status_code=500, detail="Erreur du serveur")

@@ -13,11 +13,11 @@ class ActivityCategoryBase(BaseModel):
     name_en: str
 
 class ActivityCategoryCreate(ActivityCategoryBase):
-    activity_type_uuid_tab:Optional[list[str]]
+    activity_type_uuid_tab:Optional[list[str]] =[]
 
 class ActivityCategoryUpdate(BaseModel):
     uuid: str
-    activity_type_uuid_tab:Optional[list[str]]
+    activity_type_uuid_tab:Optional[list[str]] = []
     name_fr: Optional[str] = None
     name_en: Optional[str] = None
 

@@ -1,8 +1,8 @@
 from enum import Enum
 
 from datetime import datetime, date
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, event, types,UniqueConstraint, \
-    Float
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, event, types, UniqueConstraint, \
+    Float, Index
 from sqlalchemy.orm import relationship, Mapped
 from .db.base_class import Base
 
@@ -11,6 +11,7 @@ class NurseryStatusType(str, Enum):
     ACTIVED = "ACTIVED"
     UNACTIVED = "UNACTIVED"
     DELETED = "DELETED"
+
 
 class QuoteTimetableItemType(str, Enum):
     REGISTRATION = "REGISTRATION"
@@ -241,7 +242,9 @@ class QuoteSetting(Base):
     adaptation_hourly_rate: float = Column(Float, default=10)
     adaptation_hours_number: int = Column(Integer, default=120)
 
-    hourly_rate_ranges: Mapped[list[any]] = relationship("HourlyRateRange", back_populates="quote_setting", uselist=True, order_by="HourlyRateRange.number_of_hours")
+    hourly_rate_ranges: Mapped[list[any]] = relationship("HourlyRateRange", back_populates="quote_setting",
+                                                         uselist=True, order_by="HourlyRateRange.number_of_hours",
+                                                         primaryjoin="and_(HourlyRateRange.quote_setting_uuid == QuoteSetting.uuid, HourlyRateRange.is_deleted == False)")
 
     has_deposit: bool = Column(Boolean, default=True)
     deposit_type: str = Column(types.Enum(DepositType), default=DepositType.PERCENTAGE, nullable=False)
@@ -255,12 +258,12 @@ class QuoteSetting(Base):
     min_days_for_last_special_month: int = Column(Integer, default=5)
 
     # Invoice
-    desired_text_on_invoice_line: str = Column(String, nullable=True)
+    desired_text_on_invoice_line: str = Column(String, nullable=True, default="")
     # display_calculation_details_in_invoice: bool = Column(Boolean, default=False)
     invoicing_time: str = Column(types.Enum(InvoiceTimeType), default=InvoiceTimeType.END_OF_MONTH, nullable=False)
     invoice_payable_within: int = Column(Integer, default=0)
-    terms_and_conditions_displayed_on_invoice: str = Column(String, nullable=True)
-    invoice_footer: str = Column(String, nullable=True)
+    terms_and_conditions_displayed_on_invoice: str = Column(String, nullable=True, default="")
+    invoice_footer: str = Column(String, nullable=True, default="")
 
     is_overrun_billed: bool = Column(Boolean, default=True)
     overrun_amount: float = Column(Float, default=0)
@@ -271,6 +274,7 @@ class QuoteSetting(Base):
     # Invoice
 
     is_default: bool = Column(Boolean, default=False)
+    is_deleted: bool = Column(Boolean, default=False)
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
@@ -300,15 +304,27 @@ class HourlyRateRange(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    number_of_day: int = Column(Integer, default=0, unique=True)
-    number_of_hours: float = Column(Float)
-    hourly_rate: float = Column(Float, default=10)
+    number_of_day: int = Column(Integer, default=0)
+    number_of_hours: float = Column(Float, nullable=False)
+    hourly_rate: float = Column(Float, nullable=False, default=10)
 
     quote_setting_uuid: str = Column(String, ForeignKey('quote_settings.uuid'), nullable=True)
     quote_setting: Mapped[any] = relationship("QuoteSetting", foreign_keys=quote_setting_uuid, back_populates="hourly_rate_ranges", uselist=False)
 
+    is_deleted: bool = Column(Boolean, default=False)
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    __table_args__ = (
+        Index(
+            'idx_unique_day_setting_not_deleted',
+            'number_of_day',
+            'quote_setting_uuid',
+            unique=True,
+            postgresql_where=(Column('is_deleted') == False)
+        ),
+    )
 
 
 @event.listens_for(HourlyRateRange, 'before_insert')

@@ -1,3 +1,4 @@
+import uuid
 from app.main.core.dependencies import get_db, TokenRequired
 from app.main import schemas, crud, models
 from app.main.core.i18n import __
@@ -80,7 +81,26 @@ def create(
     #     if not teams or len(teams)!= len(obj_in.team_uuid_tab):
     #         raise HTTPException(status_code=404, detail=__("team-not-found"))
     
-    return crud.employe.create(db, obj_in)
+    employees = crud.employe.create(db, obj_in)
+    
+    # Add notifications for this employees
+    for user in db.query(models.Employee).filter(models.Employee.uuid.in_([e.uuid for e in employees])).all():
+        # Filter NotificationSettings where 'employees' is in the array 'codes'
+        for item in db.query(models.NotificationSetting).filter(models.NotificationSetting.codes.contains(['employees'])).all():
+            user_notif = db.query(models.NotificationSettingUser).filter_by(user_uuid=user.uuid, notification_setting_uuid=item.uuid).first()
+            if not user_notif:
+                user_notif = models.NotificationSettingUser(
+                    uuid=str(uuid.uuid4()),
+                    user_uuid=user.uuid,
+                    notification_setting_uuid=item.uuid,
+                    mail_actived=True,
+                    push_actived=False,
+                    in_app_actived=False
+                )
+                db.add(user_notif)
+                db.commit()
+
+    return employees
 
 @router.put("/", response_model=schemas.EmployeResponse, status_code=200)
 def update(

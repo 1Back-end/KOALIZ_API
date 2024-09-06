@@ -21,8 +21,7 @@ router = APIRouter(
 def upload_file(
         *,
         db: Session = Depends(dependencies.get_db),
-        obj_in: schemas.FileUpload = Body(...),
-        current_user: models.User = Depends(TokenRequired())
+        obj_in: schemas.FileUpload = Body(...)
 ) -> Any:
     """
     Upload a file.

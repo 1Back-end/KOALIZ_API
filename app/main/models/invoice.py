@@ -3,7 +3,10 @@ from enum import Enum
 from datetime import datetime, date
 from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, event, types,UniqueConstraint, \
     Float
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped
+
+from app.main.models.db.session import SessionLocal
 from .db.base_class import Base
 
 
@@ -13,6 +16,15 @@ class InvoiceStatusType(str, Enum):
     PENDING = "PENDING"
     PROFORMA = "PROFORMA"
     UNPAID = "UNPAID"
+
+
+class InvoiceItemType(str, Enum):
+    REGISTRATION = "REGISTRATION"
+    DEPOSIT = "DEPOSIT"
+    ADAPTATION = "ADAPTATION"
+    INVOICE = "INVOICE"
+    CUSTOM = "CUSTOM"
+    OVERTIME = "OVERTIME"
 
 
 class Invoice(Base):
@@ -60,6 +72,16 @@ class Invoice(Base):
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
 
+    @hybrid_property
+    def total_hours(self):
+        return sum([item.total_hours for item in self.items if
+                    item.total_hours is not None and item.type != InvoiceItemType.OVERTIME])
+
+    @hybrid_property
+    def total_overtime_hours(self):
+        return sum([item.total_hours for item in self.items if
+                    item.total_hours is not None and item.type == InvoiceItemType.OVERTIME])
+
 
 @event.listens_for(Invoice, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
@@ -87,6 +109,8 @@ class InvoiceItem(Base):
     amount: float = Column(Float, nullable=0)
     total_hours: float = Column(Float)
     unit_price: float = Column(Float)
+
+    type: str = Column(types.Enum(InvoiceItemType))
 
     invoice_uuid: str = Column(String, ForeignKey('invoices.uuid', ondelete='CASCADE'), nullable=False)
     invoice: Mapped[any] = relationship("Invoice", foreign_keys=invoice_uuid, uselist=False, back_populates="items")
@@ -187,6 +211,10 @@ class ClientAccount(Base):
     phone_number: str = Column(String, nullable=False)
     email: str = Column(String, nullable=False)
 
+    bic = Column(String(11), nullable=True)
+    rum = Column(String(100), nullable=True, unique=True)
+    signed_date = Column(Date, nullable=True)
+
     invoices: Mapped[list[any]] = relationship("Invoice", uselist=True, back_populates="client_account")
     contracts = relationship("Contract", secondary="client_account_contracts", back_populates="client_accounts", uselist=True, overlaps="contract,client_account")
     children = relationship("Child", secondary="client_account_children", back_populates="client_accounts", uselist=True, overlaps="child,client_account")
@@ -194,6 +222,43 @@ class ClientAccount(Base):
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+
+    @hybrid_property
+    def performed_by(self):
+        db = SessionLocal()
+        from app.main.models import AuditLog  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            performed_by = db.query(AuditLog).\
+                    filter(AuditLog.entity_type == "ClientAccount",AuditLog.entity_id == self.uuid).\
+                    filter(AuditLog.action.in_(["UPDATE", "UPDATED"])).\
+                    order_by(AuditLog.date_added.desc()).first()
+            if performed_by:
+                return performed_by.performed_by
+            return None
+        except Exception as e:
+            print(f"Erreur lors de la récupération des tags : {e}")
+        finally:
+            db.close()
+    @hybrid_property
+    def performed_date(self):
+        db = SessionLocal()
+        from app.main.models import AuditLog  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            performed_date = db.query(AuditLog).\
+                    filter(AuditLog.entity_type == "ClientAccount",AuditLog.entity_id == self.uuid).\
+                    filter(AuditLog.action.in_(["UPDATE", "UPDATED"])).\
+                    order_by(AuditLog.date_added.desc()).first()
+            if performed_date:
+                return performed_date.date_added
+            return None
+        except Exception as e:
+            print(f"Erreur lors de la récupération des tags : {e}")
+        finally:
+            db.close()
+
 
 
 @event.listens_for(ClientAccount, 'before_insert')

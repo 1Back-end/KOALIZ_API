@@ -1,12 +1,14 @@
 from enum import Enum
+import math
 
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, event, types, Date, ARRAY, Float, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table, event, types,Date,Float, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, date
 from sqlalchemy.orm import joinedload
 
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship, Mapped
+from app.main import models
 from app.main.models.db.session import SessionLocal
 from app.main.models.quote import FamilyType
 from .db.base_class import Base
@@ -70,6 +72,8 @@ class Child(Base):
 
     parents: Mapped[list[any]] = relationship("ParentGuest", back_populates="child", uselist=True)
 
+    app_parents: Mapped[list[any]] = relationship("ParentChild", back_populates="child", uselist=True)
+
     preregistrations: Mapped[list[any]] = relationship("PreRegistration", back_populates="child", uselist=True)
 
     meals: Mapped[list[any]] = relationship("Meal", back_populates="child", uselist=True) # Repas
@@ -125,6 +129,15 @@ class Child(Base):
         finally:
             db.close()
 
+    @hybrid_property
+    def pickup_parents(self):
+        parent_guests = []
+        for parent in self.parents:
+            if parent.has_pickup_child_authorization:
+                parent_guests.append(parent)
+        return parent_guests
+
+
 @event.listens_for(Child, 'before_insert')
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
@@ -179,22 +192,32 @@ class ParentChild(Base):
 
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
-    parent_uuid = Column(String, ForeignKey('parents.uuid'), nullable=True)
-    parent: Mapped[any] = relationship("Parent", foreign_keys=parent_uuid, uselist=False)
-
     parent_email = Column(String, nullable=False)
 
     nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
     nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
-    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False)
+    child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, uselist=False,back_populates="app_parents")
 
-    added_by_uuid: str = Column(String, ForeignKey('administrators.uuid'), nullable=True)
-    added_by = relationship("Administrator", foreign_keys=[added_by_uuid], uselist=False)
+    added_by_uuid: str = Column(String, nullable=True)
 
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    @hybrid_property
+    def added_by(self):
+        db = SessionLocal()
+        user = db.query(models.Administrator).\
+            filter(models.Administrator.uuid==self.added_by_uuid,
+                   models.Administrator.status!="DELETED").\
+                    first()
+        if not user:
+            user = db.query(models.Owner).\
+                filter(models.Owner.uuid==self.added_by_uuid,
+                     models.Owner.status!="DELETED").\
+                        first()
+        return user
 
 
 @event.listens_for(ParentChild, 'before_insert')
@@ -208,6 +231,11 @@ def update_modified_on_update_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
     target.date_modified = datetime.now()
 
+# Table d'association many-to-many entre Parent et Contract
+parent_contract = Table('parent_contract', Base.metadata,
+    Column('contract_uuid', String, ForeignKey('contracts.uuid'), primary_key=True),
+    Column('parent_uuid', String, ForeignKey('parent_guests.uuid'), primary_key=True)
+)
 
 class ParentGuest(Base):
     """
@@ -218,33 +246,39 @@ class ParentGuest(Base):
     uuid: str = Column(String, primary_key=True, unique=True, index=True)
 
     link: str = Column(types.Enum(ParentRelationship), nullable=False)
-    firstname: str = Column(String, nullable=False)
-    lastname: str = Column(String, nullable=False)
-    birthplace: str = Column(String)
-    fix_phone: str = Column(String, nullable=False)
-    phone: str = Column(String, nullable=False)
-    email: str = Column(String, nullable=False)
-    recipient_number: str = Column(String, nullable=False)
-    zip_code: str = Column(String, nullable=False)
-    city: str = Column(String, nullable=False)
-    country: str = Column(String, nullable=False)
-    profession: str = Column(String, nullable=False)
+    firstname: str = Column(String, default="")
+    lastname: str = Column(String, default="")
+    birthplace: str = Column(String, default="")
+    fix_phone: str = Column(String, default="")
+    phone: str = Column(String, default="")
+    email: str = Column(String, default="")
+    recipient_number: str = Column(String, default="")
+    zip_code: str = Column(String, default="")
+    city: str = Column(String, default="")
+    country: str = Column(String, default="")
+    address: str = Column(String, default="")
+    profession: str = Column(String, default="")
     annual_income: float = Column(Float, default=0)
-    company_name: str = Column(String, default=0)
-    has_company_contract: bool = Column(Boolean, default=True)
+    company_name: str = Column(String, default="")
+    has_company_contract: bool = Column(Boolean, default=False)
     dependent_children: int = Column(Integer, default=0)
     disabled_children: int = Column(Integer, default=0)
 
     is_paying_parent: bool = Column(Boolean, default=False)
+    has_pickup_child_authorization: bool = Column(Boolean, default=False)
 
-    # contract_uuid: str = Column(String, ForeignKey('contracts.uuid'), nullable=True)
-    # contract: Mapped[any] = relationship("Contract", foreign_keys=contract_uuid, uselist=False) #back_populates="parent_guest"
+    avatar_uuid: str = Column(String, ForeignKey('storages.uuid'), nullable=True)
+    avatar = relationship("Storage", foreign_keys=[avatar_uuid])
+
+    is_new_user: bool = Column(Boolean, nullable=True, default=False)
+
+    contracts = relationship("Contract", secondary=parent_contract, back_populates="parents")
 
     child_uuid: str = Column(String, ForeignKey('children.uuid'), nullable=True)
     child: Mapped[any] = relationship("Child", foreign_keys=child_uuid, back_populates="parents", uselist=False)
 
-    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
-    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+    date_added: datetime = Column(DateTime, nullable=True, default=datetime.now())
+    date_modified: datetime = Column(DateTime, nullable=True, default=datetime.now())
 
 
 @event.listens_for(ParentGuest, 'before_insert')
@@ -376,22 +410,83 @@ class Contract(Base):
     end_date: date = Column(Date, nullable=False)
     typical_weeks: list[any] = Column(JSONB, nullable=False)
     child: Mapped[any] = relationship("Child", back_populates="contract", uselist=False)
+    
     type: str = Column(String, nullable=False)
-    # type: str = Column(types.Enum(ContractType), nullable=False, default=ContractType.REGULAR)
-    # has_company_contract: bool = Column(Boolean, default=True)
-    # annual_income: float = Column(Float, default=0)
+    status: str = Column(String, nullable=True, default="DRAFT") # DRAFT, ACCEPTED, REFUSED, CANCELLED, TERMINATED, BLOCKED, RUPTURED, DELETED
+    
+    has_company_contract: bool = Column(Boolean, default=True)
+    annual_income: float = Column(Float, default=0)
+    caution: float = Column(Float, default=0)
 
-    # parent_guest_uuid: str = Column(String, ForeignKey('parent_guests.uuid'), nullable=True)
-    # parent_guest: Mapped[any] = relationship("ParentGuest", foreign_keys=parent_guest_uuid, back_populates="contract", uselist=False)
+    nursery_uuid: str = Column(String, ForeignKey('nurseries.uuid'), nullable=True)
+    nursery: Mapped[any] = relationship("Nursery", foreign_keys=nursery_uuid, uselist=False)
 
-    sepa_direct_debit_uuid: str = Column(String, ForeignKey('sepa_direct_debits.uuid'))
-    sepa_direct_debit: Mapped[any] = relationship("SEPADirectDebit", foreign_keys=sepa_direct_debit_uuid, uselist=False)
-    reference: str = Column(String, default="")
+    parents = relationship("ParentGuest", secondary=parent_contract, back_populates="contracts")
 
     client_accounts: Mapped[list[any]] = relationship("ClientAccount", secondary="client_account_contracts", back_populates="contracts", uselist=True)
 
+    reference: str = Column(String, default="")
+    note: str = Column(String, default="")
+
+    date_of_termination: datetime = Column(DateTime, nullable=True) 
+    date_of_acceptation: datetime = Column(DateTime, nullable=True) 
+    date_of_rupture: datetime = Column(DateTime, nullable=True) 
+
+    owner_uuid: str = Column(String, ForeignKey('owners.uuid'), nullable=True)
+    owner = relationship("Owner", foreign_keys=owner_uuid, uselist=False)
+
     date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
     date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
+
+    @hybrid_property
+    def tags(self):
+        db = SessionLocal()
+        from app.main.models import TagElement,Tags  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            record = db.query(Tags).\
+                outerjoin(TagElement,Tags.uuid == TagElement.tag_uuid).\
+                    filter(TagElement.element_uuid == self.uuid,TagElement.element_type == "CONTRACT").\
+                    options(joinedload(Tags.icon)).\
+                        all()
+            return record
+        except Exception as e:
+            print(f"Erreur lors de la récupération des tags : {e}")
+        finally:
+            db.close()
+    @hybrid_property
+    def client_account(self):
+        return self.client_accounts[0] if len(self.client_accounts) else None
+
+    @hybrid_property
+    def invoices(self):
+        db = SessionLocal()
+        from app.main.models import Invoice  # Importation locale pour éviter l'importation circulaire
+
+        try:
+            record = db.query(Invoice).filter(Invoice.contract_uuid == self.uuid).filter(Invoice.status.in_(["PAID", "PENDING", "UNPAID"])).all()
+            return record
+        except Exception as e:
+            print(f"Erreur lors de la récupération des invoices : {e}")
+        finally:
+            db.close()
+
+    @hybrid_property
+    def hourly_volume(self):
+        total_hours = 0
+        
+        for week in self.typical_weeks:
+            week_hours = 0
+            for day in week:
+                for period in day:
+                    from_time = datetime.strptime(period['from_time'], "%H:%M")
+                    to_time = datetime.strptime(period['to_time'], "%H:%M")
+                    delta = to_time - from_time
+                    hours = delta.total_seconds() / 3600
+                    week_hours += hours
+            total_hours += week_hours
+        
+        return math.ceil(total_hours)
 
 
 @event.listens_for(Contract, 'before_insert')

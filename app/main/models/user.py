@@ -79,28 +79,3 @@ class UserActionValidation(Base):
 def update_created_modified_on_create_listener(mapper, connection, target):
     """ Event listener that runs before a record is updated, and sets the creation/modified field accordingly."""
     target.date_added = datetime.now()
-
-
-@dataclass
-class Device(Base):
-    __tablename__ = 'devices'
-
-    uuid = Column(String, primary_key=True, unique=True)
-    player_id = Column(String, default="", nullable=True)
-    name = Column(String)
-
-    date_added: datetime = Column(DateTime, nullable=False, default=datetime.now())
-    date_modified: datetime = Column(DateTime, nullable=False, default=datetime.now())
-
-
-@event.listens_for(Device, 'before_insert')
-def update_created_modified_on_create_listener(mapper, connection, target):
-    """ Event listener that runs before a record is added, and sets the create/modified field accordingly."""
-    target.date_added = datetime.now()
-    target.date_modified = datetime.now()
-
-
-@event.listens_for(Device, 'before_update')
-def update_modified_on_update_listener(mapper, connection, target):
-    """ Event listener that runs before a record is updated, and sets the modified field accordingly."""
-    target.date_modified = datetime.now()

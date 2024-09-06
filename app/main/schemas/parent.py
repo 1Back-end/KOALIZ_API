@@ -2,6 +2,7 @@ from typing import Optional,Any
 from pydantic import BaseModel,ConfigDict,EmailStr
 from datetime import datetime
 
+from app.main import models
 from app.main.schemas.base import UserAuthentication
 from app.main.schemas.file import File
 
@@ -49,8 +50,23 @@ class ParentUpdate(BaseModel):
     uuid: str
     firstname: Optional[str]=None
     lastname: Optional[str]=None
+    fix_phone:Optional[str] = None
+    phone:Optional[str] = None
+    link: Optional[models.ParentRelationship] = None
     email: Optional[EmailStr]= None
     avatar_uuid: Optional[str]=None
+    recipient_number: Optional[str]=None
+    zip_code: Optional[str]=None
+    city: Optional[str]=None
+    country: Optional[str]=None
+    profession: Optional[str]=None
+    annual_income: Optional[float] = None
+    company_name: Optional[str]= None
+    has_company_contract: Optional[bool] = None
+    dependent_children: Optional[int] = None
+    disabled_children: Optional[int] = None
+
+    is_paying_parent: Optional[bool] = None
 
 
 class ParentDelete(BaseModel):
@@ -58,9 +74,9 @@ class ParentDelete(BaseModel):
 
 class ParentResponse(ParentBase):
     uuid:str
-    status:str
+    status:Optional[str] = None
     avatar : Optional[Avatar] = None
-    role: Roleslim
+    role: Optional[Roleslim] = None
     added_by: Optional[AddedBy2] = None
     date_added: Any
     date_modified: Any
@@ -82,7 +98,23 @@ class Parent(BaseModel):
     email: EmailStr
     firstname: str
     lastname: str
+    fix_phone: Optional[str] = None
+    phone: Optional[str] = None 
+    link: Optional[models.ParentRelationship] = None
+    recipient_number: Optional[str]=None
+    zip_code: Optional[str]=None
+    city: Optional[str]=None
+    country: Optional[str]=None
+    profession: Optional[str]=None
+    annual_income: Optional[float] = None
+    company_name: Optional[str]= None
+    has_company_contract: Optional[bool] = None
+    dependent_children: Optional[int] = None
+    disabled_children: Optional[int] = None
+
+    is_paying_parent: Optional[bool] = None
     is_new_user: Optional[bool] = False
+    has_pickup_child_authorization: Optional[bool] = False
     avatar: Optional[File]= None
     date_added: datetime
     date_modified: datetime

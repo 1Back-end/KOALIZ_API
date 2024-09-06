@@ -83,8 +83,7 @@ class ActivityCategory(Base):
     uuid = Column(String, primary_key=True, unique=True)
     name_fr = Column(String, nullable=False)
     name_en = Column(String, nullable=False)
-    is_deleted: bool = Column(Boolean, default=False)
-
+    is_default: bool = Column(Boolean, default=True)
 
     activities = relationship("Activity", secondary=activity_category_table, back_populates="activity_categories")
     
@@ -104,7 +103,7 @@ class Activity(Base):
     name_fr = Column(String, nullable=False)
     name_en = Column(String, nullable=False)
     is_deleted: bool = Column(Boolean, default=False)
-
+    is_default: bool = Column(Boolean, default=True)
 
     children = relationship("ChildActivity", back_populates="activity")
     activity_categories = relationship("ActivityCategory", secondary=activity_category_table, back_populates="activities")

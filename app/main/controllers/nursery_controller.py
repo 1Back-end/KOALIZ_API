@@ -19,12 +19,12 @@ def create(
     *,
     db: Session = Depends(get_db),
     obj_in: schemas.NurseryCreate,
-    current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "owner"]))
+    current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
 ):
     """
     Create nursery
     """
-    if current_user.role.code == "administrator" and not obj_in.owner_uuid:
+    if current_user.role.group == "administrators" and not obj_in.owner_uuid:
         raise HTTPException(status_code=400, detail=__("owner-required"))
 
     current_user_uuid = current_user.uuid
@@ -70,7 +70,7 @@ def delete(
         *,
         db: Session = Depends(get_db),
         uuids: list[str],
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Delete many(or one)
@@ -91,7 +91,7 @@ def get(
         status: Optional[str] = Query(None, enum=[st.value for st in models.NurseryStatusType]),
         total_places: int = None,
         owner_uuid: str = None,
-        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "accountant", "owner"]))
 ):
     """
     get all with filters
@@ -109,6 +109,31 @@ def get(
         current_user.uuid if current_user.role.code == "owner" else owner_uuid
     )
 
+
+@router.get("/all-children", response_model=list[schemas.ChildMini3])
+def read_all_nursery_children(
+    *,
+    nursery_uuid: str,
+    db: Session = Depends(get_db),
+    current_user: models.Owner = Depends(TokenRequired(roles=["owner"]))
+):
+    nursery = crud.nursery.get_by_uuid(db,nursery_uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
+    
+    # Trouver toutes les préinscriptions acceptées pour la crèche spécifiée
+    accepted_preregistrations = db.query(models.PreRegistration).filter(
+        models.PreRegistration.nursery_uuid == nursery_uuid,
+        models.PreRegistration.status == models.PreRegistrationStatusType.ACCEPTED
+    ).all()
+
+    # Récupérer les UUIDs des enfants acceptés
+    child_uuids = [preregistration.child_uuid for preregistration in accepted_preregistrations if preregistration.child_uuid]
+
+    # Filtrer les enfants par UUID et is_accepted
+    children = db.query(models.Child).filter(models.Child.uuid.in_(child_uuids), models.Child.is_accepted == True).all()
+
+    return children
 
 @router.get("/children", response_model=list[schemas.Transmission])
 def read_children_by_nursery(
@@ -135,7 +160,7 @@ def read_children_by_nursery(
         db=db, 
         nursery_uuid=nursery_uuid,
         child_uuid=child_uuid,
-        filter_date=datetime.combine(filter_date, datetime.max.time()) if filter_date else None
+        filter_date=filter_date
         # page=page,
         # per_page=per_page,
         # order=order,
@@ -167,7 +192,6 @@ def get_employee_home_page(
     )
     return nursery_details
 
-"c0a1fba8-7015-4fff-955b-8ec95df3fdaf"
 
 @router.get("/{uuid}/opening_hours", response_model=schemas.OpeningHoursList)
 async def get_opening_hours(
@@ -222,7 +246,7 @@ def get_by_slug_guest(
 def get_details(
         uuid: str,
         db: Session = Depends(get_db),
-        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "accountant", "owner"]))
 ):
     """
     Get nursery details
@@ -242,7 +266,7 @@ def update(
         uuid: str,
         obj_in: schemas.NurseryUpdateBase,
         db: Session = Depends(get_db),
-        current_user=Depends(TokenRequired(roles=["administrator", "owner"]))
+        current_user=Depends(TokenRequired(roles=["administrator", "edimester", "owner"]))
 ):
     """
     Update nursery
@@ -263,7 +287,7 @@ def update(
         status: str = Query(..., enum=[st.value for st in models.NurseryStatusType if
                                        st.value != models.NurseryStatusType.DELETED]),
         db: Session = Depends(get_db),
-        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator"]))
+        current_user: models.Administrator = Depends(TokenRequired(roles=["administrator", "edimester"]))
 ):
     """
     Update nursery owner status
@@ -278,9 +302,28 @@ def update(
     return crud.nursery.update_status(db, nursery, status)
 
 
+@router.get("/{uuid}/dashboard/statistics", status_code=200, response_model=schemas.DashboardStatistics)
+def get_statistics(
+        uuid: str,
+        db: Session = Depends(get_db),
+        current_user=Depends(TokenRequired(roles=["owner"]))
+):
+    """
+    Get statistics
+    """
+    nursery = crud.nursery.get_by_uuid(db, uuid)
+    if not nursery:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
+    if current_user.role.code == "owner" and nursery.owner_uuid != current_user.uuid:
+        raise HTTPException(status_code=404, detail=__("nursery-not-found"))
 
+    children_per_day = crud.nursery.get_number_children_per_day_in_current_week(db, nursery)
 
+    invoice_statistics = crud.invoice.get_nursery_statistic(db, nursery.uuid)
 
-
-
+    return {
+        "children_per_day": children_per_day,
+        "invoice_statistics": invoice_statistics,
+        "children_per_hour": {}
+    }

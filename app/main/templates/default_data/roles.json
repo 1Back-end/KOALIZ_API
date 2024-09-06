@@ -34,10 +34,10 @@
     },
     {
       "uuid":"9f6771b1-87f9-4fb8-9bfd-8edc7d3672de",
-      "title_en": "Manager",
-      "title_fr": "Gestionnaire",
+      "title_en": "Assistant",
+      "title_fr": "Assistant",
       "description": "",
-      "code": "manager",
+      "code": "assistant",
       "group":"owners"
     },
     {

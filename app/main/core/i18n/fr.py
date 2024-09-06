@@ -142,4 +142,27 @@ translation = {
     "overlapping-periods": "Périodes qui se chevauchent",
     "membership-not-found": "Adhésion non trouvée",
     "payment-amount-exceeds": "Le montant du paiement dépasse le montant total de la facture",
+    "not-authorized":"Vous n'etes pas autorisés á effectuer cette action",
+    "parent-not-found":"Le parent n'existe pas",
+    "at-least-one-phone-number-required": "Au moins un numéro de téléphone est requis",
+    "parent-status-not-allowed":"Le statut du parent n'est pas actif",
+    "child-not-registered-in-nursery": "L'enfant n'est pas inscrit à la crèche ou alors son dossier d'inscription n'a pas encore été accepté",
+    "quote-setting-not-found": "Paramètres de devis introuvables",
+    "default-quote-setting-not-deletable": "Paramètre de devis par défaut non supprimable",
+    "quote-setting-deleted": "Paramètre de devis supprimé",
+    "hourly-rate-range-not-found": "Plage de tarifs horaires non trouvée",
+    "hourly-rate-range-deleted": "Plage de tarifs horaires supprimée",
+    "hourly-rate-range-exists": "La plage de tarifs horaires existe déjà",
+    'setting-not-exist': "Cette clé de configuration n'existe pas",
+    "group-not-found": "groupe non trouvé",
+    "group-deleted": "groupe supprimé avec succès",
+    "job-deleted": "emploi supprimé",
+    "job-not-found":"emploi introuvable",
+    "planning-not-found": "planning non trouvé",
+    "employee-not-found": "employé non trouvé",
+    "planning-created": "planning crée avec succès",
+    "planning-deleted":"Planning supprimé avec succès"
+
+    
+    
 }
