@@ -2,7 +2,8 @@ import math
 from typing import Any, Dict, Optional
 import uuid
 
-from sqlalchemy import or_
+from fastapi import HTTPException
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from app.main.crud.base import CRUDBase
@@ -129,5 +130,17 @@ class CRUDMedia(CRUDBase[Media, MediaCreate, MediaUpdate]):
             current_page =page,
             data =record_query
         )
-
+    @classmethod
+    def delete_child_media_association(cls,db: Session, child_uuid: str, media_uuid: str):
+    # Supprimer l'association entre l'enfant et le média
+        result = db.query(children_media).filter(and_(
+                    children_media.c.child_uuid == child_uuid,
+                    children_media.c.media_uuid == media_uuid))
+        if result:
+            result.delete()
+            db.commit()
+            
+        
+        
+        
 media = CRUDMedia(Media)

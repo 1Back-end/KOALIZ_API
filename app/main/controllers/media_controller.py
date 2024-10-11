@@ -3,7 +3,7 @@ from app.main import schemas, crud, models
 from app.main.core.i18n import __
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Dict, Optional
 
 
 router = APIRouter(prefix="/medias", tags=["medias"])
@@ -143,3 +143,21 @@ def get_media_details(
         raise HTTPException(status_code=404, detail=__("media-not-found"))
 
     return media
+@router.put("",response_model=schemas.Msg)
+def delete_media(
+    child_uuid: str,
+    media_uuid: str,
+    db: Session = Depends(get_db),
+    current_team_device: models.TeamDevice = Depends(TeamTokenRequired(roles=[]))
+):
+    """Supprime l'association entre un enfant et un média"""
+    
+    try:
+        result = crud.media.delete_child_media_association(db, child_uuid, media_uuid)
+        return {"message": __("media-association-deleted")}
+    except HTTPException as e:
+        # Propager l'exception HTTP si la fonction CRUD lève une erreur
+        raise e
+    except Exception as e:
+        # Capturer d'autres exceptions générales et renvoyer une erreur générique
+        raise HTTPException(status_code=500, detail=str(e))

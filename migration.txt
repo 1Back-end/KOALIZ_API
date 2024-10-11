@@ -33,6 +33,7 @@ CREATE TYPE invoiceitemtype AS ENUM (
             'CUSTOM',           
             'OVERTIME'           
         );
+        
 ALTER TABLE invoice_items ADD COLUMN type invoiceitemtype
 
 CREATE TYPE messagetype AS ENUM (
